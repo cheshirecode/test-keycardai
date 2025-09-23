@@ -1,0 +1,32 @@
+# Lefthook configuration
+# See: https://github.com/evilmartians/lefthook
+
+pre-commit:
+  parallel: true
+  commands:
+    lint:
+      glob: "*.{js,jsx,ts,tsx}"
+      run: npx eslint {staged_files} --max-warnings 0
+      stage_fixed: true
+
+    type-check:
+      glob: "*.{ts,tsx}"
+      run: npx tsc --noEmit
+
+
+commit-msg:
+  commands:
+    commitlint:
+      run: npx commitlint --edit {1}
+
+pre-push:
+  commands:
+    build-check:
+      run: npm run build
+
+# Skip hooks for specific scenarios
+skip_output:
+  - meta
+  - success
+
+colors: true
