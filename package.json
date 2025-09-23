@@ -13,7 +13,7 @@
     "lint": "eslint",
     "lint:fix": "eslint --fix",
     "type-check": "tsc --noEmit",
-    "prepare": "lefthook install",
+    "prepare": "command -v git >/dev/null 2>&1 && lefthook install || echo 'Skipping lefthook install (no git available)'",
     "commitlint": "commitlint --edit"
   },
   "dependencies": {
