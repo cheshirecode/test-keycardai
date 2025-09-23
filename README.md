@@ -179,6 +179,56 @@ test-keycardai/
 
 ## Testing
 
+The project uses **Vitest** for fast, modern testing with TypeScript support out of the box.
+
+### Running Tests
+
+```bash
+# Run tests in watch mode (development)
+npm test
+
+# Run all tests once
+npm run test:run
+
+# Run tests with coverage report
+npm run test:coverage
+
+# Run tests with Vitest UI (browser-based interface)
+npm run test:ui
+```
+
+### Test Structure
+
+```
+src/test/
+├── setup.ts          # Global test configuration
+app/components/
+├── *.test.tsx         # Component tests
+lib/
+├── *.test.ts          # Utility and logic tests
+```
+
+### Writing Tests
+
+Vitest provides a Jest-compatible API with additional features:
+
+```typescript
+import { describe, it, expect, vi } from 'vitest'
+import { render, screen } from '@testing-library/react'
+
+describe('MyComponent', () => {
+  it('should render correctly', () => {
+    render(<MyComponent />)
+    expect(screen.getByText('Hello')).toBeInTheDocument()
+  })
+
+  it('should handle async operations', async () => {
+    const result = await asyncFunction()
+    expect(result).resolves.toBe('success')
+  })
+})
+```
+
 ### Manual Testing
 
 1. Start the development server
@@ -211,6 +261,10 @@ curl -X POST http://localhost:3000/api/mcp \
 - `dev`: Start development server
 - `build`: Build for production
 - `start`: Start production server
+- `test`: Run tests in watch mode (Vitest)
+- `test:run`: Run tests once
+- `test:coverage`: Run tests with coverage report
+- `test:ui`: Run tests with Vitest UI
 - `lint`: Run ESLint
 - `lint:fix`: Run ESLint with auto-fix
 - `type-check`: Run TypeScript type checking

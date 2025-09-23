@@ -13,6 +13,9 @@ pre-commit:
       glob: "*.{ts,tsx}"
       run: npx tsc --noEmit
 
+    test:
+      run: npm run test:run
+
 
 commit-msg:
   commands:

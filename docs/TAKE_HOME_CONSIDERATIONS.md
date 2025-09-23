@@ -23,7 +23,7 @@ This document addresses the specific considerations and questions outlined in th
    - Project functionality validation
 
 **Tools and Methods:**
-- **Jest** for unit and integration testing
+- **Vitest** for unit and integration testing (faster, modern alternative to Jest)
 - **React Testing Library** for component testing
 - **Playwright** for end-to-end testing
 - **MSW (Mock Service Worker)** for API mocking
