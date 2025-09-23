@@ -2,6 +2,12 @@
 
 An intelligent project scaffolding agent that creates ready-to-use development projects through natural language conversation, built with MCP (Model Context Protocol).
 
+## 🚀 Live Demo
+
+**Try it now:** [https://test-keycardai-rv8wigyxy-dac4158s-projects.vercel.app](https://test-keycardai-rv8wigyxy-dac4158s-projects.vercel.app)
+
+> Deployed on Vercel with automatic deployments from the `main` branch.
+
 ## Features
 
 - 🤖 **AI-Powered**: Uses OpenAI GPT to understand project requirements
