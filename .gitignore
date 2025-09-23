@@ -171,4 +171,4 @@ $RECYCLE.BIN/
 .cursor
 
 # Git hooks (managed by lefthook)
-.git/hooks/
+.git/hooks/coverage/
