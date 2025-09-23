@@ -76,13 +76,13 @@ graph TD
     D -->|✅ Success| E[🌐 Production Deployment]
     D -->|❌ Failure| F[📧 Build Error Notification]
     E --> G[🔗 Live URL Updated]
-    
+
     H[🌿 Feature Branch Push] -->|webhook| I[👀 Preview Deployment]
     I --> J[🔍 Preview URL]
-    
+
     K[⚙️ Environment Variables] --> C
     L[🔐 API Keys] --> K
-    
+
     style E fill:#28a745
     style F fill:#dc3545
     style I fill:#17a2b8
@@ -343,12 +343,12 @@ MIT License - see [LICENSE](./LICENSE) file for details.
 
 ### Common Issues
 
-1. **OpenAI API Error**: 
+1. **OpenAI API Error**:
    - Check your API key is correctly set in `.env.local`
    - Verify the API key is valid at [OpenAI Platform](https://platform.openai.com/api-keys)
    - For Vercel deployment, ensure environment variable is set in dashboard
 
-2. **Git Commands Fail**: 
+2. **Git Commands Fail**:
    - Ensure Git is installed and configured
    - Set global Git user: `git config --global user.name "Your Name"`
    - Set global Git email: `git config --global user.email "your.email@example.com"`
@@ -358,11 +358,11 @@ MIT License - see [LICENSE](./LICENSE) file for details.
    - Verify environment variables are configured in Vercel
    - Ensure main branch is up to date: `git push origin main`
 
-4. **Permission Errors**: 
+4. **Permission Errors**:
    - Check file system permissions for project creation
    - Ensure Node.js has write access to project directory
 
-5. **Port Conflicts**: 
+5. **Port Conflicts**:
    - Change the port in `next.config.js` if needed
    - Or use: `npm run dev -- --port 3001`
 

@@ -118,7 +118,7 @@ This document addresses the specific considerations and questions outlined in th
 function validateProjectPath(path: string): boolean {
   const normalizedPath = path.normalize(path);
   const allowedBasePaths = ['/tmp/projects', '/user/projects'];
-  return allowedBasePaths.some(basePath => 
+  return allowedBasePaths.some(basePath =>
     normalizedPath.startsWith(basePath)
   );
 }
