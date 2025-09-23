@@ -28,35 +28,79 @@ An intelligent project scaffolding agent that creates ready-to-use development p
 
 ### Prerequisites
 
-- Node.js 18+ installed
-- Git installed and configured
-- OpenAI API key
+- **Node.js 18+** installed
+- **Git** installed and configured
+- **OpenAI API key** - Get yours from [OpenAI Platform](https://platform.openai.com/api-keys)
 
 ### Installation
 
-1. Clone the repository:
+1. **Clone the repository:**
 ```bash
-git clone <repository-url>
+git clone https://github.com/cheshirecode/test-keycardai.git
 cd test-keycardai
 ```
 
-2. Install dependencies:
+2. **Install dependencies:**
 ```bash
 npm install
 ```
 
-3. Set up environment variables:
+3. **Set up environment variables:**
 ```bash
-cp .env.local.example .env.local
-# Add your OpenAI API key to .env.local
+# Copy the example environment file
+cp .env.example .env.local
+
+# Edit .env.local and add your OpenAI API key:
+# OPENAI_API_KEY=your_actual_api_key_here
 ```
 
-4. Start the development server:
+> **⚠️ Important**: You **must** configure your OpenAI API key for the AI features to work. The application will not function without it.
+
+4. **Start the development server:**
 ```bash
 npm run dev
 ```
 
-5. Open [http://localhost:3000](http://localhost:3000) in your browser.
+5. **Open your browser:**
+   Visit [http://localhost:3000](http://localhost:3000) to use the application.
+
+## 🚀 Deployment Workflow
+
+The project uses continuous deployment with Vercel and GitHub integration:
+
+```mermaid
+graph TD
+    A[💻 Local Development] -->|git push| B[📦 GitHub Repository]
+    B -->|webhook| C[🔄 Vercel Build Trigger]
+    C --> D{🏗️ Build Process}
+    D -->|✅ Success| E[🌐 Production Deployment]
+    D -->|❌ Failure| F[📧 Build Error Notification]
+    E --> G[🔗 Live URL Updated]
+    
+    H[🌿 Feature Branch Push] -->|webhook| I[👀 Preview Deployment]
+    I --> J[🔍 Preview URL]
+    
+    K[⚙️ Environment Variables] --> C
+    L[🔐 API Keys] --> K
+    
+    style E fill:#28a745
+    style F fill:#dc3545
+    style I fill:#17a2b8
+    style A fill:#6f42c1
+```
+
+### Deployment Process
+
+1. **Push to Main Branch** → Triggers production deployment
+2. **Push to Feature Branch** → Creates preview deployment
+3. **Environment Variables** → Automatically configured in Vercel
+4. **Build Logs** → Available in Vercel dashboard
+
+### Environment Variables in Production
+
+The following environment variables are configured in Vercel:
+- `OPENAI_API_KEY` - Encrypted and secure
+- `NODE_ENV` - Automatically set to `production`
 
 ## Usage
 
@@ -173,6 +217,51 @@ curl -X POST http://localhost:3000/api/mcp \
 - `prepare`: Install git hooks (runs automatically on npm install)
 - `commitlint`: Validate commit message format
 
+## Deployment
+
+### Automatic Deployment (Recommended)
+
+The project is configured for **continuous deployment**:
+
+1. **Push to main branch** → Automatic production deployment
+2. **Push to feature branch** → Automatic preview deployment
+3. **Environment variables** are automatically applied from Vercel configuration
+
+```bash
+# Deploy to production
+git push origin main
+
+# Create preview deployment
+git checkout -b feature/my-feature
+git push origin feature/my-feature
+```
+
+### Manual Deployment
+
+For manual control, use the Vercel CLI:
+
+```bash
+# Deploy to preview environment
+vercel
+
+# Deploy to production
+vercel --prod
+
+# Check deployment status
+vercel ls
+```
+
+### Environment Configuration
+
+**For Vercel deployment**, environment variables are managed through:
+- Vercel Dashboard: https://vercel.com/dac4158s-projects/test-keycardai/settings/environment-variables
+- Vercel CLI: `vercel env add VARIABLE_NAME`
+
+**Current production environment:**
+- ✅ `OPENAI_API_KEY` configured and encrypted
+- ✅ Automatic deployments enabled
+- ✅ Preview deployments for all branches
+
 ## Development Workflow
 
 ### Git Hooks & Commit Standards
@@ -254,10 +343,28 @@ MIT License - see [LICENSE](./LICENSE) file for details.
 
 ### Common Issues
 
-1. **OpenAI API Error**: Check your API key in `.env.local`
-2. **Git Commands Fail**: Ensure Git is installed and configured
-3. **Permission Errors**: Check file system permissions for project creation
-4. **Port Conflicts**: Change the port in `next.config.js` if needed
+1. **OpenAI API Error**: 
+   - Check your API key is correctly set in `.env.local`
+   - Verify the API key is valid at [OpenAI Platform](https://platform.openai.com/api-keys)
+   - For Vercel deployment, ensure environment variable is set in dashboard
+
+2. **Git Commands Fail**: 
+   - Ensure Git is installed and configured
+   - Set global Git user: `git config --global user.name "Your Name"`
+   - Set global Git email: `git config --global user.email "your.email@example.com"`
+
+3. **Deployment Failures**:
+   - Check build logs in Vercel dashboard
+   - Verify environment variables are configured in Vercel
+   - Ensure main branch is up to date: `git push origin main`
+
+4. **Permission Errors**: 
+   - Check file system permissions for project creation
+   - Ensure Node.js has write access to project directory
+
+5. **Port Conflicts**: 
+   - Change the port in `next.config.js` if needed
+   - Or use: `npm run dev -- --port 3001`
 
 ### Getting Help
 
