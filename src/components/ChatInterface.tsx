@@ -3,11 +3,19 @@
 import { useState, useRef, useEffect } from 'react'
 import { useChat } from '../lib/hooks/useChat'
 import { ProjectPreview } from './ProjectPreview'
+import UserProfile from './UserProfile'
+import { useLocalStorage } from '../hooks/useLocalStorage'
 
 export function ChatInterface() {
   const [input, setInput] = useState('')
   const { messages, isLoading, currentProject, sendMessage, clearChat } = useChat()
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  
+  // Demo of extended functionality - user preferences stored locally
+  const [userProfile, setUserProfile] = useLocalStorage('userProfile', {
+    name: 'Demo User',
+    email: 'demo@example.com'
+  })
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -46,6 +54,14 @@ export function ChatInterface() {
           <div>
             <h1 className="text-2xl font-bold text-gray-900">🚀 Project Scaffolder</h1>
             <p className="text-gray-600">Create projects with natural language</p>
+          </div>
+          
+          {/* Demo: UserProfile component created via extended MCP tools */}
+          <div className="hidden md:block">
+            <UserProfile 
+              name={userProfile.name} 
+              email={userProfile.email} 
+            />
           </div>
           {messages.length > 0 && (
             <button

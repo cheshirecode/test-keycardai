@@ -558,7 +558,10 @@ export const aiOperations = {
       }
 
       // Analyze project type and framework
-      const deps = { ...projectInfo.dependencies, ...projectInfo.devDependencies }
+      const deps = { 
+        ...(projectInfo.dependencies as Record<string, string> || {}), 
+        ...(projectInfo.devDependencies as Record<string, string> || {})
+      }
       let projectType = 'unknown'
       let framework = 'vanilla'
 
@@ -607,7 +610,7 @@ export const aiOperations = {
           projectType,
           framework,
           structure: structure.slice(0, 20), // Limit for response size
-          dependencies: projectInfo.dependencies || {},
+          dependencies: (projectInfo.dependencies as Record<string, string>) || {},
           recommendations
         }
       }
@@ -643,13 +646,13 @@ export const aiOperations = {
           return analysisResult
         }
 
-        analysisData = analysisResult.analysis
+        analysisData = analysisResult.analysis as Record<string, unknown>
       }
 
       // Generate step-by-step modification plan
       const modificationPlan = await generateContextualPlan(
         params.requestDescription,
-        analysisData,
+        analysisData as Record<string, unknown>,
         params.projectPath
       )
 
@@ -657,7 +660,16 @@ export const aiOperations = {
         success: true,
         message: `Generated modification plan with ${modificationPlan.length} steps`,
         analysis: {
-          ...analysisData,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          projectType: (analysisData as any)?.projectType || 'unknown',
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          framework: (analysisData as any)?.framework || 'unknown',
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          structure: (analysisData as any)?.structure || [],
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          dependencies: (analysisData as any)?.dependencies || {},
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          recommendations: (analysisData as any)?.recommendations || [],
           modificationPlan
         }
       }

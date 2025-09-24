@@ -103,7 +103,10 @@ export const projectManagement = {
         packageInfo = JSON.parse(packageContent)
         
         // Detect project type and framework
-        const deps = { ...packageInfo.dependencies, ...packageInfo.devDependencies }
+        const deps = { 
+          ...(packageInfo.dependencies as Record<string, string> || {}), 
+          ...(packageInfo.devDependencies as Record<string, string> || {})
+        }
         if (deps.next) {
           projectType = 'Next.js'
           framework = 'React'
@@ -146,14 +149,14 @@ export const projectManagement = {
         success: true,
         message: `Project analyzed: ${projectName}`,
         project: {
-          name: projectName,
+          name: (typeof packageInfo.name === 'string' ? packageInfo.name : projectName),
           path: params.projectPath,
           type: projectType,
           framework,
           packageManager,
-          dependencies: packageInfo.dependencies || {},
-          devDependencies: packageInfo.devDependencies || {},
-          scripts: packageInfo.scripts || {},
+          dependencies: (packageInfo.dependencies as Record<string, string>) || {},
+          devDependencies: (packageInfo.devDependencies as Record<string, string>) || {},
+          scripts: (packageInfo.scripts as Record<string, string>) || {},
           fileStructure: params.includeFileStructure ? fileStructure : undefined,
           lastModified: stats.mtime.toISOString(),
           size: getDirectorySize(params.projectPath)
