@@ -61,6 +61,9 @@ next-env.d.ts
 # Logs
 logs
 *.log
+
+# Repository metadata (internal use)
+.repo-metadata.json
 `.trim()
 
       fs.writeFileSync(path.join(projectPath, '.gitignore'), gitignore)
@@ -84,6 +87,16 @@ logs
           const createResult = await tools.githubService.createRepository(repoConfig)
 
           if (createResult.success) {
+            // Save repository metadata for later operations
+            const metadataPath = path.join(projectPath, '.repo-metadata.json')
+            const metadata = {
+              owner: repoConfig.owner,
+              repo: repoConfig.repo,
+              url: createResult.url,
+              createdAt: new Date().toISOString()
+            }
+            fs.writeFileSync(metadataPath, JSON.stringify(metadata, null, 2))
+
             return {
               success: true,
               message: `Repository initialized and created on GitHub: ${createResult.url}`,
@@ -139,7 +152,7 @@ logs
         }
       }
 
-      // If no repo config provided, try to infer from project
+      // If no repo config provided, try to find existing repository
       if (!repoConfig) {
         const userResult = await tools.githubService.getAuthenticatedUser()
         if (!userResult.success || !userResult.user) {
@@ -149,10 +162,28 @@ logs
           }
         }
 
+        // Try to read repository info from project metadata file
         const projectName = path.basename(projectPath)
-        repoConfig = {
-          owner: userResult.user.login,
-          repo: GitHubService.generateRepoName(projectName)
+        const metadataPath = path.join(projectPath, '.repo-metadata.json')
+        
+        if (fs.existsSync(metadataPath)) {
+          try {
+            const metadata = JSON.parse(fs.readFileSync(metadataPath, 'utf-8'))
+            repoConfig = {
+              owner: metadata.owner,
+              repo: metadata.repo
+            }
+          } catch (error) {
+            console.warn('Failed to read repository metadata:', error)
+          }
+        }
+        
+        // Fallback: generate new repo name (this might create a new repo)
+        if (!repoConfig) {
+          repoConfig = {
+            owner: userResult.user.login,
+            repo: GitHubService.generateRepoName(projectName)
+          }
         }
       }
 

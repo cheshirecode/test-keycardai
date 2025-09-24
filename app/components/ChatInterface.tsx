@@ -97,30 +97,14 @@ export function ChatInterface() {
                       key={message.id}
                       className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                     >
-                      <div
-                        className={`max-w-[85%] p-3 rounded-lg ${
-                          message.role === 'user'
-                            ? 'bg-blue-500 text-white'
-                            : 'bg-gray-100 text-gray-900'
-                        }`}
-                      >
-                        <div className="text-sm font-medium mb-1">
-                          {message.role === 'user' ? 'You' : '🤖 Agent'}
-                        </div>
-                        <div className="whitespace-pre-wrap text-sm leading-relaxed">
-                          {message.content}
-                        </div>
-                        <div className="text-xs opacity-75 mt-2">
-                          {message.timestamp.toLocaleTimeString()}
-                        </div>
-
-                        {/* Debugging & Transparency Section - Only for agent messages */}
+                      <div className={`max-w-[85%] space-y-3 ${message.role === 'user' ? '' : ''}`}>
+                        {/* Debugging & Transparency Section - Show FIRST for agent messages */}
                         {message.role === 'assistant' && (message.chainOfThought || message.mcpLogs) && (
-                          <div className="mt-3 space-y-2">
+                          <div className="space-y-2">
                             {/* Chain of Thought Section */}
                             {message.chainOfThought && (
-                              <details className="group">
-                                <summary className="cursor-pointer text-xs opacity-75 hover:opacity-100 flex items-center gap-2 p-2 rounded hover:bg-blue-50 transition-colors">
+                              <details className="group" open>
+                                <summary className="cursor-pointer text-xs opacity-75 hover:opacity-100 flex items-center gap-2 p-2 rounded hover:bg-blue-50 transition-colors border border-blue-200">
                                   🤔 <span className="text-blue-700 font-medium">AI Reasoning</span>
                                   <span className="text-gray-500 text-xs">Chain of Thought</span>
                                 </summary>
@@ -137,8 +121,8 @@ export function ChatInterface() {
 
                             {/* MCP Logs Section */}
                             {message.mcpLogs && message.mcpLogs.length > 0 && (
-                              <details className="group">
-                                <summary className="cursor-pointer text-xs opacity-75 hover:opacity-100 flex items-center gap-2 p-2 rounded hover:bg-green-50 transition-colors">
+                              <details className="group" open>
+                                <summary className="cursor-pointer text-xs opacity-75 hover:opacity-100 flex items-center gap-2 p-2 rounded hover:bg-green-50 transition-colors border border-green-200">
                                   🔧 <span className="text-green-700 font-medium">MCP Server Logs</span>
                                   <span className="text-gray-500 text-xs">({message.mcpLogs.length} entries)</span>
                                 </summary>
@@ -187,6 +171,25 @@ export function ChatInterface() {
                             )}
                           </div>
                         )}
+
+                        {/* Main Message Content */}
+                        <div
+                          className={`p-3 rounded-lg ${
+                            message.role === 'user'
+                              ? 'bg-blue-500 text-white'
+                              : 'bg-gray-100 text-gray-900'
+                          }`}
+                        >
+                          <div className="text-sm font-medium mb-1">
+                            {message.role === 'user' ? 'You' : '🤖 Agent'}
+                          </div>
+                          <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                            {message.content}
+                          </div>
+                          <div className="text-xs opacity-75 mt-2">
+                            {message.timestamp.toLocaleTimeString()}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   ))}
