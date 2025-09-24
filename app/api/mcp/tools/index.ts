@@ -367,13 +367,13 @@ export const mcpTools = {
       // Step 2: Generate project path if not provided
       const projectName = params.projectName || analysis.projectName || 'my-project'
       const sanitizedName = projectName.toLowerCase().replace(/[^a-z0-9-]/g, '-')
-      
+
       // Ensure Vercel compatibility by using proper tmp directory
       const tmpProjectsDir = '/tmp/projects'
       if (!fs.existsSync(tmpProjectsDir)) {
         fs.mkdirSync(tmpProjectsDir, { recursive: true })
       }
-      
+
       const projectPath = params.projectPath || path.join(tmpProjectsDir, `${sanitizedName}-${Date.now()}`)
 
       // Step 3: Generate comprehensive action plan
@@ -772,7 +772,7 @@ export const mcpTools = {
   create_github_branch: async (params: { projectPath: string; projectName?: string; branchPrefix?: string }) => {
     try {
       console.log('[GitHub Branch] Starting GitHub branch creation process...')
-      
+
       const githubService = new GitHubService()
       if (!githubService.isGitHubAvailable()) {
         console.log('[GitHub Branch] GitHub token not available')

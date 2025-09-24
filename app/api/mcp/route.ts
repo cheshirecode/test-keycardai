@@ -77,7 +77,7 @@ export async function GET() {
   } catch (error) {
     console.error('Failed to get tools:', error)
     const response = NextResponse.json(
-      { error: 'Failed to get tools' }, 
+      { error: 'Failed to get tools' },
       { status: 500 }
     )
     return addSecurityHeaders(response)
