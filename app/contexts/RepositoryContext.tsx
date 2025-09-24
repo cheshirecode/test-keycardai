@@ -31,6 +31,17 @@ export function RepositoryProvider({ children }: RepositoryProviderProps) {
   const router = useRouter()
   const pathname = usePathname()
 
+  // Clear newlyCreatedRepository after a timeout to prevent persistent redirects
+  React.useEffect(() => {
+    if (newlyCreatedRepository) {
+      const timeout = setTimeout(() => {
+        setNewlyCreatedRepository(null)
+      }, 10000) // Clear after 10 seconds if not processed
+
+      return () => clearTimeout(timeout)
+    }
+  }, [newlyCreatedRepository])
+
   const isRepositoryMode = selectedRepository !== null
 
   const navigateToRepository = useCallback((repository: Repository) => {
@@ -49,6 +60,15 @@ export function RepositoryProvider({ children }: RepositoryProviderProps) {
   const setSelectedRepositoryWithNavigation = useCallback((repository: Repository | null) => {
     setSelectedRepository(repository)
 
+    // Clear the newly created repository flag when a repository is selected
+    if (repository && newlyCreatedRepository) {
+      // Check if this is the newly created repository being selected
+      if (repository.name === newlyCreatedRepository ||
+          repository.fullName.includes(newlyCreatedRepository)) {
+        setNewlyCreatedRepository(null)
+      }
+    }
+
     // Only navigate if we're not already on the correct route
     if (repository) {
       const [owner] = repository.fullName.split('/')
@@ -62,7 +82,7 @@ export function RepositoryProvider({ children }: RepositoryProviderProps) {
         navigateToHome()
       }
     }
-  }, [pathname, navigateToRepository, navigateToHome])
+  }, [pathname, navigateToRepository, navigateToHome, newlyCreatedRepository])
 
   const refreshRepositories = useCallback(() => {
     if (onRepositoryRefresh) {

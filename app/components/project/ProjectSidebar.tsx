@@ -42,8 +42,6 @@ export function ProjectSidebar({ selectedRepository, onRepositorySelect, classNa
       )
       if (newRepo) {
         onRepositorySelect(newRepo)
-        // Clear the newly created repository flag
-        // setNewlyCreatedRepository(null) // We'll handle this in the context
       }
     }
   }, [repositories, newlyCreatedRepository, onRepositorySelect])
@@ -239,6 +237,7 @@ function RepositoryItem({ repository, isSelected, onClick, onDelete }: Repositor
   return (
     <button
       onClick={onClick}
+      data-testid="repository-item"
       className={`w-full p-3 text-left rounded-md transition-colors group ${
         isSelected
           ? 'bg-blue-100 border-l-4 border-blue-500'
