@@ -25,14 +25,14 @@ export function ProjectPreview({ project }: ProjectPreviewProps) {
   useEffect(() => {
     if (project.status === 'completed' && !gitInfo && !isLoadingGitInfo) {
       setIsLoadingGitInfo(true)
-      
+
       // Use actual repository URL if available from project creation
       if (project.repositoryUrl) {
         // Extract repository name from the actual URL
         const urlParts = project.repositoryUrl.split('/')
         const repoName = urlParts[urlParts.length - 1]
         const username = urlParts[urlParts.length - 2]
-        
+
         setGitInfo({
           repositoryUrl: project.repositoryUrl,
           branchName: repoName,
@@ -42,7 +42,7 @@ export function ProjectPreview({ project }: ProjectPreviewProps) {
         setIsLoadingGitInfo(false)
         return
       }
-      
+
       // Fallback: Fetch GitHub user info and generate placeholder URLs
       mcpClient.call('get_github_user', {})
         .then((result: unknown) => {
@@ -50,15 +50,15 @@ export function ProjectPreview({ project }: ProjectPreviewProps) {
           const timestamp = Date.now()
           const sanitizedName = project.name.toLowerCase().replace(/[^a-z0-9-]/g, '-')
           const branchName = `project-${sanitizedName}-${timestamp}`
-          
+
           let username = 'your-username' // fallback
           if (gitResult.success && gitResult.user?.login) {
             username = gitResult.user.login
           }
-          
+
           const repositoryUrl = `https://github.com/${username}/${branchName}`
           const cloneCommand = `git clone ${repositoryUrl}`
-          
+
           setGitInfo({
             repositoryUrl,
             branchName,
@@ -74,7 +74,7 @@ export function ProjectPreview({ project }: ProjectPreviewProps) {
           const branchName = `project-${sanitizedName}-${timestamp}`
           const repositoryUrl = `https://github.com/your-username/${branchName}`
           const cloneCommand = `git clone ${repositoryUrl}`
-          
+
           setGitInfo({
             repositoryUrl,
             branchName,
