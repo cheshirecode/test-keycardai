@@ -1,7 +1,7 @@
 import * as fs from 'fs'
 import * as path from 'path'
 // Types imported for future use
-// import { ProjectInfo, ProjectTemplate } from '../../../typings'
+// import type { ProjectInfo, ProjectTemplate } from '@/types'
 
 export interface ProjectContextParams {
   projectPath: string

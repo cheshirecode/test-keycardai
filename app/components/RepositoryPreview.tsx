@@ -1,29 +1,13 @@
 'use client'
 
 import React, { useState, useEffect, useCallback } from 'react'
-import { Repository } from '../contexts/RepositoryContext'
+import type { Repository, RepositoryDetails } from '@/types'
 import { GlobeAltIcon, LockClosedIcon, ClockIcon, UserIcon, CodeBracketIcon } from '@heroicons/react/24/outline'
 
 interface RepositoryPreviewProps {
   repository: Repository
 }
 
-interface RepositoryDetails {
-  readme?: string
-  languages?: Record<string, number>
-  topics?: string[]
-  license?: string
-  defaultBranch?: string
-  size?: number
-  starsCount?: number
-  forksCount?: number
-  openIssuesCount?: number
-  lastCommit?: {
-    message: string
-    author: string
-    date: string
-  }
-}
 
 export function RepositoryPreview({ repository }: RepositoryPreviewProps) {
   const [details, setDetails] = useState<RepositoryDetails | null>(null)

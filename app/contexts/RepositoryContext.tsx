@@ -1,18 +1,7 @@
 'use client'
 
 import React, { createContext, useContext, useState, ReactNode } from 'react'
-
-interface Repository {
-  id: string
-  name: string
-  fullName: string
-  url: string
-  description: string | null
-  private: boolean
-  createdAt: string
-  updatedAt: string
-  isScaffoldedProject: boolean
-}
+import type { Repository } from '@/types'
 
 interface RepositoryContextType {
   selectedRepository: Repository | null
@@ -50,4 +39,4 @@ export function useRepository() {
   return context
 }
 
-export type { Repository }
+// Repository type is now exported from @/types

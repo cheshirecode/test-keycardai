@@ -1,5 +1,5 @@
 /**
- * API Client Types for Frontend API Communication
+ * API Client Types for Frontend-Backend Communication
  * 
  * These types are used by frontend components when communicating with APIs
  */

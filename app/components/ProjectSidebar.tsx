@@ -1,20 +1,9 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import type { Repository } from '@/types'
 import { ChevronDownIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
 import { FolderIcon, GlobeAltIcon, LockClosedIcon } from '@heroicons/react/24/solid'
-
-interface Repository {
-  id: string
-  name: string
-  fullName: string
-  url: string
-  description: string | null
-  private: boolean
-  createdAt: string
-  updatedAt: string
-  isScaffoldedProject: boolean
-}
 
 interface ProjectSidebarProps {
   selectedRepository?: Repository | null

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { GitHubService } from '../../../src/lib/github-service'
+import { GitHubService } from '@/lib/github-service'
 
 export async function GET(request: NextRequest) {
   try {

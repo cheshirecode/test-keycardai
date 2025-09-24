@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { mcpTools } from './tools'
-import { MCPRequest, MCPResponse } from '../../typings'
+import type { MCPRequest, MCPResponse } from '@/types'
 
 // Security headers for all responses
 function addSecurityHeaders(response: NextResponse) {

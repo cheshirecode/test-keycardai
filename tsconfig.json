@@ -22,11 +22,14 @@
     "paths": {
       "@/*": ["./src/*", "./*"],
       "@/lib/*": ["./src/lib/*"],
-      "@/types/*": ["./src/typings/*", "./app/typings/*"],
-      "@/app-types/*": ["./app/typings/*"],
-      "@/src-types/*": ["./src/typings/*"]
+      "@/types": ["./types"],
+      "@/types/*": ["./types/*"],
+      "@/components/*": ["./src/components/*", "./app/components/*"],
+      "@/contexts/*": ["./app/contexts/*"],
+      "@/hooks/*": ["./src/hooks/*"],
+      "@/api/*": ["./app/api/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "app/typings/**/*.ts", "src/typings/**/*.ts"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "types/**/*.ts"],
   "exclude": ["node_modules"]
 }
