@@ -15,6 +15,7 @@ export function useRepositorySync() {
 
   useEffect(() => {
     const syncRepositoryFromUrl = async () => {
+      
       // Check if we're on a repository route
       const projectMatch = pathname.match(/^\/project\/([^\/]+)\/([^\/]+)$/)
       
@@ -52,10 +53,8 @@ export function useRepositorySync() {
           console.error('Failed to sync repository from URL:', error)
         }
       } else if (pathname === '/') {
-        // On home page, clear selection if we have one
-        if (selectedRepository) {
-          setSelectedRepositoryInternal(null)
-        }
+        // On home page, don't interfere with repository selection
+        // The repository context will handle navigation when a repository is selected
       }
     }
 
