@@ -37,6 +37,25 @@ interface MCPError {
 }
 ```
 
+## ⚠️ Git User Configuration
+
+**IMPORTANT**: All git operations use the system's git configuration for commit authorship.
+
+### Current System Configuration
+- **Global User**: `aelf-fred <fred.tran@aelf.io>`
+- **Source**: System's global git config (`git config --global user.name/email`)
+
+### Best Practices
+1. **Always use `git_configure_user`** after `git_init` to set proper authorship
+2. **Repository-specific config overrides global config**
+3. **Without proper config**: All commits will be authored by the system user
+4. **For production**: Ensure each generated project has appropriate user configuration
+
+### Recommended Workflow
+```bash
+git_init → git_configure_user → git_add_commit
+```
+
 ## Available MCP Tools
 
 ### 1. create_directory
@@ -154,6 +173,12 @@ curl -X POST http://localhost:3000/api/mcp \
 - Creates a `.gitignore` file with common ignore patterns
 - Sets up initial git configuration
 
+**⚠️ Git User Configuration:**
+- **Uses system's global git configuration** (`git config --global user.name` and `git config --global user.email`)
+- If no global config exists, commits will fail
+- Use `git_configure_user` to set repository-specific user configuration
+- **Recommendation**: Always call `git_configure_user` after `git_init` for consistent authorship
+
 **Error Codes:**
 - `-32603`: Git initialization failed (git not installed, permissions)
 
@@ -199,8 +224,14 @@ curl -X POST http://localhost:3000/api/mcp \
 - Runs `git add .` to stage all changes
 - Runs `git commit -m "message"` to create commit
 
+**⚠️ Git User Configuration:**
+- **Requires git user configuration** (either global or repository-specific)
+- **Uses system's global git user** if no repository-specific config exists
+- **Current system user**: `aelf-fred <fred.tran@aelf.io>` (from global config)
+- **Recommendation**: Use `git_configure_user` first to set desired commit author
+
 **Error Codes:**
-- `-32603`: Git commit failed (no changes, invalid repository)
+- `-32603`: Git commit failed (no changes, invalid repository, missing user config)
 
 ---
 
@@ -350,6 +381,29 @@ curl -X POST http://localhost:3000/api/mcp \
     },
     "id": 8
   }'
+```
+
+**What it does:**
+- Sets repository-specific git user configuration
+- Overrides global git configuration for this repository
+- **Essential for consistent commit authorship** in generated projects
+
+**⚠️ Important Notes:**
+- **Repository-specific config takes precedence** over global config
+- **Recommended workflow**: Always call this after `git_init` and before `git_add_commit`
+- **Without this**: Commits will use system's global git user (`aelf-fred <fred.tran@aelf.io>`)
+- **Use case**: Ensure generated projects have correct commit authorship
+
+**Common Usage Pattern:**
+```bash
+# 1. Initialize repository
+curl -X POST http://localhost:3000/api/mcp -d '{"method": "git_init", "params": {"path": "/tmp/my-project"}, "id": 1}'
+
+# 2. Configure user (IMPORTANT!)
+curl -X POST http://localhost:3000/api/mcp -d '{"method": "git_configure_user", "params": {"path": "/tmp/my-project", "name": "Project Owner", "email": "owner@example.com"}, "id": 2}'
+
+# 3. Make commits with correct authorship
+curl -X POST http://localhost:3000/api/mcp -d '{"method": "git_add_commit", "params": {"path": "/tmp/my-project", "message": "Initial commit"}, "id": 3}'
 ```
 
 ---

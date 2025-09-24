@@ -32,6 +32,25 @@ An intelligent project scaffolding agent that creates ready-to-use development p
 - **Git** installed and configured
 - **OpenAI API key** - Get yours from [OpenAI Platform](https://platform.openai.com/api-keys)
 
+### ⚠️ Git Configuration Requirements
+
+**IMPORTANT**: The MCP server uses your system's git configuration for all git operations.
+
+**Current System Configuration:**
+- **User**: `aelf-fred <fred.tran@aelf.io>`
+- **Source**: Global git config (`git config --global user.name/email`)
+
+**Setup Git (if not already configured):**
+```bash
+git config --global user.name "Your Name"
+git config --global user.email "your.email@example.com"
+```
+
+**For Generated Projects:**
+- All git commits will use the system's global git user by default
+- Use the `git_configure_user` MCP tool to set repository-specific authorship
+- **Recommended workflow**: `git_init` → `git_configure_user` → `git_add_commit`
+
 ### Installation
 
 1. **Clone the repository:**

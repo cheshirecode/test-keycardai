@@ -147,8 +147,8 @@ logs
         return 'Not a git repository'
       }
 
-      return execSync(`git log --oneline -${limit}`, { 
-        cwd: projectPath, 
+      return execSync(`git log --oneline -${limit}`, {
+        cwd: projectPath,
         encoding: 'utf8',
         stdio: 'pipe'
       })

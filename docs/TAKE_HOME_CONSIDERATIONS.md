@@ -213,6 +213,13 @@ git config --global user.name "Your Name"
 git config --global user.email "your.email@example.com"
 ```
 
+**⚠️ Git User Behavior in MCP Operations:**
+- **Current System User**: `aelf-fred <fred.tran@aelf.io>` (from global config)
+- **All git commits use system's global git configuration by default**
+- **Repository-specific config overrides global config when set**
+- **Recommendation**: Always use `git_configure_user` MCP tool after `git_init`
+- **Without proper config**: Generated projects will have incorrect commit authorship
+
 **Vercel Deployment:**
 - Environment variables must be configured in Vercel dashboard
 - Build process skips Git hooks (intentional)
