@@ -4,9 +4,9 @@ An intelligent project scaffolding agent that creates ready-to-use development p
 
 ## 🚀 Live Demo
 
-**Try it now:** [https://test-keycardai-rv8wigyxy-dac4158s-projects.vercel.app](https://test-keycardai-rv8wigyxy-dac4158s-projects.vercel.app)
+**Try it now:** [https://test-keycardai-hmmx4tn4f-dac4158s-projects.vercel.app](https://test-keycardai-hmmx4tn4f-dac4158s-projects.vercel.app)
 
-> Deployed on Vercel with automatic deployments from the `main` branch.
+> Deployed on Vercel with automatic deployments from the `main` branch. Features complete AI-powered project creation with chain of thought reasoning and GitHub API integration.
 
 ## ✨ Features
 

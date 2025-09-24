@@ -30,7 +30,7 @@ The system uses a sophisticated architecture with AI at its core:
 ### Base URL
 ```
 Local Development: http://localhost:3000/api/mcp
-Production: https://test-keycardai.vercel.app/api/mcp
+Production: https://test-keycardai-hmmx4tn4f-dac4158s-projects.vercel.app/api/mcp
 ```
 
 ### Request Format
