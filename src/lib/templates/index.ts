@@ -1,4 +1,4 @@
-import { ProjectTemplate } from '../../../types/mcp'
+import { ProjectTemplate } from '../../typings/ui'
 
 export const templates: Record<string, ProjectTemplate> = {
   'react-ts': {

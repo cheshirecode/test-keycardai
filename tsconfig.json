@@ -22,9 +22,11 @@
     "paths": {
       "@/*": ["./src/*", "./*"],
       "@/lib/*": ["./src/lib/*"],
-      "@/types/*": ["./src/lib/types/*"]
+      "@/types/*": ["./src/typings/*", "./app/typings/*"],
+      "@/app-types/*": ["./app/typings/*"],
+      "@/src-types/*": ["./src/typings/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "app/typings/**/*.ts", "src/typings/**/*.ts"],
   "exclude": ["node_modules"]
 }

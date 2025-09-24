@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react'
 import { MCPClient } from '../mcp-client'
-import { Message, ProjectInfo, MCPLogEntry } from '../../../types/mcp'
+import { Message, ProjectInfo, MCPLogEntry } from '../../typings/ui'
 
 export function useChat() {
   const [messages, setMessages] = useState<Message[]>([])

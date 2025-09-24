@@ -1,3 +1,12 @@
+/**
+ * MCP (Model Context Protocol) Types for API and Server-Side Operations
+ * 
+ * These types are used primarily by:
+ * - API routes (/app/api/*)
+ * - Server-side operations
+ * - MCP protocol implementations
+ */
+
 export interface MCPRequest {
   method: string
   params: Record<string, unknown>
@@ -22,7 +31,7 @@ export interface MCPTool {
   inputSchema: Record<string, unknown>
 }
 
-// Project-specific types
+// Project template types for server-side operations
 export interface ProjectTemplate {
   id: string
   name: string
@@ -32,28 +41,11 @@ export interface ProjectTemplate {
   devDependencies: string[]
 }
 
+// Project information for API responses
 export interface ProjectInfo {
   name: string
   path: string
   template: string
   status: 'creating' | 'completed' | 'error'
   repositoryUrl?: string  // Actual GitHub repository URL from creation
-}
-
-export interface MCPLogEntry {
-  timestamp: string
-  type: 'request' | 'response' | 'error' | 'info'
-  tool?: string
-  message: string
-  data?: unknown
-  duration?: number
-}
-
-export interface Message {
-  id: string
-  role: 'user' | 'assistant'
-  content: string
-  timestamp: Date
-  chainOfThought?: string  // AI reasoning/chain of thought
-  mcpLogs?: MCPLogEntry[]  // MCP server logs for debugging
 }

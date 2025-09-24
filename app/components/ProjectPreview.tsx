@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react'
 import { templates } from '../../src/lib/templates'
-import { ProjectInfo } from '../../types/mcp'
+import { ProjectInfo } from '../typings'
 import { MCPClient } from '../../src/lib/mcp-client'
 
 interface ProjectPreviewProps {
