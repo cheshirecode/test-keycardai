@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react'
 import { MCPClient } from '../mcp-client'
-import { Message, ProjectInfo } from '../../types/mcp'
+import { Message, ProjectInfo, MCPLogEntry } from '../../types/mcp'
 
 export function useChat() {
   const [messages, setMessages] = useState<Message[]>([])
@@ -8,13 +8,14 @@ export function useChat() {
   const [currentProject, setCurrentProject] = useState<ProjectInfo | null>(null)
   const mcpClient = new MCPClient()
 
-  const addMessage = useCallback((role: 'user' | 'assistant', content: string, chainOfThought?: string) => {
+  const addMessage = useCallback((role: 'user' | 'assistant', content: string, chainOfThought?: string, mcpLogs?: MCPLogEntry[]) => {
     const message: Message = {
       id: Date.now().toString(),
       role,
       content,
       timestamp: new Date(),
-      chainOfThought: chainOfThought
+      chainOfThought: chainOfThought,
+      mcpLogs: mcpLogs
     }
     setMessages(prev => [...prev, message])
     return message
@@ -95,35 +96,41 @@ export function useChat() {
           `📂 Project Path: ${project.path}`
         ].filter(Boolean).join('\n')
 
-        // Show AI analysis and reasoning
-        addMessage('assistant', `🤖 AI Analysis: ${project.reasoning}`)
-        addMessage('assistant', `📊 Confidence: ${(project.confidence * 100).toFixed(1)}%`)
-        addMessage('assistant', `📁 Project Type: ${project.type}`)
+        // Convert execution steps to MCP logs
+        const mcpLogs: MCPLogEntry[] = project.executionSteps?.map(step => ({
+          timestamp: step.timestamp,
+          type: step.success ? 'response' : 'error' as const,
+          tool: step.tool,
+          message: step.success ?
+            `Step ${step.step}: ${step.action} completed successfully` :
+            `Step ${step.step}: ${step.action} failed - ${step.error}`,
+          data: step.result || step.error
+        })) || []
 
-        if (project.features && project.features.length > 0) {
-          addMessage('assistant', `✨ Detected Features: ${project.features.join(', ')}`)
-        }
+        // Create comprehensive response message
+        const responseContent = [
+          `✨ **Project Created Successfully!**`,
+          ``,
+          `**📊 Analysis Results:**`,
+          `• Type: ${project.type}`,
+          `• Confidence: ${(project.confidence * 100).toFixed(1)}%`,
+          `• AI Model: ${project.llmUsed}`,
+          ...(project.features && project.features.length > 0 ? [`• Features: ${project.features.join(', ')}`] : []),
+          ``,
+          `**📂 Project Details:**`,
+          `• Name: ${project.name}`,
+          `• Path: ${project.path}`,
+          `• Total Steps: ${project.totalSteps}`,
+          `• Created: ${new Date(project.createdAt).toLocaleString()}`,
+          ...(project.repositoryUrl ? [`• Repository: ${project.repositoryUrl}`] : []),
+          ``,
+          `🎉 Your project is ready! Check the Project Preview panel to download or clone it.`
+        ].join('\n')
 
-        // Show execution progress
-        addMessage('assistant', '🔄 Executing project creation plan...')
+        // Add single comprehensive message with debugging info
+        addMessage('assistant', responseContent, chainOfThought, mcpLogs)
 
-        // Show each step result
-        if (project.executionSteps) {
-          project.executionSteps.forEach((step) => {
-            if (step.success) {
-              addMessage('assistant', `✅ Step ${step.step}: ${step.action}`)
-            } else {
-              addMessage('assistant', `❌ Step ${step.step}: ${step.action} - ${step.error}`)
-            }
-          })
-        }
-
-        // Final success message with repository URL
-        const finalMessage = project.repositoryUrl
-          ? `🎉 Project created successfully!\n📂 Local Path: ${project.path}\n🔗 Repository: ${project.repositoryUrl}`
-          : `🎉 Project created successfully!\n📂 Path: ${project.path}`
-
-        addMessage('assistant', finalMessage, chainOfThought)
+        // Final message is already included in the comprehensive response above
       } else {
         // Fallback to basic project creation if AI fails
         addMessage('assistant', '🤖 AI analysis failed, using fallback method...')

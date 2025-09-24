@@ -39,10 +39,20 @@ export interface ProjectInfo {
   status: 'creating' | 'completed' | 'error'
 }
 
+export interface MCPLogEntry {
+  timestamp: string
+  type: 'request' | 'response' | 'error' | 'info'
+  tool?: string
+  message: string
+  data?: unknown
+  duration?: number
+}
+
 export interface Message {
   id: string
   role: 'user' | 'assistant'
   content: string
   timestamp: Date
   chainOfThought?: string  // AI reasoning/chain of thought
+  mcpLogs?: MCPLogEntry[]  // MCP server logs for debugging
 }

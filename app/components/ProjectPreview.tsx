@@ -25,7 +25,7 @@ export function ProjectPreview({ project }: ProjectPreviewProps) {
   useEffect(() => {
     if (project.status === 'completed' && !gitInfo && !isLoadingGitInfo) {
       setIsLoadingGitInfo(true)
-      
+
       // Fetch GitHub user info
       mcpClient.call('get_github_user', {})
         .then((result: unknown) => {
@@ -33,15 +33,15 @@ export function ProjectPreview({ project }: ProjectPreviewProps) {
           const timestamp = Date.now()
           const sanitizedName = project.name.toLowerCase().replace(/[^a-z0-9-]/g, '-')
           const branchName = `project-${sanitizedName}-${timestamp}`
-          
+
           let username = 'your-username' // fallback
           if (gitResult.success && gitResult.user?.login) {
             username = gitResult.user.login
           }
-          
+
           const repositoryUrl = `https://github.com/${username}/${branchName}`
           const cloneCommand = `git clone ${repositoryUrl}`
-          
+
           setGitInfo({
             repositoryUrl,
             branchName,
@@ -57,7 +57,7 @@ export function ProjectPreview({ project }: ProjectPreviewProps) {
           const branchName = `project-${sanitizedName}-${timestamp}`
           const repositoryUrl = `https://github.com/your-username/${branchName}`
           const cloneCommand = `git clone ${repositoryUrl}`
-          
+
           setGitInfo({
             repositoryUrl,
             branchName,

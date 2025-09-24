@@ -177,7 +177,7 @@ export const mcpTools = {
     try {
       const githubService = new GitHubService()
       const result = await githubService.getAuthenticatedUser()
-      
+
       return {
         success: result.success,
         user: result.user,
