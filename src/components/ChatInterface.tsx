@@ -12,7 +12,7 @@ export function ChatInterface() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   // Demo of extended functionality - user preferences stored locally
-  const [userProfile] = useLocalStorage('userProfile', {
+  const [userProfile, , isProfileInitialized] = useLocalStorage('userProfile', {
     name: 'Demo User',
     email: 'demo@example.com'
   })
@@ -75,10 +75,12 @@ export function ChatInterface() {
 
               {/* User Profile */}
               <div className="hidden md:block">
-                <UserProfile 
-                  name={userProfile.name} 
-                  email={userProfile.email} 
-                />
+                {isProfileInitialized && (
+                  <UserProfile 
+                    name={userProfile.name} 
+                    email={userProfile.email} 
+                  />
+                )}
               </div>
 
               {messages.length > 0 && (
