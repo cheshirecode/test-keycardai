@@ -13,7 +13,7 @@ An AI-powered project scaffolding tool that creates ready-to-use development pro
 ### Create Projects
 - **React/Next.js** apps with TypeScript
 - **Node.js APIs** with Express
-- **Vue/Nuxt** applications  
+- **Vue/Nuxt** applications
 - **Python/FastAPI** backends
 - **Full-stack** combinations
 
@@ -80,7 +80,7 @@ npm run dev
    ✅ Project ready!
 ```
 
-### Modify Existing Project  
+### Modify Existing Project
 ```
 👤 "add jotai for state management"
 🤖 🔄 Modifying todo-list-app
