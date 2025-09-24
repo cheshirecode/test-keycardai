@@ -1,343 +1,170 @@
-# Project Scaffolder - MCP Agent
+# 🚀 Project Scaffolder
 
-An intelligent project scaffolding agent that creates ready-to-use development projects through natural language conversation, built with MCP (Model Context Protocol).
+An AI-powered project scaffolding tool that creates ready-to-use development projects through natural language conversation.
 
-## 🚀 Live Demo
+## ✨ Quick Start
 
-**Try it now:** [https://test-keycardai-hmmx4tn4f-dac4158s-projects.vercel.app](https://test-keycardai-hmmx4tn4f-dac4158s-projects.vercel.app)
+1. **Try the live demo:** [https://test-keycardai-hmmx4tn4f-dac4158s-projects.vercel.app](https://test-keycardai-hmmx4tn4f-dac4158s-projects.vercel.app)
+2. **Type your request:** "Create a React TypeScript app with authentication"
+3. **Get your project:** Complete project with GitHub repository
 
-## 🏗️ System Architecture & Design
+## 🎯 What It Does
 
-The Project Scaffolder uses a sophisticated architecture combining AI-powered decision making with modern web technologies:
+### Create Projects
+- **React/Next.js** apps with TypeScript
+- **Node.js APIs** with Express
+- **Vue/Nuxt** applications  
+- **Python/FastAPI** backends
+- **Full-stack** combinations
 
-```mermaid
-graph TB
-    %% User Interaction Layer
-    User[👤 User] -->|Natural Language| ChatInterface[💬 Chat Interface]
+### Ongoing Development
+- **Add packages:** "add jotai" → installs state management
+- **Create components:** "create UserCard component" → generates React component
+- **Modify configs:** "add tailwind" → configures styling
+- **Auto-commit:** All changes committed to your repository
 
-    %% Frontend Layer
-    ChatInterface -->|Project Request| Frontend[⚛️ Next.js Frontend]
-    Frontend -->|WebSocket| MCPClient[🔌 MCP Client]
+## 🏗️ How It Works
 
-    %% MCP Server Layer
-    MCPClient -->|JSON-RPC| MCPServer[🛠️ MCP Server]
-    MCPServer -->|Tool Calls| MCPTools[🔧 MCP Tools]
-
-    %% AI Decision Layer
-    MCPTools -->|AI Analysis| AIService[🤖 AI Service]
-    AIService -->|LLM Calls| OpenAI[🧠 OpenAI GPT-3.5-turbo]
-    OpenAI -->|Responses| AIService
-    AIService -->|Decisions| MCPTools
-
-    %% Repository Management Layer
-    MCPTools -->|Repository Ops| GitHubService[📦 GitHub Service]
-    GitHubService -->|API Calls| GitHubAPI[🐙 GitHub API]
-    GitHubAPI -->|Repository Data| GitHubService
-
-    %% Template & Project Layer
-    MCPTools -->|Template Loading| Templates[📁 Project Templates]
-    Templates -->|Project Files| FileSystem[💾 File System]
-
-    %% External Dependencies
-    subgraph "🔐 External Services"
-        OpenAI
-        GitHubAPI
-    end
-
-    %% Environment Configuration
-    subgraph "⚙️ Environment Config"
-        Vercel[🌐 Vercel Deployment]
-        EnvVars[🔑 Environment Variables]
-        GitConfig[🔧 Git Configuration]
-    end
-
-    %% Styling
-    classDef frontend fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
-    classDef mcp fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
-    classDef ai fill:#fff3e0,stroke:#f57c00,stroke-width:2px
-    classDef github fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
-    classDef templates fill:#fce4ec,stroke:#c2185b,stroke-width:2px
-    classDef external fill:#fafafa,stroke:#616161,stroke-width:2px
-
-    class Frontend,ChatInterface,MCPClient frontend
-    class MCPServer,MCPTools mcp
-    class AIService ai
-    class GitHubService,GitHubAPI github
-    class Templates,FileSystem templates
-    class OpenAI external
+```
+Natural Language → AI Analysis → Project Generation → GitHub Repository
 ```
 
-### **AI-Powered Decision Flow**
+1. **AI Analysis:** OpenAI GPT-3.5 analyzes your request
+2. **Smart Planning:** Generates step-by-step project plan
+3. **Auto-Generation:** Creates files, installs dependencies, sets up configs
+4. **GitHub Integration:** Creates repository with all your code
+5. **Ongoing Support:** Continue modifying the same project
 
-```mermaid
-flowchart TD
-    %% Input Processing
-    Input[📝 User Input] -->|Natural Language| Analysis[🧠 AI Analysis]
+## 🛠️ Technology Stack
 
-    %% Decision Making
-    Analysis -->|Template Selection| TemplateDecision{🎯 Template Decision}
-    TemplateDecision -->|React TS| ReactTemplate[⚛️ React TypeScript]
-    TemplateDecision -->|Next.js| NextJSTemplate[🌐 Next.js Fullstack]
-    TemplateDecision -->|Node API| NodeTemplate[🚀 Node.js API]
+- **Frontend:** Next.js 14, React, TypeScript, Tailwind CSS
+- **Backend:** Next.js API routes, MCP protocol
+- **AI:** OpenAI GPT-3.5-turbo
+- **Repository:** GitHub API integration
+- **Deployment:** Vercel
 
-    %% Project Planning
-    Analysis -->|Feature Detection| FeatureAnalysis{🔍 Feature Analysis}
-    FeatureAnalysis -->|Dependencies| DepPlanning[📦 Dependency Planning]
-    FeatureAnalysis -->|Structure| StructurePlanning[🏗️ Structure Planning]
-
-    %% Execution Planning
-    Planning[📋 Execution Plan] -->|MCP Actions| ActionSequence[⚡ Action Sequence]
-
-    %% Tool Execution
-    ActionSequence -->|1. Create Project| ProjectCreation[📁 Project Creation]
-    ActionSequence -->|2. GitHub Repo| GitHubRepo[🐙 GitHub Repository]
-    ActionSequence -->|3. Dependencies| Dependencies[📚 Dependencies]
-    ActionSequence -->|4. Initial Commit| InitialCommit[✅ Initial Commit]
-
-    %% Output Generation
-    ProjectCreation -->|Project Files| Output[🎉 Project Output]
-    GitHubRepo -->|Repository URL| Output
-    Dependencies -->|package.json| Output
-    InitialCommit -->|Git History| Output
-
-    %% Confidence & Reasoning
-    Analysis -->|Confidence Score| Confidence[📊 Confidence: 95%]
-    Analysis -->|Reasoning| Reasoning[💭 AI Reasoning: Optimal for user requirements]
-
-    %% Styling
-    classDef input fill:#e1f5fe
-    classDef decision fill:#f3e5f5
-    classDef planning fill:#e8f5e8
-    classDef execution fill:#fff3e0
-    classDef output fill:#fce4ec
-
-    class Input,Analysis input
-    class TemplateDecision,FeatureAnalysis decision
-    class Planning,StructurePlanning,DepPlanning planning
-    class ActionSequence,ProjectCreation,GitHubRepo,Dependencies,InitialCommit execution
-    class Output,Confidence,Reasoning output
-```
-
-### **Design Philosophy**
-
-The system is built on three core principles:
-
-1. **AI-First Approach**: Every decision is powered by LLM intelligence - from template selection to dependency optimization
-2. **Serverless Compatibility**: Pure GitHub API integration without local git dependencies for perfect Vercel deployment
-3. **MCP Protocol Integration**: Standardized tool interface enables seamless AI-agent interactions and extensibility
-
-### **Key Architectural Decisions**
-
-- **Intelligent Agent Layer**: LLM processes natural language and makes informed decisions about project structure
-- **GitHub API-Only**: No local git operations - everything works through HTTP APIs for serverless environments
-- **Real MCP Server**: Full JSON-RPC 2.0 implementation enabling complex tool orchestration
-- **TypeScript Throughout**: End-to-end type safety from frontend to AI service layer
-- **Modular Component Design**: Clean separation enables easy testing and maintenance
-
-## 🛠️ Tech Stack
-
-### **Core Architecture**
-- **Frontend**: Next.js 14 + TypeScript + React 18 + Tailwind CSS 3
-- **MCP Server**: Custom JSON-RPC 2.0 implementation for tool orchestration
-- **AI Engine**: Vercel AI SDK + OpenAI GPT-3.5-turbo for intelligent decision-making
-- **GitHub Integration**: Octokit REST API for repository operations
-
-### **AI & Intelligence Layer**
-- **LLM Integration**: OpenAI GPT-3.5-turbo for natural language processing
-- **Decision Making**: AI-powered template selection and project planning
-- **Confidence Scoring**: AI provides confidence levels for all recommendations
-- **Fallback Systems**: Graceful degradation when AI services unavailable
-
-### **Development Tools**
-- **Testing**: Vitest + React Testing Library + @testing-library/jest-dom
-- **Linting**: ESLint + TypeScript strict mode
-- **Code Quality**: Prettier + Commitlint + Lefthook pre-commit hooks
-- **Type Safety**: Full TypeScript coverage with strict configuration
-
-### **Deployment & Operations**
-- **Platform**: Vercel with automatic deployments
-- **Environment**: Serverless functions with 30s timeout
-- **CI/CD**: GitHub integration with preview deployments
-- **Monitoring**: Vercel analytics and function logs
-
-## ✨ Features
-
-### 🤖 **AI-Powered Intelligence**
-- **Smart Template Selection**: AI analyzes requests to choose optimal project structures
-- **Confidence Scoring**: AI provides reliability scores for all recommendations
-- **Feature Detection**: Automatically identifies required dependencies from descriptions
-- **Transparent Reasoning**: Chain of thought and MCP logs visible in chat interface
-
-### 🔧 **GitHub API Integration**
-- **Intelligent Owner Detection**: Automatically determines if GitHub owner is user or organization
-- **Repository Automation**: Creates repositories with full project files via GitHub API
-- **Organization Support**: Configurable `GITHUB_OWNER` for team/organization repositories
-- **Serverless Compatible**: No local git dependencies - perfect for Vercel deployment
-
-### 📁 **Project Templates**
-- **React TypeScript**: Vite + React 18 + TypeScript + Tailwind CSS 3
-- **Next.js Fullstack**: Next.js 14 + App Router + API Routes + Tailwind
-- **Node.js API**: Express + TypeScript + Jest + Production-ready config
-
-### ⚡ **Developer Experience**
-- **Natural Language**: "Create a React app with authentication" → full working project
-- **Real-time Progress**: Live updates with detailed execution logs and AI reasoning
-- **One-Click Setup**: Complete project scaffolding in seconds with modern tooling
-
-## 🚀 Quick Start
+## 🔧 Setup for Development
 
 ### Prerequisites
-- **Node.js 18+** and **npm**
-- **GitHub Personal Access Token** (scopes: `repo`, `user`)
-- **OpenAI API Key** from [OpenAI Platform](https://platform.openai.com/api-keys)
+- Node.js 18+
+- GitHub account
+- OpenAI API key
+
+### Environment Variables
+```bash
+OPENAI_API_KEY=your_openai_key
+GITHUB_TOKEN=your_github_token
+GITHUB_OWNER=your_username  # Optional: defaults to authenticated user
+```
 
 ### Installation
-
-1. **Clone and install:**
 ```bash
+# Clone and install
 git clone https://github.com/cheshirecode/test-keycardai.git
 cd test-keycardai
 npm install
-```
 
-2. **Configure environment:**
-```bash
-cp .env.example .env.local
-# Edit .env.local with your API keys:
-# OPENAI_API_KEY=sk-your-openai-key
-# GITHUB_TOKEN=ghp_your-github-token
-# GITHUB_OWNER=your-org-or-username  # Optional
-```
-
-3. **Start development:**
-```bash
+# Start development
 npm run dev
-# Open http://localhost:3000
 ```
 
-### Usage Examples
+## 📋 Example Conversations
 
-Simply describe what you want to build:
-- "Create a React TypeScript app with Tailwind"
-- "Build a Next.js dashboard with authentication"
-- "Make a Node.js API with Express and TypeScript"
-
-## 🤖 MCP Integration
-
-### **AI-Enhanced MCP Tools**
-- `analyze_project_request`: AI analyzes natural language requirements
-- `generate_project_plan`: AI creates intelligent execution plans with confidence scoring
-- `create_project_with_ai`: Complete AI-powered setup with GitHub repository creation
-- `check_github_owner_type`: Intelligent detection of GitHub user vs organization accounts
-
-### **MCP API Example**
-```bash
-curl -X POST http://localhost:3000/api/mcp \
-  -H "Content-Type: application/json" \
-  -d '{
-    "method": "create_project_with_ai",
-    "params": {
-      "description": "Create a React app with authentication",
-      "projectName": "my-auth-app"
-    },
-    "id": 1
-  }'
+### Create New Project
+```
+👤 "Create a React TypeScript app for a todo list"
+🤖 ✨ Analyzing request... 95% confidence
+   📁 Creating todo-list-app
+   ⚡ Installing dependencies
+   🔗 Repository: https://github.com/user/todo-list-app
+   ✅ Project ready!
 ```
 
-## 📚 Documentation
+### Modify Existing Project  
+```
+👤 "add jotai for state management"
+🤖 🔄 Modifying todo-list-app
+   📦 Installing jotai
+   📝 Updating package.json
+   💾 Committing changes
+   ✅ State management added!
+```
 
-- [API Reference](./docs/API_REFERENCE.md) - Complete MCP tools and endpoints
-- [Implementation Guide](./docs/IMPLEMENTATION_GUIDE.md) - Detailed setup and configuration
-- [Solution Designs](./docs/SOLUTION_DESIGNS.md) - Architecture and design decisions
+## 🏆 Key Features
+
+### ✅ Context-Aware Development
+- Remembers your active project
+- Distinguishes between new projects vs modifications
+- Maintains project state throughout conversation
+
+### ✅ Smart Package Detection
+- Recognizes popular libraries: jotai, zustand, tailwind
+- Installs correct dependencies automatically
+- Handles dev vs production packages
+
+### ✅ GitHub Integration
+- Creates repositories automatically
+- Commits all changes with descriptive messages
+- Supports both personal and organization accounts
+
+### ✅ Visual Feedback
+- Project status indicators
+- Real-time progress updates
+- Context-aware input suggestions
 
 ## 🧪 Testing
 
 ```bash
-npm test              # Watch mode
-npm run test:coverage # Coverage report
-npm run test:ui       # Browser-based UI
+# Run tests
+npm test
+
+# Type checking
+npm run type-check
+
+# Linting
+npm run lint
+
+# Full CI check
+npm run ci
+```
+
+## 📁 Project Structure
+
+```
+├── app/                 # Next.js App Router
+│   ├── api/mcp/        # MCP protocol server
+│   └── typings/        # Server-side types
+├── src/                # Frontend source
+│   ├── components/     # React components
+│   ├── lib/           # Utilities and services
+│   └── typings/       # Client-side types
+└── docs/              # Additional documentation
 ```
 
 ## 🚀 Deployment
 
-### Automatic (Recommended)
-- **Push to main** → Production deployment
-- **Push to feature branch** → Preview deployment
-- Environment variables configured in Vercel dashboard
+Deploy to Vercel with one click:
 
-### Manual
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/cheshirecode/test-keycardai)
+
+Or manually:
 ```bash
-vercel          # Preview deployment
-vercel --prod   # Production deployment
+npm run build
+npm start
 ```
-
-### Required Environment Variables
-```bash
-OPENAI_API_KEY=sk-...          # Required for AI features
-GITHUB_TOKEN=ghp_...           # Required for GitHub operations
-GITHUB_OWNER=mcp-integration   # Optional: target organization
-GIT_USER_NAME=Project Scaffolder    # Recommended
-GIT_USER_EMAIL=scaffolder@example.com  # Recommended
-```
-
-## 🔧 Development
-
-### Scripts
-- `npm run dev` - Development server
-- `npm run build` - Production build
-- `npm run test` - Run tests
-- `npm run lint` - Code linting
-- `npm run type-check` - TypeScript validation
-
-### Commit Standards
-Uses [Conventional Commits](https://www.conventionalcommits.org/):
-```
-feat: add new template support
-fix(github): resolve repository creation issue
-docs: update API documentation
-```
-
-## 🆕 Recent Updates
-
-### **Production GitHub Organization Fix** (Latest)
-- **Fixed**: Repositories now correctly created under configured organization instead of personal account
-- **Enhanced**: Intelligent GitHub owner type detection (user vs organization)
-- **Improved**: UI fallback logic respects `GITHUB_OWNER` configuration in all scenarios
-- **Added**: Comprehensive verification rules for breaking changes
-
-### **Repository File Upload Enhancement**
-- **Fixed**: GitHub repositories contain full project files instead of just README
-- **Enhanced**: Repository metadata storage system for proper file tracking
-- **Improved**: Consistent repository naming and file upload process
-
-### **Transparent AI Features**
-- **Added**: Chain of thought reasoning visible in chat interface
-- **Enhanced**: MCP server logs display for debugging and transparency
-- **Improved**: Progressive disclosure pattern for technical information
-
-## 🔍 Troubleshooting
-
-### Common Issues
-
-**OpenAI API Errors**: Verify `OPENAI_API_KEY` is set correctly
-**GitHub Token Issues**: Ensure token has `repo` and `user` scopes
-**Deployment Failures**: Check Vercel environment variables configuration
-**Repository Creation**: Verify `GITHUB_OWNER` permissions for organization repositories
-
-For detailed troubleshooting, see [Implementation Guide](./docs/IMPLEMENTATION_GUIDE.md).
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Follow conventional commit format
-4. Add tests for new features
-5. Submit a pull request
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Commit changes: `git commit -m 'feat: add amazing feature'`
+4. Push to branch: `git push origin feature/amazing-feature`
+5. Open a Pull Request
 
 ## 📄 License
 
-MIT License - see [LICENSE](./LICENSE) file for details.
+MIT License - see [LICENSE](LICENSE) file for details.
 
 ---
 
-**Project Scaffolder** - Creating the future, one project at a time. 🚀
+**Built with ❤️ using AI and modern web technologies**
