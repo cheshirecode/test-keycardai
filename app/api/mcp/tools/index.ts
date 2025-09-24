@@ -1,6 +1,8 @@
 import * as fs from 'fs'
 import * as path from 'path'
+import archiver from 'archiver'
 import { RepositoryTools } from '@/lib/repository-tools'
+import { GitHubService, GitHubRepoConfig } from '@/lib/github-service'
 import { execSync } from 'child_process'
 import { templates } from '@/lib/templates'
 import { AIService } from '@/lib/ai-service'
@@ -541,8 +543,8 @@ export const mcpTools = {
 
       // In Vercel serverless environment, npm install might fail due to permissions
       // Instead of failing, we'll skip it and let it install during build
-      try {
-        const command = params.packages
+    try {
+      const command = params.packages
           ? `cd "${params.path}" && npm install ${params.packages.join(' ')}`
           : `cd "${params.path}" && npm install`
 
@@ -641,6 +643,204 @@ export const mcpTools = {
       }
     } catch (error) {
       throw new Error(`Failed to create project from template: ${error}`)
+    }
+  },
+
+  download_project_zip: async (params: { projectPath: string; projectName?: string }) => {
+    try {
+
+      // Check if project directory exists
+      if (!fs.existsSync(params.projectPath)) {
+        throw new Error(`Project directory not found: ${params.projectPath}`)
+      }
+
+      // Get project name from directory or parameter
+      const projectName = params.projectName || path.basename(params.projectPath)
+
+      // Create zip file in memory
+      const archive = archiver('zip', {
+        zlib: { level: 9 } // Maximum compression
+      })
+
+      // Handle archiver warnings
+      archive.on('warning', (err: { code?: string; message?: string }) => {
+        if (err.code === 'ENOENT') {
+          console.warn('Archiver warning:', err)
+        } else {
+          throw err
+        }
+      })
+
+      // Handle archiver errors
+      archive.on('error', (err: { code?: string; message?: string }) => {
+        throw err
+      })
+
+      // Collect file data
+      const files: { path: string; content: string }[] = []
+
+      const collectFiles = (dirPath: string, relativePath = '') => {
+        const items = fs.readdirSync(dirPath, { withFileTypes: true })
+
+        for (const item of items) {
+          // Skip common directories that shouldn't be in the zip
+          if (item.name === '.git' || item.name === 'node_modules' || item.name === '.next' || item.name === 'dist' || item.name === 'build') {
+            continue
+          }
+
+          const fullPath = path.join(dirPath, item.name)
+          const itemRelativePath = relativePath ? `${relativePath}/${item.name}` : item.name
+
+          if (item.isDirectory()) {
+            collectFiles(fullPath, itemRelativePath)
+          } else {
+            try {
+              const content = fs.readFileSync(fullPath, 'utf8')
+              files.push({
+                path: itemRelativePath,
+                content: content
+              })
+            } catch (error) {
+              console.warn(`Skipping file ${itemRelativePath}: ${error}`)
+            }
+          }
+        }
+      }
+
+      collectFiles(params.projectPath)
+
+      // Create actual zip file and return download URL
+      const zipPath = `/tmp/${projectName}-${Date.now()}.zip`
+
+      try {
+        // Create the zip file
+        const output = fs.createWriteStream(zipPath)
+        const archive = archiver('zip', { zlib: { level: 9 } })
+
+        archive.pipe(output)
+
+        // Add files to archive
+        for (const file of files) {
+          archive.append(file.content, { name: file.path })
+        }
+
+        await new Promise<void>((resolve, reject) => {
+          output.on('close', () => resolve())
+          output.on('error', reject)
+          archive.on('error', reject)
+          archive.finalize()
+        })
+
+        return {
+          success: true,
+          message: `Project ${projectName} compressed successfully`,
+          projectName: projectName,
+          fileCount: files.length,
+          totalSize: fs.statSync(zipPath).size,
+          files: files.map(f => f.path),
+          downloadUrl: `/api/download/project?projectName=${encodeURIComponent(projectName)}&zipPath=${encodeURIComponent(zipPath)}`
+        }
+      } catch (zipError) {
+        // Clean up on error
+        if (fs.existsSync(zipPath)) {
+          fs.unlinkSync(zipPath)
+        }
+        throw zipError
+      }
+    } catch (error) {
+      return {
+        success: false,
+        message: `Failed to create zip: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      }
+    }
+  },
+
+  create_github_branch: async (params: { projectPath: string; projectName?: string; branchPrefix?: string }) => {
+    try {
+      const githubService = new GitHubService()
+      if (!githubService.isGitHubAvailable()) {
+        return {
+          success: false,
+          message: 'GitHub token not available. Cannot create branch.'
+        }
+      }
+
+      const user = await githubService.getAuthenticatedUser()
+      if (!user.success || !user.user) {
+        return {
+          success: false,
+          message: user.message || 'Failed to get authenticated GitHub user.'
+        }
+      }
+
+      const projectName = params.projectName || path.basename(params.projectPath)
+      const branchPrefix = params.branchPrefix || 'branch'
+      const timestamp = Date.now()
+      const branchName = `${branchPrefix}-${projectName}-${timestamp}`.toLowerCase().replace(/[^a-z0-9-_]/g, '-')
+
+      // Check if project directory exists
+      if (!fs.existsSync(params.projectPath)) {
+        throw new Error(`Project directory not found: ${params.projectPath}`)
+      }
+
+      // Collect all files from the project
+      const files = GitHubService.collectFilesFromDirectory(params.projectPath)
+
+      // Create a temporary repository for the branch
+      const tempRepoName = `temp-${projectName}-${timestamp}`
+
+      // Create repository
+      const createRepoResult = await githubService.createRepository({
+        owner: user.user.login,
+        repo: tempRepoName,
+        description: `Temporary repository for ${projectName} project`,
+        private: false
+      })
+
+      if (!createRepoResult.success) {
+        return {
+          success: false,
+          message: `Failed to create temporary repository: ${createRepoResult.message}`
+        }
+      }
+
+      // Configure repository for commits
+      const repoConfig: GitHubRepoConfig = {
+        owner: user.user.login,
+        repo: tempRepoName
+      }
+
+      // Commit all files to the new branch
+      const commitResult = await githubService.commitFiles(
+        repoConfig,
+        files,
+        `Initial commit for ${projectName} project`
+      )
+
+      if (!commitResult.success) {
+        return {
+          success: false,
+          message: `Repository created but commit failed: ${commitResult.message}`
+        }
+      }
+
+      return {
+        success: true,
+        message: `GitHub branch '${branchName}' created successfully`,
+        branchName: branchName,
+        repositoryUrl: createRepoResult.url,
+        repositoryName: tempRepoName,
+        fileCount: files.length,
+        branchUrl: `${createRepoResult.url}/tree/${branchName}`
+      }
+    } catch (error) {
+      console.error('GitHub branch creation error:', error)
+      return {
+        success: false,
+        message: `Failed to create GitHub branch: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      }
     }
   }
 }

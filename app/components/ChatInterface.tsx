@@ -117,11 +117,10 @@ export function ChatInterface() {
                         {/* Chain of Thought Section - Only for agent messages */}
                         {message.role === 'assistant' && message.chainOfThought && (
                           <details className="mt-2">
-                            <summary className="cursor-pointer text-xs opacity-75 hover:opacity-100">
-                              🔍 View Agent Reasoning
+                            <summary className="cursor-pointer text-xs opacity-75 hover:opacity-100 flex items-center gap-1">
+                              🤔 <span className="text-gray-600">--- thinking ---</span>
                             </summary>
                             <div className="mt-2 p-2 bg-gray-50 rounded text-xs text-gray-700 border-l-2 border-gray-300">
-                              <div className="font-medium mb-1">🤔 Chain of Thought:</div>
                               <div className="whitespace-pre-wrap text-xs leading-relaxed">
                                 {message.chainOfThought}
                               </div>

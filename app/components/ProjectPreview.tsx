@@ -1,14 +1,95 @@
 'use client'
 
+import { useState } from 'react'
 import { templates } from '@/lib/templates'
 import { ProjectInfo } from '@/types/mcp'
+import { MCPClient } from '@/lib/mcp-client'
 
 interface ProjectPreviewProps {
   project: ProjectInfo
 }
 
 export function ProjectPreview({ project }: ProjectPreviewProps) {
+  const [isDownloading, setIsDownloading] = useState(false)
+  const [isCreatingBranch, setIsCreatingBranch] = useState(false)
+  const mcpClient = new MCPClient()
   const template = templates[project.template]
+
+  const handleDownload = async () => {
+    if (isDownloading) return
+
+    setIsDownloading(true)
+
+    try {
+      const result = await mcpClient.call('download_project_zip', {
+        projectPath: project.path,
+        projectName: project.name
+      }) as {
+        success: boolean
+        message: string
+        downloadUrl?: string
+        projectName?: string
+        fileCount?: number
+        totalSize?: number
+        files?: string[]
+      }
+
+      if (result.success) {
+        // Trigger actual download
+        if (result.downloadUrl) {
+          const link = document.createElement('a')
+          link.href = result.downloadUrl
+          link.download = `${project.name}.zip`
+          document.body.appendChild(link)
+          link.click()
+          document.body.removeChild(link)
+        }
+        alert(`Project downloaded! ${result.message}`)
+      } else {
+        alert(`Download failed: ${result.message}`)
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      alert(`Download failed: ${errorMessage}`)
+    } finally {
+      setIsDownloading(false)
+    }
+  }
+
+  const handleCreateBranch = async () => {
+    if (isCreatingBranch) return
+
+    setIsCreatingBranch(true)
+
+    try {
+      const result = await mcpClient.call('create_github_branch', {
+        projectPath: project.path,
+        projectName: project.name,
+        branchPrefix: 'project'
+      }) as {
+        success: boolean
+        message: string
+        branchName?: string
+        repositoryUrl?: string
+        branchUrl?: string
+        fileCount?: number
+      }
+
+      if (result.success) {
+        alert(`GitHub branch created! ${result.message}`)
+        if (result.branchUrl) {
+          window.open(result.branchUrl, '_blank')
+        }
+      } else {
+        alert(`Branch creation failed: ${result.message}`)
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      alert(`Branch creation failed: ${errorMessage}`)
+    } finally {
+      setIsCreatingBranch(false)
+    }
+  }
 
   const getStatusIcon = () => {
     switch (project.status) {
@@ -138,17 +219,56 @@ export function ProjectPreview({ project }: ProjectPreviewProps) {
         </div>
       )}
 
-      {/* Next Steps */}
+      {/* Project Access Options */}
       {project.status === 'completed' && (
         <div>
-          <h4 className="font-medium text-gray-900 mb-3">Next Steps</h4>
-          <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
-            <ol className="list-decimal list-inside space-y-1 text-sm text-green-800">
-              <li>cd {project.name}</li>
-              <li>npm run dev</li>
-              <li>Open in your editor</li>
-              <li>Start coding! 🚀</li>
-            </ol>
+          <h4 className="font-medium text-gray-900 mb-3">Project Access Options</h4>
+          <div className="space-y-3">
+            {/* Download ZIP */}
+            <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <h5 className="font-medium text-blue-900">📦 Download as ZIP</h5>
+                <button
+                  onClick={handleDownload}
+                  disabled={isDownloading}
+                  className="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {isDownloading ? 'Creating ZIP...' : 'Download ZIP'}
+                </button>
+              </div>
+              <p className="text-sm text-blue-700">
+                Download your project as a compressed ZIP file with all source code.
+              </p>
+            </div>
+
+            {/* GitHub Branch */}
+            <div className="bg-purple-50 border border-purple-200 p-4 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <h5 className="font-medium text-purple-900">🌿 Create GitHub Branch</h5>
+                <button
+                  onClick={handleCreateBranch}
+                  disabled={isCreatingBranch}
+                  className="px-3 py-1 bg-purple-500 text-white text-sm rounded hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {isCreatingBranch ? 'Creating Branch...' : 'Create Branch'}
+                </button>
+              </div>
+              <p className="text-sm text-purple-700">
+                Create a temporary GitHub repository with your project code.
+              </p>
+            </div>
+
+            {/* Traditional Next Steps */}
+            <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
+              <h5 className="font-medium text-green-900 mb-2">💻 Traditional Setup</h5>
+              <ol className="list-decimal list-inside space-y-1 text-sm text-green-800">
+                <li>cd {project.name}</li>
+                <li>npm install</li>
+                <li>npm run dev</li>
+                <li>Open in your editor</li>
+                <li>Start coding! 🚀</li>
+              </ol>
+            </div>
           </div>
         </div>
       )}

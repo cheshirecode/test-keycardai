@@ -249,6 +249,31 @@ export async function GET() {
         },
         required: ['description']
       }
+    },
+    {
+      name: 'download_project_zip',
+      description: 'Compress project directory into downloadable zip file',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          projectPath: { type: 'string', description: 'Path to the project directory to compress' },
+          projectName: { type: 'string', description: 'Optional project name for the zip file' }
+        },
+        required: ['projectPath']
+      }
+    },
+    {
+      name: 'create_github_branch',
+      description: 'Create temporary GitHub branch with project content',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          projectPath: { type: 'string', description: 'Path to the project directory' },
+          projectName: { type: 'string', description: 'Optional project name (extracted from path if not provided)' },
+          branchPrefix: { type: 'string', description: 'Optional branch prefix (default: "branch")' }
+        },
+        required: ['projectPath']
+      }
     }
   ]
 
