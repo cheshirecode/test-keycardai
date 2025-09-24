@@ -1288,6 +1288,76 @@ describe('Project Creation', () => {
 })
 ```
 
+## 🔧 Testing & Debugging Endpoints
+
+### Health Check Endpoint
+
+**Endpoint:** `GET /api/health`
+
+**Purpose:** Monitor system status and verify environment configuration
+
+**Response:**
+```typescript
+{
+  timestamp: string
+  status: 'healthy' | 'degraded' | 'unhealthy'
+  version: string
+  environment: string
+  services: {
+    openai: boolean          // OpenAI API key availability
+    github: boolean          // GitHub token availability
+    githubOrg: string        // Configured GitHub organization
+  }
+  uptime: number             // Process uptime in seconds
+  memory: {
+    used: number             // Used memory in MB
+    total: number            // Total memory in MB
+    limit: number            // Memory limit in MB
+  }
+}
+```
+
+**Example:**
+```bash
+curl http://localhost:3002/api/health
+```
+
+**Response:**
+```json
+{
+  "timestamp": "2024-09-25T00:35:12.345Z",
+  "status": "healthy",
+  "version": "0.1.0",
+  "environment": "development",
+  "services": {
+    "openai": true,
+    "github": true,
+    "githubOrg": "mcp-integration"
+  },
+  "uptime": 1234.567,
+  "memory": {
+    "used": 45,
+    "total": 78,
+    "limit": 120
+  }
+}
+```
+
+### Environment Variable Verification
+
+**Purpose:** Verify environment variables are properly configured
+
+**Key Indicators:**
+- ✅ `services.openai: true` - AI functionality available
+- ✅ `services.github: true` - GitHub repository operations available
+- ✅ `services.githubOrg: "mcp-integration"` - Organization correctly configured
+- ❌ `services.githubOrg: "default (authenticated user)"` - Using fallback
+
+**Usage in CI/CD:**
+- Use health endpoint to verify deployment configuration
+- Check `services` object to ensure all required services are available
+- Monitor `githubOrg` value to confirm organization setup
+
 ---
 
 This API reference provides complete documentation for integrating with and extending the MCP Project Scaffolder agent.
