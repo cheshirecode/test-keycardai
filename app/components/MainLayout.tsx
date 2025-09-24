@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useCallback } from 'react'
 import { ProjectSidebar } from '@/components/ProjectSidebar'
 import { useRepository } from '@/contexts/RepositoryContext'
 import { useRepositorySync } from '@/hooks/useRepositorySync'
@@ -27,10 +27,10 @@ export function MainLayout({ children }: MainLayoutProps) {
     setOnRepositoryRefresh(sidebarRefreshRef.current)
   }, [setOnRepositoryRefresh])
 
-  const handleSidebarRefresh = (refreshFn: () => void) => {
+  const handleSidebarRefresh = useCallback((refreshFn: () => void) => {
     sidebarRefreshRef.current = refreshFn
     setOnRepositoryRefresh(refreshFn)
-  }
+  }, [setOnRepositoryRefresh])
 
   return (
     <div className="flex h-screen bg-white">

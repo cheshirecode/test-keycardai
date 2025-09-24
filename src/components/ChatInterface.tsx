@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useChat } from '@/lib/hooks/useChat'
 import { ProjectPreview } from '@/components/ProjectPreview'
-import UserProfile from '@/components/UserProfile'
+import UserProfile from '@/app/components/UserProfile'
 import { useLocalStorage } from '@/hooks/useLocalStorage'
 
 export function ChatInterface() {
