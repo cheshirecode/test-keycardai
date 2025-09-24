@@ -367,7 +367,14 @@ export const mcpTools = {
       // Step 2: Generate project path if not provided
       const projectName = params.projectName || analysis.projectName || 'my-project'
       const sanitizedName = projectName.toLowerCase().replace(/[^a-z0-9-]/g, '-')
-      const projectPath = params.projectPath || `/tmp/projects/${sanitizedName}-${Date.now()}`
+      
+      // Ensure Vercel compatibility by using proper tmp directory
+      const tmpProjectsDir = '/tmp/projects'
+      if (!fs.existsSync(tmpProjectsDir)) {
+        fs.mkdirSync(tmpProjectsDir, { recursive: true })
+      }
+      
+      const projectPath = params.projectPath || path.join(tmpProjectsDir, `${sanitizedName}-${Date.now()}`)
 
       // Step 3: Generate comprehensive action plan
       const { actions } = await AIService.generateMCPActions(
@@ -648,7 +655,6 @@ export const mcpTools = {
 
   download_project_zip: async (params: { projectPath: string; projectName?: string }) => {
     try {
-
       // Check if project directory exists
       if (!fs.existsSync(params.projectPath)) {
         throw new Error(`Project directory not found: ${params.projectPath}`)
@@ -656,25 +662,6 @@ export const mcpTools = {
 
       // Get project name from directory or parameter
       const projectName = params.projectName || path.basename(params.projectPath)
-
-      // Create zip file in memory
-      const archive = archiver('zip', {
-        zlib: { level: 9 } // Maximum compression
-      })
-
-      // Handle archiver warnings
-      archive.on('warning', (err: { code?: string; message?: string }) => {
-        if (err.code === 'ENOENT') {
-          console.warn('Archiver warning:', err)
-        } else {
-          throw err
-        }
-      })
-
-      // Handle archiver errors
-      archive.on('error', (err: { code?: string; message?: string }) => {
-        throw err
-      })
 
       // Collect file data
       const files: { path: string; content: string }[] = []
@@ -709,13 +696,33 @@ export const mcpTools = {
 
       collectFiles(params.projectPath)
 
+      // Ensure /tmp directory exists (Vercel compatibility)
+      const tmpDir = '/tmp'
+      if (!fs.existsSync(tmpDir)) {
+        fs.mkdirSync(tmpDir, { recursive: true })
+      }
+
       // Create actual zip file and return download URL
-      const zipPath = `/tmp/${projectName}-${Date.now()}.zip`
+      const zipPath = path.join(tmpDir, `${projectName}-${Date.now()}.zip`)
 
       try {
         // Create the zip file
         const output = fs.createWriteStream(zipPath)
         const archive = archiver('zip', { zlib: { level: 9 } })
+
+        // Handle archiver warnings
+        archive.on('warning', (err: { code?: string; message?: string }) => {
+          if (err.code === 'ENOENT') {
+            console.warn('Archiver warning:', err)
+          } else {
+            throw err
+          }
+        })
+
+        // Handle archiver errors
+        archive.on('error', (err: { code?: string; message?: string }) => {
+          throw err
+        })
 
         archive.pipe(output)
 
@@ -730,6 +737,11 @@ export const mcpTools = {
           archive.on('error', reject)
           archive.finalize()
         })
+
+        // Verify the file was created
+        if (!fs.existsSync(zipPath)) {
+          throw new Error('Zip file was not created successfully')
+        }
 
         return {
           success: true,
@@ -748,6 +760,7 @@ export const mcpTools = {
         throw zipError
       }
     } catch (error) {
+      console.error('Download zip error:', error)
       return {
         success: false,
         message: `Failed to create zip: ${error instanceof Error ? error.message : 'Unknown error'}`,
@@ -758,52 +771,71 @@ export const mcpTools = {
 
   create_github_branch: async (params: { projectPath: string; projectName?: string; branchPrefix?: string }) => {
     try {
+      console.log('[GitHub Branch] Starting GitHub branch creation process...')
+      
       const githubService = new GitHubService()
       if (!githubService.isGitHubAvailable()) {
+        console.log('[GitHub Branch] GitHub token not available')
         return {
           success: false,
-          message: 'GitHub token not available. Cannot create branch.'
+          message: 'GitHub token not available. Please set GITHUB_TOKEN environment variable to create branches.'
         }
       }
 
+      console.log('[GitHub Branch] Authenticating with GitHub...')
       const user = await githubService.getAuthenticatedUser()
       if (!user.success || !user.user) {
+        console.error('[GitHub Branch] Authentication failed:', user.message)
         return {
           success: false,
-          message: user.message || 'Failed to get authenticated GitHub user.'
+          message: user.message || 'Failed to authenticate with GitHub. Please check your GITHUB_TOKEN.'
         }
       }
 
+      console.log(`[GitHub Branch] Authenticated as: ${user.user.login}`)
+
       const projectName = params.projectName || path.basename(params.projectPath)
-      const branchPrefix = params.branchPrefix || 'branch'
+      const branchPrefix = params.branchPrefix || 'temp'
       const timestamp = Date.now()
-      const branchName = `${branchPrefix}-${projectName}-${timestamp}`.toLowerCase().replace(/[^a-z0-9-_]/g, '-')
+      const tempRepoName = `${branchPrefix}-${projectName}-${timestamp}`.toLowerCase().replace(/[^a-z0-9-_]/g, '-')
 
       // Check if project directory exists
       if (!fs.existsSync(params.projectPath)) {
-        throw new Error(`Project directory not found: ${params.projectPath}`)
+        const errorMsg = `Project directory not found: ${params.projectPath}`
+        console.error('[GitHub Branch]', errorMsg)
+        throw new Error(errorMsg)
       }
 
+      console.log(`[GitHub Branch] Collecting files from: ${params.projectPath}`)
       // Collect all files from the project
       const files = GitHubService.collectFilesFromDirectory(params.projectPath)
+      console.log(`[GitHub Branch] Collected ${files.length} files`)
 
-      // Create a temporary repository for the branch
-      const tempRepoName = `temp-${projectName}-${timestamp}`
+      if (files.length === 0) {
+        return {
+          success: false,
+          message: 'No files found in project directory to upload to GitHub.'
+        }
+      }
 
       // Create repository
+      console.log(`[GitHub Branch] Creating repository: ${tempRepoName}`)
       const createRepoResult = await githubService.createRepository({
         owner: user.user.login,
         repo: tempRepoName,
-        description: `Temporary repository for ${projectName} project`,
+        description: `Generated project: ${projectName}`,
         private: false
       })
 
       if (!createRepoResult.success) {
+        console.error('[GitHub Branch] Repository creation failed:', createRepoResult.message)
         return {
           success: false,
-          message: `Failed to create temporary repository: ${createRepoResult.message}`
+          message: `Failed to create repository: ${createRepoResult.message}`
         }
       }
+
+      console.log(`[GitHub Branch] Repository created: ${createRepoResult.url}`)
 
       // Configure repository for commits
       const repoConfig: GitHubRepoConfig = {
@@ -811,34 +843,37 @@ export const mcpTools = {
         repo: tempRepoName
       }
 
-      // Commit all files to the new branch
+      // Commit all files to the repository
+      console.log('[GitHub Branch] Committing files to repository...')
       const commitResult = await githubService.commitFiles(
         repoConfig,
         files,
-        `Initial commit for ${projectName} project`
+        `Generated project: ${projectName}`
       )
 
       if (!commitResult.success) {
+        console.error('[GitHub Branch] Commit failed:', commitResult.message)
         return {
           success: false,
-          message: `Repository created but commit failed: ${commitResult.message}`
+          message: `Repository created but file upload failed: ${commitResult.message}`
         }
       }
 
+      console.log('[GitHub Branch] Files committed successfully')
+
       return {
         success: true,
-        message: `GitHub branch '${branchName}' created successfully`,
-        branchName: branchName,
-        repositoryUrl: createRepoResult.url,
+        message: `GitHub repository '${tempRepoName}' created successfully with ${files.length} files`,
         repositoryName: tempRepoName,
+        repositoryUrl: createRepoResult.url,
         fileCount: files.length,
-        branchUrl: `${createRepoResult.url}/tree/${branchName}`
+        owner: user.user.login
       }
     } catch (error) {
-      console.error('GitHub branch creation error:', error)
+      console.error('[GitHub Branch] Error:', error)
       return {
         success: false,
-        message: `Failed to create GitHub branch: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        message: `Failed to create GitHub repository: ${error instanceof Error ? error.message : 'Unknown error'}`,
         error: error instanceof Error ? error.message : 'Unknown error'
       }
     }
