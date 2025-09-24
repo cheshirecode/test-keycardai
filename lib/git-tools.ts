@@ -5,7 +5,19 @@ import * as path from 'path'
 export class GitTools {
   static async initRepository(projectPath: string): Promise<void> {
     try {
-      execSync('git init', { cwd: projectPath })
+      // Ensure the directory exists
+      if (!fs.existsSync(projectPath)) {
+        fs.mkdirSync(projectPath, { recursive: true })
+      }
+
+      // Check if git is available
+      try {
+        execSync('git --version', { stdio: 'ignore' })
+      } catch {
+        throw new Error('Git is not installed or not available in PATH')
+      }
+
+      execSync('git init', { cwd: projectPath, stdio: 'pipe' })
 
       // Create .gitignore
       const gitignore = `
@@ -60,8 +72,17 @@ logs
 
   static async addAndCommit(projectPath: string, message: string): Promise<void> {
     try {
-      execSync('git add .', { cwd: projectPath })
-      execSync(`git commit -m "${message}"`, { cwd: projectPath })
+      // Check if directory exists and is a git repository
+      if (!fs.existsSync(projectPath)) {
+        throw new Error(`Directory does not exist: ${projectPath}`)
+      }
+      
+      if (!fs.existsSync(path.join(projectPath, '.git'))) {
+        throw new Error(`Not a git repository: ${projectPath}`)
+      }
+
+      execSync('git add .', { cwd: projectPath, stdio: 'pipe' })
+      execSync(`git commit -m "${message}"`, { cwd: projectPath, stdio: 'pipe' })
     } catch (error) {
       throw new Error(`Git commit failed: ${error}`)
     }
