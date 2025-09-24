@@ -186,6 +186,12 @@ logs
             // Use GITHUB_ORG environment variable if specified, otherwise use authenticated user
             const owner = process.env.GITHUB_ORG || userResult.user.login
             
+            // Debug logging for fallback case
+            console.log('🔍 Repository commit debug (fallback):')
+            console.log('  - GITHUB_ORG env var:', process.env.GITHUB_ORG)
+            console.log('  - Authenticated user:', userResult.user.login)
+            console.log('  - Selected owner:', owner)
+            
             repoConfig = {
               owner: owner,
               repo: GitHubService.generateRepoName(projectName)
