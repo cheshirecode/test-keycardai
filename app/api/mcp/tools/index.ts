@@ -29,10 +29,10 @@ export const mcpTools = {
     try {
       await GitTools.initRepository(params.path)
       const gitAvailable = GitTools.isGitAvailable()
-      return { 
-        success: true, 
-        message: gitAvailable 
-          ? 'Git repository initialized successfully' 
+      return {
+        success: true,
+        message: gitAvailable
+          ? 'Git repository initialized successfully'
           : 'Project created successfully (git not available in this environment)',
         gitAvailable
       }
@@ -45,10 +45,10 @@ export const mcpTools = {
     try {
       await GitTools.addAndCommit(params.path, params.message)
       const gitAvailable = GitTools.isGitAvailable()
-      return { 
-        success: true, 
-        message: gitAvailable 
-          ? `Committed: ${params.message}` 
+      return {
+        success: true,
+        message: gitAvailable
+          ? `Committed: ${params.message}`
           : 'Commit skipped (git not available in this environment)',
         gitAvailable
       }
