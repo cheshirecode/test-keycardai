@@ -76,7 +76,7 @@ logs
         if (userResult.success && userResult.user) {
           const projectName = path.basename(projectPath)
           const repoName = GitHubService.generateRepoName(projectName)
-          
+
           // Use GITHUB_OWNER environment variable if specified, otherwise use authenticated user
           const owner = process.env.GITHUB_OWNER || userResult.user.login
 
@@ -168,7 +168,7 @@ logs
           // Try to read repository info from project metadata file
           const projectName = path.basename(projectPath)
           const metadataPath = path.join(projectPath, '.repo-metadata.json')
-          
+
           if (fs.existsSync(metadataPath)) {
             try {
               const metadata = JSON.parse(fs.readFileSync(metadataPath, 'utf-8'))
@@ -180,18 +180,18 @@ logs
               console.warn('Failed to read repository metadata:', error)
             }
           }
-          
+
           // Fallback: generate new repo name (this might create a new repo)
           if (!repoConfig) {
             // Use GITHUB_OWNER environment variable if specified, otherwise use authenticated user
             const owner = process.env.GITHUB_OWNER || userResult.user.login
-            
+
             // Debug logging for fallback case
             console.log('🔍 Repository commit debug (fallback):')
             console.log('  - GITHUB_OWNER env var:', process.env.GITHUB_OWNER)
             console.log('  - Authenticated user:', userResult.user.login)
             console.log('  - Selected owner:', owner)
-            
+
             repoConfig = {
               owner: owner,
               repo: GitHubService.generateRepoName(projectName)

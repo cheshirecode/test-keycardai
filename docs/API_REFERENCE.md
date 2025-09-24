@@ -1305,7 +1305,7 @@ describe('Project Creation', () => {
   environment: string
   services: {
     openai: boolean          // OpenAI API key availability
-    github: boolean          // GitHub token availability  
+    github: boolean          // GitHub token availability
     githubOwner: string      // Configured GitHub repository owner
   }
   uptime: number             // Process uptime in seconds

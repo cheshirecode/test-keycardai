@@ -55,7 +55,7 @@ export class GitHubService {
       }
 
       const isPersonalRepo = config.owner === userResult.user.login
-      
+
       // Debug logging (can be removed in production)
       console.log('🔍 Repository creation debug:')
       console.log('  - Target owner:', config.owner)
@@ -95,7 +95,7 @@ export class GitHubService {
       // Handle case where repo already exists
       const err = error as { status?: number; message?: string }
       console.error('❌ Repository creation failed:', err)
-      
+
       if (err.status === 422) {
         return {
           success: false,
