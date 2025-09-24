@@ -149,7 +149,7 @@ export const projectManagement = {
         success: true,
         message: `Project analyzed: ${projectName}`,
         project: {
-          name: (typeof packageInfo.name === 'string' ? packageInfo.name : projectName) || 'Unknown Project',
+          name: (typeof packageInfo.name === 'string' ? packageInfo.name : 'Unknown Project'),
           path: params.projectPath,
           type: projectType,
           framework,

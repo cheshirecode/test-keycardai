@@ -765,7 +765,7 @@ async function generateContextualPlan(
   const packageName = extractPackageName(requestDescription)
   if (packageName || requestDescription.includes('install') || requestDescription.includes('add')) {
     const detectedPackages = packageName ? [packageName] : extractMultiplePackages(requestDescription)
-    
+
     if (detectedPackages.length > 0) {
       plan.push({
         step: plan.length + 1,
@@ -818,14 +818,14 @@ function extractPackageName(description: string): string | null {
     // Simple "add X" patterns
     /^add\s+([a-zA-Z0-9-@\/]+)$/i
   ]
-  
+
   for (const pattern of patterns) {
     const match = description.match(pattern)
     if (match) {
       return match[1]
     }
   }
-  
+
   return null
 }
 
@@ -834,7 +834,7 @@ function extractPackageName(description: string): string | null {
  */
 function extractMultiplePackages(description: string): string[] {
   const packages: string[] = []
-  
+
   // Common state management and UI libraries
   const commonPackages = {
     'state management': ['jotai', 'zustand'],
@@ -849,16 +849,16 @@ function extractMultiplePackages(description: string): string[] {
     'icons': ['react-icons'],
     'animation': ['framer-motion']
   }
-  
+
   const lowerDescription = description.toLowerCase()
-  
+
   // Check for known package categories
   for (const [keyword, packageList] of Object.entries(commonPackages)) {
     if (lowerDescription.includes(keyword)) {
       packages.push(...packageList)
     }
   }
-  
+
   // If no category matches, try to extract individual package names
   if (packages.length === 0) {
     const singlePackage = extractPackageName(description)
@@ -866,6 +866,6 @@ function extractMultiplePackages(description: string): string[] {
       packages.push(singlePackage)
     }
   }
-  
+
   return [...new Set(packages)] // Remove duplicates
 }

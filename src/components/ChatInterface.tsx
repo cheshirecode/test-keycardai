@@ -12,7 +12,7 @@ export function ChatInterface() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   // Demo of extended functionality - user preferences stored locally
-  const [userProfile, setUserProfile] = useLocalStorage('userProfile', {
+  const [userProfile] = useLocalStorage('userProfile', {
     name: 'Demo User',
     email: 'demo@example.com'
   })
@@ -65,12 +65,12 @@ export function ChatInterface() {
                 <span className="text-green-600">({currentProject.template})</span>
               </div>
             )}
-            
+
             {/* Demo: UserProfile component created via extended MCP tools */}
             <div className="hidden md:block">
-              <UserProfile 
-                name={userProfile.name} 
-                email={userProfile.email} 
+              <UserProfile
+                name={userProfile.name}
+                email={userProfile.email}
               />
             </div>
           </div>
@@ -246,7 +246,7 @@ export function ChatInterface() {
                   type="text"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  placeholder={currentProject 
+                  placeholder={currentProject
                     ? `Modify ${currentProject.name} (e.g., 'add jotai', 'create component')`
                     : "Describe your project (e.g., 'Create a React app with authentication')"
                   }

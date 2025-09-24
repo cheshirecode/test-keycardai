@@ -5,11 +5,11 @@ This document demonstrates the **fixed** context-aware MCP workflow that properl
 ## 🔧 **Fixed Issues**
 
 ### ✅ **Issue 1: Project Context Persistence**
-**Before:** New repositories created by MCP couldn't be modified in subsequent requests  
+**Before:** New repositories created by MCP couldn't be modified in subsequent requests
 **After:** Projects remain active and modifiable throughout the session
 
 ### ✅ **Issue 2: Request Classification**
-**Before:** "add jotai" was treated as new project scaffolding  
+**Before:** "add jotai" was treated as new project scaffolding
 **After:** "add jotai" is correctly identified as a modification request
 
 ---
@@ -160,7 +160,7 @@ To test the enhanced workflow:
 
 1. **Create a project**: "Create a React TypeScript app"
 2. **Wait for completion** and note the green project indicator
-3. **Add a package**: "add jotai" 
+3. **Add a package**: "add jotai"
 4. **Verify behavior**: Should modify existing project, not create new one
 5. **Check repository**: Changes should be committed to the created repo
 
