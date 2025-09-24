@@ -74,7 +74,7 @@ OPENAI_API_KEY=sk-your-openai-key
 GITHUB_TOKEN=ghp-your-github-token
 
 # Optional: specify organization/user for repository creation
-GITHUB_ORG=mcp-integration
+GITHUB_OWNER=mcp-integration
 
 # Optional for commit authorship
 GIT_USER_NAME=Your Name
@@ -1305,8 +1305,8 @@ describe('Project Creation', () => {
   environment: string
   services: {
     openai: boolean          // OpenAI API key availability
-    github: boolean          // GitHub token availability
-    githubOrg: string        // Configured GitHub organization
+    github: boolean          // GitHub token availability  
+    githubOwner: string      // Configured GitHub repository owner
   }
   uptime: number             // Process uptime in seconds
   memory: {
@@ -1332,7 +1332,7 @@ curl http://localhost:3002/api/health
   "services": {
     "openai": true,
     "github": true,
-    "githubOrg": "mcp-integration"
+    "githubOwner": "mcp-integration"
   },
   "uptime": 1234.567,
   "memory": {
@@ -1350,13 +1350,13 @@ curl http://localhost:3002/api/health
 **Key Indicators:**
 - ✅ `services.openai: true` - AI functionality available
 - ✅ `services.github: true` - GitHub repository operations available
-- ✅ `services.githubOrg: "mcp-integration"` - Organization correctly configured
-- ❌ `services.githubOrg: "default (authenticated user)"` - Using fallback
+- ✅ `services.githubOwner: "mcp-integration"` - Repository owner correctly configured
+- ❌ `services.githubOwner: "default (authenticated user)"` - Using fallback to authenticated user
 
 **Usage in CI/CD:**
 - Use health endpoint to verify deployment configuration
 - Check `services` object to ensure all required services are available
-- Monitor `githubOrg` value to confirm organization setup
+- Monitor `githubOwner` value to confirm repository owner setup
 
 ---
 

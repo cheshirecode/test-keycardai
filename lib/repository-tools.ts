@@ -77,8 +77,8 @@ logs
           const projectName = path.basename(projectPath)
           const repoName = GitHubService.generateRepoName(projectName)
           
-          // Use GITHUB_ORG environment variable if specified, otherwise use authenticated user
-          const owner = process.env.GITHUB_ORG || userResult.user.login
+          // Use GITHUB_OWNER environment variable if specified, otherwise use authenticated user
+          const owner = process.env.GITHUB_OWNER || userResult.user.login
 
           const repoConfig: GitHubRepoConfig = {
             owner: owner,
@@ -183,12 +183,12 @@ logs
           
           // Fallback: generate new repo name (this might create a new repo)
           if (!repoConfig) {
-            // Use GITHUB_ORG environment variable if specified, otherwise use authenticated user
-            const owner = process.env.GITHUB_ORG || userResult.user.login
+            // Use GITHUB_OWNER environment variable if specified, otherwise use authenticated user
+            const owner = process.env.GITHUB_OWNER || userResult.user.login
             
             // Debug logging for fallback case
             console.log('🔍 Repository commit debug (fallback):')
-            console.log('  - GITHUB_ORG env var:', process.env.GITHUB_ORG)
+            console.log('  - GITHUB_OWNER env var:', process.env.GITHUB_OWNER)
             console.log('  - Authenticated user:', userResult.user.login)
             console.log('  - Selected owner:', owner)
             

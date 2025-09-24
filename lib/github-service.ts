@@ -45,12 +45,46 @@ export class GitHubService {
     }
 
     try {
-      const response = await this.octokit.repos.createForAuthenticatedUser({
-        name: config.repo,
-        description: config.description || `Generated project: ${config.repo}`,
-        private: config.private || false,
-        auto_init: true, // Initialize with README
-      })
+      // Get authenticated user to determine if owner is personal account or organization
+      const userResult = await this.getAuthenticatedUser()
+      if (!userResult.success || !userResult.user) {
+        return {
+          success: false,
+          message: 'Failed to get authenticated user information'
+        }
+      }
+
+      const isPersonalRepo = config.owner === userResult.user.login
+      
+      // Debug logging (can be removed in production)
+      console.log('🔍 Repository creation debug:')
+      console.log('  - Target owner:', config.owner)
+      console.log('  - Authenticated user:', userResult.user.login)
+      console.log('  - Is personal repo:', isPersonalRepo)
+      console.log('  - Repository name:', config.repo)
+
+      let response
+
+      if (isPersonalRepo) {
+        // Create repository under authenticated user
+        response = await this.octokit.repos.createForAuthenticatedUser({
+          name: config.repo,
+          description: config.description || `Generated project: ${config.repo}`,
+          private: config.private || false,
+          auto_init: true, // Initialize with README
+        })
+      } else {
+        // Create repository under organization
+        response = await this.octokit.repos.createInOrg({
+          org: config.owner,
+          name: config.repo,
+          description: config.description || `Generated project: ${config.repo}`,
+          private: config.private || false,
+          auto_init: true, // Initialize with README
+        })
+      }
+
+      console.log('✅ Repository created successfully:', response.data.html_url)
 
       return {
         success: true,
@@ -60,10 +94,12 @@ export class GitHubService {
     } catch (error: unknown) {
       // Handle case where repo already exists
       const err = error as { status?: number; message?: string }
+      console.error('❌ Repository creation failed:', err)
+      
       if (err.status === 422) {
         return {
           success: false,
-          message: `Repository '${config.repo}' already exists`
+          message: `Repository '${config.repo}' already exists or organization access denied`
         }
       }
 

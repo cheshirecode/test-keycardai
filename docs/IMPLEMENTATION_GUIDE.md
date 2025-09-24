@@ -37,7 +37,7 @@ npm install uuid clsx
 cat > .env.local << EOF
 OPENAI_API_KEY=your_openai_api_key_here
 GITHUB_TOKEN=your_github_token_here
-GITHUB_ORG=your-organization-name
+GITHUB_OWNER=your-organization-name
 GIT_USER_NAME=Project Scaffolder
 GIT_USER_EMAIL=scaffolder@example.com
 EOF
@@ -1074,7 +1074,7 @@ Add error boundaries and graceful fallbacks:
 ```bash
 OPENAI_API_KEY=your_openai_api_key
 GITHUB_TOKEN=your_github_token
-GITHUB_ORG=your-organization-name
+GITHUB_OWNER=your-organization-name
 GIT_USER_NAME=Project Scaffolder
 GIT_USER_EMAIL=scaffolder@example.com
 NODE_ENV=production
