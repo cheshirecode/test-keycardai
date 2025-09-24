@@ -24,7 +24,7 @@
       "@/lib/*": ["./lib/*"],
       "@/types": ["./types"],
       "@/types/*": ["./types/*"],
-      "@/components/*": ["./src/components/*", "./app/components/*"],
+      "@/components/*": ["./app/components/*"],
       "@/contexts/*": ["./app/contexts/*"],
       "@/hooks/*": ["./src/hooks/*", "./app/hooks/*"],
       "@/api/*": ["./app/api/*"]

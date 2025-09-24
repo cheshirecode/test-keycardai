@@ -5,12 +5,20 @@ import { useChat } from '@/lib/hooks/useChat'
 import { ProjectPreview } from './ProjectPreview'
 import { RepositoryPreview } from './RepositoryPreview'
 import { useRepository } from '@/contexts/RepositoryContext'
+import UserProfile from '@/components/UserProfile'
+import { useLocalStorage } from '@/hooks/useLocalStorage'
 
 export function ChatInterface() {
   const [input, setInput] = useState('')
   const { messages, isLoading, currentProject, sendMessage, clearChat } = useChat()
   const { selectedRepository, isRepositoryMode } = useRepository()
   const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  // User profile integration with localStorage
+  const [userProfile, , isProfileInitialized] = useLocalStorage('userProfile', {
+    name: 'Demo User',
+    email: 'demo@example.com'
+  })
 
 
   const scrollToBottom = () => {
@@ -63,6 +71,25 @@ export function ChatInterface() {
             </p>
           </div>
           <div className="flex items-center space-x-3">
+            {/* Current Project Indicator */}
+            {currentProject && (
+              <div className="flex items-center space-x-2 px-3 py-1.5 bg-emerald-50 border border-emerald-200 rounded-full text-sm">
+                <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                <span className="font-medium text-emerald-700">{currentProject.name}</span>
+                <span className="text-emerald-600">({currentProject.template})</span>
+              </div>
+            )}
+
+            {/* User Profile */}
+            <div className="hidden md:block">
+              {isProfileInitialized && (
+                <UserProfile
+                  name={userProfile.name}
+                  email={userProfile.email}
+                />
+              )}
+            </div>
+
             {!isRepositoryMode && (
               <button
                 onClick={() => {
