@@ -44,6 +44,8 @@ export const mcpTools = {
   create_project_with_ai: async (params: Parameters<typeof aiOperations.create_project_with_ai>[0]) => {
     return aiOperations.create_project_with_ai(params, mcpTools as Record<string, (...args: unknown[]) => Promise<unknown>>)
   },
+  analyze_existing_project: aiOperations.analyze_existing_project,
+  generate_modification_plan: aiOperations.generate_modification_plan,
 
   // Project Operations
   ...projectOperations,
