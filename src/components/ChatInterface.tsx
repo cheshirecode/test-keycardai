@@ -10,7 +10,7 @@ export function ChatInterface() {
   const [input, setInput] = useState('')
   const { messages, isLoading, currentProject, sendMessage, clearChat } = useChat()
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  
+
   // Demo of extended functionality - user preferences stored locally
   const [userProfile, setUserProfile] = useLocalStorage('userProfile', {
     name: 'Demo User',
@@ -55,13 +55,24 @@ export function ChatInterface() {
             <h1 className="text-2xl font-bold text-gray-900">🚀 Project Scaffolder</h1>
             <p className="text-gray-600">Create projects with natural language</p>
           </div>
-          
-          {/* Demo: UserProfile component created via extended MCP tools */}
-          <div className="hidden md:block">
-            <UserProfile 
-              name={userProfile.name} 
-              email={userProfile.email} 
-            />
+
+          <div className="flex items-center gap-4">
+            {/* Current Project Indicator */}
+            {currentProject && (
+              <div className="flex items-center gap-2 px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span className="font-medium">{currentProject.name}</span>
+                <span className="text-green-600">({currentProject.template})</span>
+              </div>
+            )}
+            
+            {/* Demo: UserProfile component created via extended MCP tools */}
+            <div className="hidden md:block">
+              <UserProfile 
+                name={userProfile.name} 
+                email={userProfile.email} 
+              />
+            </div>
           </div>
           {messages.length > 0 && (
             <button
@@ -235,7 +246,10 @@ export function ChatInterface() {
                   type="text"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  placeholder="Describe your project (e.g., 'Create a React app with authentication')"
+                  placeholder={currentProject 
+                    ? `Modify ${currentProject.name} (e.g., 'add jotai', 'create component')`
+                    : "Describe your project (e.g., 'Create a React app with authentication')"
+                  }
                   className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   disabled={isLoading}
                 />

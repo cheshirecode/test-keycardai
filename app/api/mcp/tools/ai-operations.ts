@@ -558,8 +558,8 @@ export const aiOperations = {
       }
 
       // Analyze project type and framework
-      const deps = { 
-        ...(projectInfo.dependencies as Record<string, string> || {}), 
+      const deps = {
+        ...(projectInfo.dependencies as Record<string, string> || {}),
         ...(projectInfo.devDependencies as Record<string, string> || {})
       }
       let projectType = 'unknown'
@@ -761,18 +761,22 @@ async function generateContextualPlan(
     })
   }
 
-  if (requestDescription.includes('package') || requestDescription.includes('dependency')) {
-    const packageName = extractPackageName(requestDescription)
-    if (packageName) {
+  // Handle package installation requests (including jotai, zustand, etc.)
+  const packageName = extractPackageName(requestDescription)
+  if (packageName || requestDescription.includes('install') || requestDescription.includes('add')) {
+    const detectedPackages = packageName ? [packageName] : extractMultiplePackages(requestDescription)
+    
+    if (detectedPackages.length > 0) {
       plan.push({
         step: plan.length + 1,
-        action: 'Add package dependency',
+        action: 'Install packages',
         tool: 'add_packages',
         params: {
           projectPath,
-          packages: [packageName]
+          packages: detectedPackages,
+          dev: requestDescription.includes('dev') || requestDescription.includes('development')
         },
-        description: `Install ${packageName} package`
+        description: `Install ${detectedPackages.join(', ')} ${requestDescription.includes('dev') ? '(dev dependencies)' : ''}`
       })
     }
   }
@@ -803,19 +807,65 @@ function extractComponentName(description: string): string {
  * Extract package name from request description
  */
 function extractPackageName(description: string): string | null {
-  // Look for common package patterns
+  // Look for common package patterns - enhanced for state management libraries
   const patterns = [
+    // Direct package mentions
+    /\b(jotai|zustand|redux|mobx|recoil|valtio)\b/i,
+    // Standard installation patterns
     /install\s+([a-zA-Z0-9-@\/]+)/i,
-    /add\s+([a-zA-Z0-9-@\/]+)\s+package/i,
-    /package\s+([a-zA-Z0-9-@\/]+)/i
+    /add\s+([a-zA-Z0-9-@\/]+)(?:\s+package)?/i,
+    /\b([a-zA-Z0-9-@\/]+)\s+package/i,
+    // Simple "add X" patterns
+    /^add\s+([a-zA-Z0-9-@\/]+)$/i
   ]
-
+  
   for (const pattern of patterns) {
     const match = description.match(pattern)
     if (match) {
       return match[1]
     }
   }
-
+  
   return null
+}
+
+/**
+ * Extract multiple packages from request description
+ */
+function extractMultiplePackages(description: string): string[] {
+  const packages: string[] = []
+  
+  // Common state management and UI libraries
+  const commonPackages = {
+    'state management': ['jotai', 'zustand'],
+    'jotai': ['jotai'],
+    'zustand': ['zustand'],
+    'redux': ['@reduxjs/toolkit', 'react-redux'],
+    'router': ['react-router-dom'],
+    'forms': ['react-hook-form'],
+    'ui': ['@headlessui/react', '@heroicons/react'],
+    'styling': ['tailwindcss', '@tailwindcss/forms'],
+    'date': ['date-fns'],
+    'icons': ['react-icons'],
+    'animation': ['framer-motion']
+  }
+  
+  const lowerDescription = description.toLowerCase()
+  
+  // Check for known package categories
+  for (const [keyword, packageList] of Object.entries(commonPackages)) {
+    if (lowerDescription.includes(keyword)) {
+      packages.push(...packageList)
+    }
+  }
+  
+  // If no category matches, try to extract individual package names
+  if (packages.length === 0) {
+    const singlePackage = extractPackageName(description)
+    if (singlePackage) {
+      packages.push(singlePackage)
+    }
+  }
+  
+  return [...new Set(packages)] // Remove duplicates
 }
