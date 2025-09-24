@@ -3,6 +3,15 @@ import * as fs from 'fs'
 import * as path from 'path'
 
 export class GitTools {
+  static isGitAvailable(): boolean {
+    try {
+      execSync('git --version', { stdio: 'ignore' })
+      return true
+    } catch {
+      return false
+    }
+  }
+
   static async initRepository(projectPath: string): Promise<void> {
     try {
       // Ensure the directory exists
@@ -10,16 +19,7 @@ export class GitTools {
         fs.mkdirSync(projectPath, { recursive: true })
       }
 
-      // Check if git is available
-      try {
-        execSync('git --version', { stdio: 'ignore' })
-      } catch {
-        throw new Error('Git is not installed or not available in PATH')
-      }
-
-      execSync('git init', { cwd: projectPath, stdio: 'pipe' })
-
-      // Create .gitignore
+      // Create .gitignore regardless of git availability
       const gitignore = `
 # Dependencies
 node_modules/
@@ -66,13 +66,20 @@ logs
 
       fs.writeFileSync(path.join(projectPath, '.gitignore'), gitignore)
 
-      // Auto-configure git user from environment variables if available
-      const envName = process.env.GIT_USER_NAME
-      const envEmail = process.env.GIT_USER_EMAIL
+      // Only initialize git if available (graceful fallback for Vercel)
+      if (this.isGitAvailable()) {
+        execSync('git init', { cwd: projectPath, stdio: 'pipe' })
 
-      if (envName && envEmail) {
-        await this.configureUser(projectPath, envName, envEmail)
+        // Auto-configure git user from environment variables if available
+        const envName = process.env.GIT_USER_NAME
+        const envEmail = process.env.GIT_USER_EMAIL
+
+        if (envName && envEmail) {
+          await this.configureUser(projectPath, envName, envEmail)
+        }
       }
+      // If git is not available (e.g., Vercel production), continue without git
+      // The project will still be created successfully
     } catch (error) {
       throw new Error(`Git init failed: ${error}`)
     }
@@ -80,9 +87,14 @@ logs
 
   static async addAndCommit(projectPath: string, message: string): Promise<void> {
     try {
-      // Check if directory exists and is a git repository
+      // Check if directory exists
       if (!fs.existsSync(projectPath)) {
         throw new Error(`Directory does not exist: ${projectPath}`)
+      }
+
+      // Skip git operations if git is not available
+      if (!this.isGitAvailable()) {
+        return // Gracefully skip git operations in production
       }
 
       if (!fs.existsSync(path.join(projectPath, '.git'))) {
@@ -98,6 +110,9 @@ logs
 
   static async getStatus(projectPath: string): Promise<string> {
     try {
+      if (!this.isGitAvailable()) {
+        return 'Git not available in this environment'
+      }
       return execSync('git status --porcelain', { cwd: projectPath, encoding: 'utf8' })
     } catch {
       return 'Not a git repository'
@@ -106,6 +121,10 @@ logs
 
   static async createBranch(projectPath: string, branchName: string): Promise<void> {
     try {
+      if (!this.isGitAvailable()) {
+        return // Gracefully skip git operations in production
+      }
+
       if (!fs.existsSync(path.join(projectPath, '.git'))) {
         throw new Error(`Not a git repository: ${projectPath}`)
       }
@@ -118,6 +137,10 @@ logs
 
   static async setRemoteOrigin(projectPath: string, remoteUrl: string): Promise<void> {
     try {
+      if (!this.isGitAvailable()) {
+        return // Gracefully skip git operations in production
+      }
+
       if (!fs.existsSync(path.join(projectPath, '.git'))) {
         throw new Error(`Not a git repository: ${projectPath}`)
       }
@@ -138,6 +161,10 @@ logs
 
   static async configureUser(projectPath: string, name: string, email: string): Promise<void> {
     try {
+      if (!this.isGitAvailable()) {
+        return // Gracefully skip git operations in production
+      }
+
       if (!fs.existsSync(path.join(projectPath, '.git'))) {
         throw new Error(`Not a git repository: ${projectPath}`)
       }
@@ -151,6 +178,10 @@ logs
 
   static async getCommitHistory(projectPath: string, limit: number = 10): Promise<string> {
     try {
+      if (!this.isGitAvailable()) {
+        return 'Git not available in this environment'
+      }
+
       if (!fs.existsSync(path.join(projectPath, '.git'))) {
         return 'Not a git repository'
       }

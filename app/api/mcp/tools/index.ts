@@ -28,7 +28,14 @@ export const mcpTools = {
   git_init: async (params: { path: string }) => {
     try {
       await GitTools.initRepository(params.path)
-      return { success: true, message: 'Git repository initialized' }
+      const gitAvailable = GitTools.isGitAvailable()
+      return { 
+        success: true, 
+        message: gitAvailable 
+          ? 'Git repository initialized successfully' 
+          : 'Project created successfully (git not available in this environment)',
+        gitAvailable
+      }
     } catch (error) {
       throw new Error(`Git init failed: ${error}`)
     }
@@ -37,7 +44,14 @@ export const mcpTools = {
   git_add_commit: async (params: { path: string; message: string }) => {
     try {
       await GitTools.addAndCommit(params.path, params.message)
-      return { success: true, message: `Committed: ${params.message}` }
+      const gitAvailable = GitTools.isGitAvailable()
+      return { 
+        success: true, 
+        message: gitAvailable 
+          ? `Committed: ${params.message}` 
+          : 'Commit skipped (git not available in this environment)',
+        gitAvailable
+      }
     } catch (error) {
       throw new Error(`Git commit failed: ${error}`)
     }
