@@ -1,6 +1,6 @@
 import * as fs from 'fs'
 import * as path from 'path'
-import { GitTools } from '@/lib/git-tools'
+import { RepositoryTools } from '@/lib/repository-tools'
 import { execSync } from 'child_process'
 import { templates } from '@/lib/templates'
 
@@ -27,60 +27,82 @@ export const mcpTools = {
 
   git_init: async (params: { path: string }) => {
     try {
-      await GitTools.initRepository(params.path)
-      const gitAvailable = GitTools.isGitAvailable()
-      return {
-        success: true,
-        message: gitAvailable
-          ? 'Git repository initialized successfully'
-          : 'Project created successfully (git not available in this environment)',
-        gitAvailable
+      const result = await RepositoryTools.initRepository(params.path)
+      const githubAvailable = RepositoryTools.isGitHubAvailable()
+      
+      return { 
+        success: result.success, 
+        message: result.message,
+        repoUrl: result.repoUrl,
+        githubAvailable,
+        method: 'github_api'
       }
     } catch (error) {
-      throw new Error(`Git init failed: ${error}`)
+      throw new Error(`Repository initialization failed: ${error}`)
     }
   },
 
   git_add_commit: async (params: { path: string; message: string }) => {
     try {
-      await GitTools.addAndCommit(params.path, params.message)
-      const gitAvailable = GitTools.isGitAvailable()
-      return {
-        success: true,
-        message: gitAvailable
-          ? `Committed: ${params.message}`
-          : 'Commit skipped (git not available in this environment)',
-        gitAvailable
+      const result = await RepositoryTools.addAndCommit(params.path, params.message)
+      const githubAvailable = RepositoryTools.isGitHubAvailable()
+      
+      return { 
+        success: result.success, 
+        message: result.message,
+        githubAvailable,
+        method: 'github_api'
       }
     } catch (error) {
-      throw new Error(`Git commit failed: ${error}`)
+      throw new Error(`Repository commit failed: ${error}`)
     }
   },
 
   git_status: async (params: { path: string }) => {
     try {
-      const status = await GitTools.getStatus(params.path)
-      return { success: true, status }
+      const status = await RepositoryTools.getStatus(params.path)
+      const githubAvailable = RepositoryTools.isGitHubAvailable()
+      
+      return { 
+        success: true, 
+        status,
+        githubAvailable,
+        method: 'github_api'
+      }
     } catch (error) {
-      throw new Error(`Git status failed: ${error}`)
+      throw new Error(`Repository status failed: ${error}`)
     }
   },
 
-  git_create_branch: async (params: { path: string; branchName: string }) => {
+  git_create_branch: async () => {
     try {
-      await GitTools.createBranch(params.path, params.branchName)
-      return { success: true, message: `Created branch: ${params.branchName}` }
+      const result = await RepositoryTools.createBranch()
+      const githubAvailable = RepositoryTools.isGitHubAvailable()
+      
+      return { 
+        success: result.success, 
+        message: result.message,
+        githubAvailable,
+        method: 'github_api'
+      }
     } catch (error) {
-      throw new Error(`Branch creation failed: ${error}`)
+      throw new Error(`Repository branch creation failed: ${error}`)
     }
   },
 
-  git_set_remote: async (params: { path: string; remoteUrl: string }) => {
+  git_set_remote: async () => {
     try {
-      await GitTools.setRemoteOrigin(params.path, params.remoteUrl)
-      return { success: true, message: `Set remote origin: ${params.remoteUrl}` }
+      const result = await RepositoryTools.setRemoteOrigin()
+      const githubAvailable = RepositoryTools.isGitHubAvailable()
+      
+      return { 
+        success: result.success, 
+        message: result.message,
+        githubAvailable,
+        method: 'github_api'
+      }
     } catch (error) {
-      throw new Error(`Set remote failed: ${error}`)
+      throw new Error(`Repository remote setup failed: ${error}`)
     }
   },
 
@@ -94,23 +116,37 @@ export const mcpTools = {
         throw new Error('Git user name and email are required. Provide them as parameters or set GIT_USER_NAME and GIT_USER_EMAIL environment variables.')
       }
 
-      await GitTools.configureUser(params.path, name, email)
-      return { success: true, message: `Configured git user: ${name} <${email}>` }
+      const result = await RepositoryTools.configureUser(name, email)
+      const githubAvailable = RepositoryTools.isGitHubAvailable()
+      
+      return { 
+        success: result.success, 
+        message: result.message,
+        githubAvailable,
+        method: 'github_api'
+      }
     } catch (error) {
-      throw new Error(`Git user configuration failed: ${error}`)
+      throw new Error(`Repository user configuration failed: ${error}`)
     }
   },
 
-  git_history: async (params: { path: string; limit?: number }) => {
+  git_history: async () => {
     try {
-      const history = await GitTools.getCommitHistory(params.path, params.limit || 10)
-      return { success: true, history }
+      const history = await RepositoryTools.getCommitHistory()
+      const githubAvailable = RepositoryTools.isGitHubAvailable()
+      
+      return { 
+        success: true, 
+        history,
+        githubAvailable,
+        method: 'github_api'
+      }
     } catch (error) {
-      throw new Error(`Git history failed: ${error}`)
+      throw new Error(`Repository history failed: ${error}`)
     }
   },
 
-  git_configure_user_from_env: async (params: { path: string }) => {
+  git_configure_user_from_env: async () => {
     try {
       const name = process.env.GIT_USER_NAME
       const email = process.env.GIT_USER_EMAIL
@@ -119,14 +155,18 @@ export const mcpTools = {
         throw new Error('GIT_USER_NAME and GIT_USER_EMAIL environment variables are required but not set.')
       }
 
-      await GitTools.configureUser(params.path, name, email)
+      const result = await RepositoryTools.configureUser(name, email)
+      const githubAvailable = RepositoryTools.isGitHubAvailable()
+      
       return {
-        success: true,
-        message: `Configured git user from environment: ${name} <${email}>`,
-        source: 'environment_variables'
+        success: result.success,
+        message: result.message,
+        source: 'environment_variables',
+        githubAvailable,
+        method: 'github_api'
       }
     } catch (error) {
-      throw new Error(`Git user configuration from environment failed: ${error}`)
+      throw new Error(`Repository user configuration from environment failed: ${error}`)
     }
   },
 
