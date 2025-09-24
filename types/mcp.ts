@@ -37,6 +37,7 @@ export interface ProjectInfo {
   path: string
   template: string
   status: 'creating' | 'completed' | 'error'
+  repositoryUrl?: string  // Actual GitHub repository URL from creation
 }
 
 export interface MCPLogEntry {

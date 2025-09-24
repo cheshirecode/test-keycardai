@@ -81,7 +81,8 @@ export function useChat() {
           name: project.name,
           path: project.path,
           template: project.type,
-          status: 'completed'
+          status: 'completed',
+          repositoryUrl: project.repositoryUrl
         })
 
         // Use chainOfThought from server response if available, otherwise create summary
