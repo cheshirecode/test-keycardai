@@ -2,7 +2,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 import archiver from 'archiver'
 import { execSync } from 'child_process'
-import { templates } from '../../../../lib/templates'
+import { templates } from '../../../../src/lib/templates'
 
 export interface InstallDependenciesParams {
   path: string

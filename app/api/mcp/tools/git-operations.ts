@@ -1,4 +1,4 @@
-import { RepositoryTools } from '../../../../lib/repository-tools'
+import { RepositoryTools } from '../../../../src/lib/repository-tools'
 
 export interface GitPathParams {
   path: string

@@ -1,7 +1,7 @@
 import * as fs from 'fs'
 import * as path from 'path'
-import { AIService } from '../../../../lib/ai-service'
-import { RepositoryTools } from '../../../../lib/repository-tools'
+import { AIService } from '../../../../src/lib/ai-service'
+import { RepositoryTools } from '../../../../src/lib/repository-tools'
 
 export interface AnalyzeProjectParams {
   description: string

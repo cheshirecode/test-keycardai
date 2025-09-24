@@ -1,9 +1,9 @@
 'use client'
 
 import React, { useState, useEffect, useMemo } from 'react'
-import { templates } from '../../../lib/templates'
-import { ProjectInfo } from '../../../types/mcp'
-import { MCPClient } from '../../../lib/mcp-client'
+import { templates } from '../lib/templates'
+import { ProjectInfo } from '../../types/mcp'
+import { MCPClient } from '../lib/mcp-client'
 
 interface ProjectPreviewProps {
   project: ProjectInfo
