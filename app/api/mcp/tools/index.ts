@@ -295,7 +295,13 @@ export const mcpTools = {
         params.projectPath
       )
 
-      const executionResults = []
+      const executionResults: Array<{
+        action: string
+        tool: string
+        success: boolean
+        result?: unknown
+        error?: string
+      }> = []
 
       if (params.autoExecute) {
         // Step 3: Execute actions with AI decision-making
@@ -399,7 +405,15 @@ export const mcpTools = {
       )
 
       // Step 4: Execute all actions with detailed progress tracking
-      const executionResults = []
+      const executionResults: Array<{
+        step: number
+        action: string
+        tool: string
+        success: boolean
+        result?: unknown
+        error?: string
+        timestamp: string
+      }> = []
       let currentStep = 1
 
       for (const action of actions) {
@@ -442,7 +456,18 @@ export const mcpTools = {
       }
 
       // Step 5: Get final project information
-      const repositoryUrl = await RepositoryTools.getRepositoryUrl(projectPath)
+      // Extract repository URL from execution results if create_github_branch was executed
+      let repositoryUrl: string | null = null
+      const githubBranchResult = executionResults.find(result => result.tool === 'create_github_branch')
+      if (githubBranchResult && githubBranchResult.success && githubBranchResult.result) {
+        const result = githubBranchResult.result as { repositoryUrl?: string }
+        repositoryUrl = result.repositoryUrl || null
+      }
+      
+      // Fallback: try to get repository URL using tools (less reliable)
+      if (!repositoryUrl) {
+        repositoryUrl = await RepositoryTools.getRepositoryUrl(projectPath)
+      }
 
       // Create chain of thought summary
       const chainOfThought = [
@@ -506,7 +531,11 @@ export const mcpTools = {
       // Primary AI analysis
       const analysis = await AIService.analyzeProjectRequest(params.description)
 
-      let optimization = null
+      let optimization: {
+        recommendations: string[]
+        reasoning: string
+        aiPowered?: boolean
+      } | null = null
       if (params.includeOptimization) {
         // Get project optimization recommendations
         optimization = await AIService.optimizeProjectStructure('/tmp/sample', analysis.projectType)
