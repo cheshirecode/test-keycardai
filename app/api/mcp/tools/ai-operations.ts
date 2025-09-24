@@ -31,6 +31,37 @@ export interface AnalyzeAndOptimizeParams {
   includeOptimization?: boolean
 }
 
+export interface AnalyzeExistingProjectParams {
+  projectPath: string
+  requestDescription: string
+  includeFileAnalysis?: boolean
+}
+
+export interface GenerateModificationPlanParams {
+  projectPath: string
+  requestDescription: string
+  analysisData?: unknown
+}
+
+export interface ContextualProjectResult {
+  success: boolean
+  message: string
+  analysis?: {
+    projectType: string
+    framework: string
+    structure: string[]
+    dependencies: Record<string, string>
+    recommendations: string[]
+    modificationPlan?: Array<{
+      step: number
+      action: string
+      tool: string
+      params: unknown
+      description: string
+    }>
+  }
+}
+
 export interface AIAnalysisResult {
   success: boolean
   message: string
@@ -497,5 +528,282 @@ export const aiOperations = {
         analysis: null
       }
     }
+  },
+
+  /**
+   * Analyze an existing project for modification requests
+   */
+  analyze_existing_project: async (params: AnalyzeExistingProjectParams): Promise<ContextualProjectResult> => {
+    try {
+      if (!process.env.OPENAI_API_KEY) {
+        return {
+          success: false,
+          message: 'OpenAI API key not configured for project analysis.'
+        }
+      }
+
+      if (!fs.existsSync(params.projectPath)) {
+        return {
+          success: false,
+          message: `Project directory not found: ${params.projectPath}`
+        }
+      }
+
+      // Read project structure and metadata
+      const packageJsonPath = path.join(params.projectPath, 'package.json')
+      let projectInfo: Record<string, unknown> = { name: 'unknown', dependencies: {}, devDependencies: {} }
+
+      if (fs.existsSync(packageJsonPath)) {
+        projectInfo = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'))
+      }
+
+      // Analyze project type and framework
+      const deps = { ...projectInfo.dependencies, ...projectInfo.devDependencies }
+      let projectType = 'unknown'
+      let framework = 'vanilla'
+
+      if (deps.next) {
+        projectType = 'Next.js Application'
+        framework = 'React'
+      } else if (deps.react) {
+        projectType = 'React Application'
+        framework = 'React'
+      } else if (deps.vue) {
+        projectType = 'Vue Application'
+        framework = 'Vue'
+      } else if (deps.express) {
+        projectType = 'Express API'
+        framework = 'Node.js'
+      }
+
+      // Get basic file structure
+      const structure = getProjectStructure(params.projectPath)
+
+      // Use AI to analyze the request in context of the existing project
+      const contextualAnalysis = await AIService.analyzeProjectRequest(`
+        Existing Project Context:
+        - Type: ${projectType}
+        - Framework: ${framework}
+        - Dependencies: ${Object.keys(deps).join(', ')}
+        - Structure: ${structure.slice(0, 10).join(', ')}${structure.length > 10 ? '...' : ''}
+
+        User Request: ${params.requestDescription}
+
+        Please analyze how to implement this request in the context of the existing project.
+      `)
+
+      // Generate recommendations based on existing project
+      const recommendations = [
+        `Project is using ${framework} framework`,
+        `Current dependencies: ${Object.keys(projectInfo.dependencies || {}).length} packages`,
+        `Suggested approach: ${contextualAnalysis.reasoning}`,
+        `Confidence level: ${(contextualAnalysis.confidence * 100).toFixed(0)}%`
+      ]
+
+      return {
+        success: true,
+        message: `Analyzed existing ${projectType} project for modification request`,
+        analysis: {
+          projectType,
+          framework,
+          structure: structure.slice(0, 20), // Limit for response size
+          dependencies: projectInfo.dependencies || {},
+          recommendations
+        }
+      }
+    } catch (error) {
+      return {
+        success: false,
+        message: `Failed to analyze existing project: ${error instanceof Error ? error.message : 'Unknown error'}`
+      }
+    }
+  },
+
+  /**
+   * Generate a modification plan for an existing project
+   */
+  generate_modification_plan: async (params: GenerateModificationPlanParams): Promise<ContextualProjectResult> => {
+    try {
+      if (!process.env.OPENAI_API_KEY) {
+        return {
+          success: false,
+          message: 'OpenAI API key not configured for modification planning.'
+        }
+      }
+
+      // First analyze the existing project if analysis data not provided
+      let analysisData = params.analysisData
+      if (!analysisData) {
+        const analysisResult = await aiOperations.analyze_existing_project({
+          projectPath: params.projectPath,
+          requestDescription: params.requestDescription
+        })
+
+        if (!analysisResult.success) {
+          return analysisResult
+        }
+
+        analysisData = analysisResult.analysis
+      }
+
+      // Generate step-by-step modification plan
+      const modificationPlan = await generateContextualPlan(
+        params.requestDescription,
+        analysisData,
+        params.projectPath
+      )
+
+      return {
+        success: true,
+        message: `Generated modification plan with ${modificationPlan.length} steps`,
+        analysis: {
+          ...analysisData,
+          modificationPlan
+        }
+      }
+    } catch (error) {
+      return {
+        success: false,
+        message: `Failed to generate modification plan: ${error instanceof Error ? error.message : 'Unknown error'}`
+      }
+    }
   }
+}
+
+/**
+ * Helper function to get project structure
+ */
+function getProjectStructure(projectPath: string, maxDepth = 2): string[] {
+  const structure: string[] = []
+
+  function traverse(dirPath: string, currentDepth = 0, relativePath = '') {
+    if (currentDepth >= maxDepth) return
+
+    try {
+      const items = fs.readdirSync(dirPath, { withFileTypes: true })
+
+      for (const item of items) {
+        if (item.name.startsWith('.') ||
+            item.name === 'node_modules' ||
+            item.name === 'dist' ||
+            item.name === 'build' ||
+            item.name === '.next') {
+          continue
+        }
+
+        const itemPath = relativePath ? `${relativePath}/${item.name}` : item.name
+
+        if (item.isDirectory()) {
+          structure.push(`${itemPath}/`)
+          traverse(path.join(dirPath, item.name), currentDepth + 1, itemPath)
+        } else {
+          structure.push(itemPath)
+        }
+      }
+    } catch {
+      // Skip directories we can't read
+    }
+  }
+
+  traverse(projectPath)
+  return structure
+}
+
+/**
+ * Generate a contextual modification plan
+ */
+async function generateContextualPlan(
+  requestDescription: string,
+  analysisData: Record<string, unknown>,
+  projectPath: string
+): Promise<Array<{
+  step: number
+  action: string
+  tool: string
+    params: unknown
+  description: string
+}>> {
+  // Create a basic modification plan based on common patterns
+  const plan: Array<{
+    step: number
+    action: string
+    tool: string
+    params: unknown
+    description: string
+  }> = []
+
+  // This is a simplified version - in a real implementation,
+  // this would use AI to generate a more sophisticated plan
+  if (requestDescription.includes('add') && requestDescription.includes('component')) {
+    plan.push({
+      step: 1,
+      action: 'Generate React component',
+      tool: 'generate_code',
+      params: {
+        projectPath,
+        type: 'component',
+        name: extractComponentName(requestDescription),
+        framework: analysisData.framework
+      },
+      description: 'Create new React component based on request'
+    })
+  }
+
+  if (requestDescription.includes('package') || requestDescription.includes('dependency')) {
+    const packageName = extractPackageName(requestDescription)
+    if (packageName) {
+      plan.push({
+        step: plan.length + 1,
+        action: 'Add package dependency',
+        tool: 'add_packages',
+        params: {
+          projectPath,
+          packages: [packageName]
+        },
+        description: `Install ${packageName} package`
+      })
+    }
+  }
+
+  // Add default steps if no specific plan generated
+  if (plan.length === 0) {
+    plan.push({
+      step: 1,
+      action: 'Analyze request',
+      tool: 'analyze_project_structure',
+      params: { projectPath },
+      description: 'Analyze current project structure for modification'
+    })
+  }
+
+  return plan
+}
+
+/**
+ * Extract component name from request description
+ */
+function extractComponentName(description: string): string {
+  const match = description.match(/component\s+(?:called\s+)?([a-zA-Z]+)/i)
+  return match ? match[1] : 'NewComponent'
+}
+
+/**
+ * Extract package name from request description
+ */
+function extractPackageName(description: string): string | null {
+  // Look for common package patterns
+  const patterns = [
+    /install\s+([a-zA-Z0-9-@\/]+)/i,
+    /add\s+([a-zA-Z0-9-@\/]+)\s+package/i,
+    /package\s+([a-zA-Z0-9-@\/]+)/i
+  ]
+
+  for (const pattern of patterns) {
+    const match = description.match(pattern)
+    if (match) {
+      return match[1]
+    }
+  }
+
+  return null
 }

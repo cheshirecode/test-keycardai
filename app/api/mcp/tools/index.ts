@@ -3,6 +3,10 @@ import { gitOperations } from './git-operations'
 import { githubOperations } from './github-operations'
 import { aiOperations } from './ai-operations'
 import { projectOperations } from './project-operations'
+import { projectManagement } from './project-management'
+import { fileManagement } from './file-management'
+import { packageManagement } from './package-management'
+import { developmentTools } from './development-tools'
 
 /**
  * Modular MCP Tools
@@ -10,11 +14,15 @@ import { projectOperations } from './project-operations'
  * This is the main export that combines all modular tool operations into a single interface.
  * Tools are organized by functional area:
  *
- * - File Operations: Basic file system operations
+ * - File Operations: Basic file system operations (create_directory, write_file)
  * - Git Operations: Git repository management
  * - GitHub Operations: GitHub API integration
  * - AI Operations: AI-powered project analysis and creation
  * - Project Operations: Project-level tasks like dependencies and templates
+ * - Project Management: Ongoing project context and analysis
+ * - File Management: Advanced file operations (read, update, delete, search)
+ * - Package Management: Package installation and management
+ * - Development Tools: Script execution and code generation
  */
 export const mcpTools = {
   // File Operations
@@ -38,5 +46,17 @@ export const mcpTools = {
   },
 
   // Project Operations
-  ...projectOperations
+  ...projectOperations,
+
+  // Project Management - Ongoing project development
+  ...projectManagement,
+
+  // File Management - Advanced file operations
+  ...fileManagement,
+
+  // Package Management - Package installation and management
+  ...packageManagement,
+
+  // Development Tools - Script execution and code generation
+  ...developmentTools
 }

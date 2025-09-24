@@ -10,13 +10,17 @@ The MCP tools are now organized by functional area, making the codebase more mai
 
 ```
 tools/
-├── index.ts              # Main export combining all modules
-├── file-operations.ts    # Basic file system operations
-├── git-operations.ts     # Git repository management
-├── github-operations.ts  # GitHub API integration
-├── ai-operations.ts      # AI-powered analysis and creation
-├── project-operations.ts # Project-level operations
-└── README.md            # This documentation
+├── index.ts                 # Main export combining all modules
+├── file-operations.ts       # Basic file system operations
+├── git-operations.ts        # Git repository management
+├── github-operations.ts     # GitHub API integration
+├── ai-operations.ts         # AI-powered analysis and creation
+├── project-operations.ts    # Project-level operations
+├── project-management.ts    # Ongoing project development
+├── file-management.ts       # Advanced file operations
+├── package-management.ts    # Package installation and management
+├── development-tools.ts     # Script execution and code generation
+└── README.md               # This documentation
 ```
 
 ## Module Details
@@ -99,6 +103,59 @@ High-level project management operations including templates and packaging.
 - `SetupProjectFromTemplateParams`
 - `DownloadProjectZipParams`
 - Various result types for project operations
+
+### 🎯 Project Management (`project-management.ts`)
+Ongoing project development and context management.
+
+**Tools:**
+- `set_project_context` - Set current project for subsequent operations
+- `analyze_project_structure` - Analyze existing project structure and dependencies
+- `get_project_info` - Get basic project information
+- `list_project_directory` - Browse project directory contents
+
+**Types:**
+- `ProjectContextParams`, `AnalyzeProjectParams`
+- `ProjectAnalysisResult`, `ProjectContextResult`
+
+### 📁 File Management (`file-management.ts`)
+Advanced file operations for project development.
+
+**Tools:**
+- `read_file` - Read file contents for analysis
+- `update_file` - Modify existing files with backup support
+- `delete_file` - Remove files or directories
+- `search_files` - Search files by name or content
+- `create_file` - Create new files with content
+
+**Types:**
+- `ReadFileParams`, `UpdateFileParams`, `DeleteFileParams`, `SearchFilesParams`
+- `FileOperationResult`
+
+### 📋 Package Management (`package-management.ts`)
+Package installation and dependency management.
+
+**Tools:**
+- `add_packages` - Add new dependencies or dev dependencies
+- `remove_packages` - Remove packages from project
+- `update_packages` - Update packages to latest versions
+- `get_package_info` - Get package information and check for outdated packages
+
+**Types:**
+- `PackageParams`, `PackageInfoParams`
+- `PackageResult`
+
+### ⚡ Development Tools (`development-tools.ts`)
+Script execution and code generation for ongoing development.
+
+**Tools:**
+- `run_script` - Execute npm scripts with arguments
+- `generate_code` - Generate components, pages, hooks, utilities, tests
+- `format_code` - Run linting and formatting scripts
+- `get_available_scripts` - List available npm scripts
+
+**Types:**
+- `RunScriptParams`, `GenerateCodeParams`
+- `DevelopmentResult`
 
 ## Benefits of Modular Architecture
 
