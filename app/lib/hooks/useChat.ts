@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react'
 import { MCPClient } from '@/lib/mcp-client'
 import { useRepository } from '@/contexts/RepositoryContext'
+import { invalidateRepositoriesCache } from '@/hooks/useRepositories'
 import type { Message, ProjectInfo, MCPLogEntry } from '@/types'
 
 export function useChat() {
@@ -159,8 +160,9 @@ export function useChat() {
           const repoName = project.repositoryUrl.split('/').pop() || project.name
           setNewlyCreatedRepository(repoName)
           
-          // Refresh the repositories list
+          // Invalidate SWR cache and refresh repositories
           setTimeout(() => {
+            invalidateRepositoriesCache()
             refreshRepositories()
           }, 1000) // Small delay to ensure GitHub API is updated
         }

@@ -1,9 +1,10 @@
 'use client'
 
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect } from 'react'
 import type { Repository } from '@/types'
 import { ChevronDownIcon, ChevronRightIcon, TrashIcon } from '@heroicons/react/24/outline'
 import { FolderIcon, GlobeAltIcon, LockClosedIcon } from '@heroicons/react/24/solid'
+import { useRepositories } from '@/hooks/useRepositories'
 
 interface ProjectSidebarProps {
   selectedRepository?: Repository | null
@@ -14,49 +15,23 @@ interface ProjectSidebarProps {
 }
 
 export function ProjectSidebar({ selectedRepository, onRepositorySelect, className = '', onRefresh, newlyCreatedRepository }: ProjectSidebarProps) {
-  const [repositories, setRepositories] = useState<Repository[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const { repositories, isLoading: loading, error, refresh } = useRepositories()
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [filter, setFilter] = useState('')
 
-  const loadRepositories = useCallback(async () => {
-    try {
-      setLoading(true)
-      setError(null)
-
-      const response = await fetch('/api/repositories')
-      const data = await response.json()
-
-      if (data.success) {
-        setRepositories(data.repositories || [])
-      } else {
-        setError(data.message || 'Failed to load repositories')
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load repositories')
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
   useEffect(() => {
-    loadRepositories()
     // Register the refresh function with the parent
     if (onRefresh) {
-      onRefresh(loadRepositories)
+      onRefresh(refresh)
     }
-  }, [onRefresh, loadRepositories])
+  }, [onRefresh, refresh])
 
   // Auto-refresh and select newly created repository
   useEffect(() => {
     if (newlyCreatedRepository) {
-      loadRepositories().then(() => {
-        // Find and select the newly created repository after repositories are loaded
-        // We'll handle this in a separate effect that watches repositories
-      })
+      refresh()
     }
-  }, [newlyCreatedRepository, loadRepositories])
+  }, [newlyCreatedRepository, refresh])
 
   // Select newly created repository when repositories list updates
   useEffect(() => {
@@ -93,8 +68,8 @@ export function ProjectSidebar({ selectedRepository, onRepositorySelect, classNa
       const result = await response.json()
 
       if (result.success) {
-        // Remove from local state
-        setRepositories(prev => prev.filter(r => r.id !== repository.id))
+        // Invalidate the cache to refetch repositories
+        refresh()
 
         // Deselect if this was the selected repository
         if (selectedRepository?.id === repository.id) {
@@ -170,7 +145,7 @@ export function ProjectSidebar({ selectedRepository, onRepositorySelect, classNa
 
         {/* Refresh button */}
         <button
-          onClick={loadRepositories}
+          onClick={() => refresh()}
           disabled={loading}
           className="mt-2 w-full px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors disabled:opacity-50"
         >

@@ -1,9 +1,9 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import Link from 'next/link'
-import { useRepository } from '@/contexts/RepositoryContext'
-import type { Repository } from '@/types'
+import { useRepository as useRepositoryContext } from '@/contexts/RepositoryContext'
+import { useRepository } from '@/hooks/useRepositories'
 
 interface RepositoryPageWrapperProps {
   owner: string
@@ -12,49 +12,17 @@ interface RepositoryPageWrapperProps {
 }
 
 export function RepositoryPageWrapper({ owner, repo, children }: RepositoryPageWrapperProps) {
-  const { selectedRepository, setSelectedRepositoryInternal } = useRepository()
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const { selectedRepository, setSelectedRepositoryInternal } = useRepositoryContext()
+  const { repository, isLoading: loading, error } = useRepository(owner, repo)
 
   useEffect(() => {
-    const loadRepositoryFromUrl = async () => {
-      try {
-        setLoading(true)
-        setError(null)
-
-        // Fetch repositories to find the matching one
-        const response = await fetch('/api/repositories')
-        const data = await response.json()
-
-        if (data.success && data.repositories) {
-          // Find repository by owner and name
-          const repository = data.repositories.find((repository: Repository) => {
-            // Extract owner from fullName (format: "owner/repo")
-            const [repoOwner] = repository.fullName.split('/')
-            return repoOwner.toLowerCase() === owner.toLowerCase() && 
-                   repository.name.toLowerCase() === repo.toLowerCase()
-          })
-
-          if (repository) {
-            // Only update if it's different from current selection
-            if (!selectedRepository || selectedRepository.id !== repository.id) {
-              setSelectedRepositoryInternal(repository)
-            }
-          } else {
-            setError(`Repository ${owner}/${repo} not found`)
-          }
-        } else {
-          setError(data.message || 'Failed to load repositories')
-        }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load repository')
-      } finally {
-        setLoading(false)
+    if (repository) {
+      // Only update if it's different from current selection
+      if (!selectedRepository || selectedRepository.id !== repository.id) {
+        setSelectedRepositoryInternal(repository)
       }
     }
-
-    loadRepositoryFromUrl()
-  }, [owner, repo, selectedRepository, setSelectedRepositoryInternal])
+  }, [repository, selectedRepository, setSelectedRepositoryInternal])
 
   if (loading) {
     return (

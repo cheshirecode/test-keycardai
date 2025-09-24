@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo } from 'react'
 import { templates } from '@/lib/templates'
 import type { ProjectInfo } from '@/types'
 import { MCPClient } from '@/lib/mcp-client'
+import { useHealth } from '@/hooks/useHealth'
 
 interface ProjectPreviewProps {
   project: ProjectInfo
@@ -18,6 +19,7 @@ export function ProjectPreview({ project }: ProjectPreviewProps) {
     githubUser?: string
   } | null>(null)
   const [isLoadingGitInfo, setIsLoadingGitInfo] = useState(false)
+  const { githubOwner } = useHealth()
   const mcpClient = useMemo(() => new MCPClient(), [])
   const template = templates[project.template]
 
@@ -44,73 +46,68 @@ export function ProjectPreview({ project }: ProjectPreviewProps) {
       }
 
       // Fallback: Get the configured GitHub owner (organization or user)
-      // Check health endpoint first to get the configured GITHUB_OWNER
-      fetch('/api/health')
-        .then(response => response.json())
-        .then(healthData => {
-          const configuredOwner = healthData.services?.githubOwner
+      // Use cached GitHub owner from health hook
+      if (githubOwner && githubOwner !== 'default (authenticated user)') {
+        // Use the configured owner (organization or user)
+        const timestamp = Date.now()
+        const sanitizedName = project.name.toLowerCase().replace(/[^a-z0-9-]/g, '-')
+        const branchName = `project-${sanitizedName}-${timestamp}`
+        const repositoryUrl = `https://github.com/${githubOwner}/${branchName}`
+        const cloneCommand = `git clone ${repositoryUrl}`
 
-          if (configuredOwner && configuredOwner !== 'default (authenticated user)') {
-            // Use the configured owner (organization or user)
+        setGitInfo({
+          repositoryUrl,
+          branchName,
+          cloneCommand,
+          githubUser: githubOwner
+        })
+        setIsLoadingGitInfo(false)
+      } else {
+        // Fallback to authenticated user
+        mcpClient.call('get_github_user', {})
+          .then((result: unknown) => {
+            const gitResult = result as { success: boolean; user?: { login: string; name?: string; email?: string }; message: string }
             const timestamp = Date.now()
             const sanitizedName = project.name.toLowerCase().replace(/[^a-z0-9-]/g, '-')
             const branchName = `project-${sanitizedName}-${timestamp}`
-            const repositoryUrl = `https://github.com/${configuredOwner}/${branchName}`
+
+            let username = 'your-username' // fallback
+            if (gitResult.success && gitResult.user?.login) {
+              username = gitResult.user.login
+            }
+
+            const repositoryUrl = `https://github.com/${username}/${branchName}`
             const cloneCommand = `git clone ${repositoryUrl}`
 
             setGitInfo({
               repositoryUrl,
               branchName,
               cloneCommand,
-              githubUser: configuredOwner
+              githubUser: username
             })
-          } else {
-            // Fallback to authenticated user
-            return mcpClient.call('get_github_user', {})
-              .then((result: unknown) => {
-                const gitResult = result as { success: boolean; user?: { login: string; name?: string; email?: string }; message: string }
-                const timestamp = Date.now()
-                const sanitizedName = project.name.toLowerCase().replace(/[^a-z0-9-]/g, '-')
-                const branchName = `project-${sanitizedName}-${timestamp}`
-
-                let username = 'your-username' // fallback
-                if (gitResult.success && gitResult.user?.login) {
-                  username = gitResult.user.login
-                }
-
-                const repositoryUrl = `https://github.com/${username}/${branchName}`
-                const cloneCommand = `git clone ${repositoryUrl}`
-
-                setGitInfo({
-                  repositoryUrl,
-                  branchName,
-                  cloneCommand,
-                  githubUser: username
-                })
-              })
-          }
-        })
-        .catch((error) => {
-          console.error('Failed to get GitHub user:', error)
-          // Fallback to placeholder
-          const timestamp = Date.now()
-          const sanitizedName = project.name.toLowerCase().replace(/[^a-z0-9-]/g, '-')
-          const branchName = `project-${sanitizedName}-${timestamp}`
-          const repositoryUrl = `https://github.com/your-username/${branchName}`
-          const cloneCommand = `git clone ${repositoryUrl}`
-
-          setGitInfo({
-            repositoryUrl,
-            branchName,
-            cloneCommand,
-            githubUser: 'your-username'
           })
-        })
-        .finally(() => {
-          setIsLoadingGitInfo(false)
-        })
+          .catch((error) => {
+            console.error('Failed to get GitHub user:', error)
+            // Fallback to placeholder
+            const timestamp = Date.now()
+            const sanitizedName = project.name.toLowerCase().replace(/[^a-z0-9-]/g, '-')
+            const branchName = `project-${sanitizedName}-${timestamp}`
+            const repositoryUrl = `https://github.com/your-username/${branchName}`
+            const cloneCommand = `git clone ${repositoryUrl}`
+
+            setGitInfo({
+              repositoryUrl,
+              branchName,
+              cloneCommand,
+              githubUser: 'your-username'
+            })
+          })
+          .finally(() => {
+            setIsLoadingGitInfo(false)
+          })
+      }
     }
-  }, [project, gitInfo, isLoadingGitInfo, mcpClient])
+  }, [project, gitInfo, isLoadingGitInfo, githubOwner, mcpClient])
 
   const handleDownload = async () => {
     if (isDownloading) return
