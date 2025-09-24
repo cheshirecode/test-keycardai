@@ -456,12 +456,13 @@ export const mcpTools = {
       }
 
       // Step 5: Get final project information
-      // Extract repository URL from execution results if create_github_branch was executed
+      // Extract repository URL from execution results if git_init was executed
       let repositoryUrl: string | null = null
-      const githubBranchResult = executionResults.find(result => result.tool === 'create_github_branch')
-      if (githubBranchResult && githubBranchResult.success && githubBranchResult.result) {
-        const result = githubBranchResult.result as { repositoryUrl?: string }
-        repositoryUrl = result.repositoryUrl || null
+      
+      const gitInitResult = executionResults.find(result => result.tool === 'git_init')
+      if (gitInitResult && gitInitResult.success && gitInitResult.result) {
+        const result = gitInitResult.result as { repoUrl?: string }
+        repositoryUrl = result.repoUrl || null
       }
       
       // Fallback: try to get repository URL using tools (less reliable)

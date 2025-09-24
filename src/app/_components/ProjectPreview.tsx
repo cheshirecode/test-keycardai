@@ -86,7 +86,7 @@ export function ProjectPreview({ project }: ProjectPreviewProps) {
           setIsLoadingGitInfo(false)
         })
     }
-  }, [project.status, project.name, project.repositoryUrl, gitInfo, isLoadingGitInfo, mcpClient])
+  }, [project, gitInfo, isLoadingGitInfo, mcpClient])
 
   const handleDownload = async () => {
     if (isDownloading) return
