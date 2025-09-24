@@ -43,28 +43,52 @@ export function ProjectPreview({ project }: ProjectPreviewProps) {
         return
       }
 
-      // Fallback: Fetch GitHub user info and generate placeholder URLs
-      mcpClient.call('get_github_user', {})
-        .then((result: unknown) => {
-          const gitResult = result as { success: boolean; user?: { login: string; name?: string; email?: string }; message: string }
-          const timestamp = Date.now()
-          const sanitizedName = project.name.toLowerCase().replace(/[^a-z0-9-]/g, '-')
-          const branchName = `project-${sanitizedName}-${timestamp}`
+      // Fallback: Get the configured GitHub owner (organization or user)
+      // Check health endpoint first to get the configured GITHUB_OWNER
+      fetch('/api/health')
+        .then(response => response.json())
+        .then(healthData => {
+          const configuredOwner = healthData.services?.githubOwner
 
-          let username = 'your-username' // fallback
-          if (gitResult.success && gitResult.user?.login) {
-            username = gitResult.user.login
+          if (configuredOwner && configuredOwner !== 'default (authenticated user)') {
+            // Use the configured owner (organization or user)
+            const timestamp = Date.now()
+            const sanitizedName = project.name.toLowerCase().replace(/[^a-z0-9-]/g, '-')
+            const branchName = `project-${sanitizedName}-${timestamp}`
+            const repositoryUrl = `https://github.com/${configuredOwner}/${branchName}`
+            const cloneCommand = `git clone ${repositoryUrl}`
+
+            setGitInfo({
+              repositoryUrl,
+              branchName,
+              cloneCommand,
+              githubUser: configuredOwner
+            })
+          } else {
+            // Fallback to authenticated user
+            return mcpClient.call('get_github_user', {})
+              .then((result: unknown) => {
+                const gitResult = result as { success: boolean; user?: { login: string; name?: string; email?: string }; message: string }
+                const timestamp = Date.now()
+                const sanitizedName = project.name.toLowerCase().replace(/[^a-z0-9-]/g, '-')
+                const branchName = `project-${sanitizedName}-${timestamp}`
+
+                let username = 'your-username' // fallback
+                if (gitResult.success && gitResult.user?.login) {
+                  username = gitResult.user.login
+                }
+
+                const repositoryUrl = `https://github.com/${username}/${branchName}`
+                const cloneCommand = `git clone ${repositoryUrl}`
+
+                setGitInfo({
+                  repositoryUrl,
+                  branchName,
+                  cloneCommand,
+                  githubUser: username
+                })
+              })
           }
-
-          const repositoryUrl = `https://github.com/${username}/${branchName}`
-          const cloneCommand = `git clone ${repositoryUrl}`
-
-          setGitInfo({
-            repositoryUrl,
-            branchName,
-            cloneCommand,
-            githubUser: username
-          })
         })
         .catch((error) => {
           console.error('Failed to get GitHub user:', error)

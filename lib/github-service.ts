@@ -45,36 +45,49 @@ export class GitHubService {
     }
 
     try {
-      // Get authenticated user to determine if owner is personal account or organization
-      const userResult = await this.getAuthenticatedUser()
-      if (!userResult.success || !userResult.user) {
+      // Check what type of owner we're dealing with (user or organization)
+      const ownerTypeResult = await this.checkOwnerType(config.owner)
+      if (!ownerTypeResult.success) {
         return {
           success: false,
-          message: 'Failed to get authenticated user information'
+          message: `Failed to verify owner '${config.owner}': ${ownerTypeResult.message}`
         }
       }
 
-      const isPersonalRepo = config.owner === userResult.user.login
+      const isUserAccount = ownerTypeResult.type === 'user'
+      const isOrganization = ownerTypeResult.type === 'organization'
 
       // Debug logging (can be removed in production)
       console.log('🔍 Repository creation debug:')
       console.log('  - Target owner:', config.owner)
-      console.log('  - Authenticated user:', userResult.user.login)
-      console.log('  - Is personal repo:', isPersonalRepo)
+      console.log('  - Owner type:', ownerTypeResult.type)
+      console.log('  - Is user account:', isUserAccount)
+      console.log('  - Is organization:', isOrganization)
       console.log('  - Repository name:', config.repo)
 
       let response
 
-      if (isPersonalRepo) {
-        // Create repository under authenticated user
-        response = await this.octokit.repos.createForAuthenticatedUser({
-          name: config.repo,
-          description: config.description || `Generated project: ${config.repo}`,
-          private: config.private || false,
-          auto_init: true, // Initialize with README
-        })
-      } else {
+      if (isUserAccount) {
+        // Check if it's the authenticated user
+        const userResult = await this.getAuthenticatedUser()
+        if (userResult.success && userResult.user && config.owner === userResult.user.login) {
+          // Create repository under authenticated user (personal repo)
+          console.log('  - Creating under authenticated user account')
+          response = await this.octokit.repos.createForAuthenticatedUser({
+            name: config.repo,
+            description: config.description || `Generated project: ${config.repo}`,
+            private: config.private || false,
+            auto_init: true, // Initialize with README
+          })
+        } else {
+          return {
+            success: false,
+            message: `Cannot create repository under user '${config.owner}' - you can only create repositories under your own user account or organizations you have access to`
+          }
+        }
+      } else if (isOrganization) {
         // Create repository under organization
+        console.log('  - Creating under organization')
         response = await this.octokit.repos.createInOrg({
           org: config.owner,
           name: config.repo,
@@ -82,6 +95,11 @@ export class GitHubService {
           private: config.private || false,
           auto_init: true, // Initialize with README
         })
+      } else {
+        return {
+          success: false,
+          message: `Unknown owner type for '${config.owner}'`
+        }
       }
 
       console.log('✅ Repository created successfully:', response.data.html_url)
@@ -317,6 +335,290 @@ export class GitHubService {
         success: false,
         message: `Failed to get user info: ${err.message || 'Unknown error'}`
       }
+    }
+  }
+
+  async checkOwnerType(owner: string): Promise<{ success: boolean; type?: 'user' | 'organization'; message: string }> {
+    if (!this.isAvailable) {
+      return {
+        success: false,
+        message: 'GitHub token not available'
+      }
+    }
+
+    try {
+      // Try to get organization info first
+      try {
+        await this.octokit.orgs.get({ org: owner })
+        return {
+          success: true,
+          type: 'organization',
+          message: `${owner} is a GitHub organization`
+        }
+      } catch (orgError: unknown) {
+        const orgErr = orgError as { status?: number }
+
+        // If org doesn't exist (404), check if it's a user
+        if (orgErr.status === 404) {
+          try {
+            await this.octokit.users.getByUsername({ username: owner })
+            return {
+              success: true,
+              type: 'user',
+              message: `${owner} is a GitHub user account`
+            }
+          } catch (userError: unknown) {
+            const userErr = userError as { status?: number }
+            if (userErr.status === 404) {
+              return {
+                success: false,
+                message: `GitHub account '${owner}' not found`
+              }
+            }
+            throw userError
+          }
+        }
+        throw orgError
+      }
+    } catch (error: unknown) {
+      const err = error as { message?: string }
+      return {
+        success: false,
+        message: `Failed to check owner type: ${err.message || 'Unknown error'}`
+      }
+    }
+  }
+
+  async listRepositories(options?: {
+    owner?: string;
+    nameFilter?: string;
+    type?: 'all' | 'public' | 'private';
+    sort?: 'created' | 'updated' | 'pushed' | 'full_name';
+    direction?: 'asc' | 'desc';
+  }): Promise<{
+    success: boolean;
+    repositories?: Array<{
+      name: string;
+      full_name: string;
+      url: string;
+      private: boolean;
+      created_at: string;
+      updated_at: string;
+      description: string | null;
+    }>;
+    message: string
+  }> {
+    if (!this.isAvailable) {
+      return {
+        success: false,
+        message: 'GitHub token not available'
+      }
+    }
+
+    try {
+      let repositories: unknown[] = []
+
+      if (options?.owner) {
+        // List repositories for a specific user/organization
+        const ownerTypeResult = await this.checkOwnerType(options.owner)
+        if (!ownerTypeResult.success) {
+          return {
+            success: false,
+            message: `Failed to verify owner '${options.owner}': ${ownerTypeResult.message}`
+          }
+        }
+
+        if (ownerTypeResult.type === 'user') {
+          const { data: repos } = await this.octokit.repos.listForUser({
+            username: options.owner,
+            type: (options?.type as 'all' | 'owner' | 'member') || 'all',
+            sort: options?.sort || 'updated',
+            direction: options?.direction || 'desc',
+            per_page: 100
+          })
+          repositories = repos
+        } else if (ownerTypeResult.type === 'organization') {
+          const { data: repos } = await this.octokit.repos.listForOrg({
+            org: options.owner,
+            type: (options?.type as 'all' | 'public' | 'private' | 'forks' | 'sources' | 'member') || 'all',
+            sort: options?.sort || 'updated',
+            direction: options?.direction || 'desc',
+            per_page: 100
+          })
+          repositories = repos
+        }
+      } else {
+        // List repositories for authenticated user
+        const { data: repos } = await this.octokit.repos.listForAuthenticatedUser({
+          type: options?.type || 'all',
+          sort: options?.sort || 'updated',
+          direction: options?.direction || 'desc',
+          per_page: 100
+        })
+        repositories = repos
+      }
+
+      // Apply name filter if provided
+      if (options?.nameFilter) {
+        repositories = repositories.filter((repo: unknown) => {
+          const r = repo as { name: string; full_name: string }
+          return r.name.includes(options.nameFilter!) ||
+                 r.full_name.includes(options.nameFilter!)
+        })
+      }
+
+      const formattedRepos = repositories.map((repo: unknown) => {
+        const r = repo as {
+          name: string;
+          full_name: string;
+          html_url: string;
+          private: boolean;
+          created_at?: string | null;
+          updated_at?: string | null;
+          description?: string | null;
+        }
+        return {
+          name: r.name,
+          full_name: r.full_name,
+          url: r.html_url,
+          private: r.private,
+          created_at: r.created_at || '',
+          updated_at: r.updated_at || '',
+          description: r.description || null
+        }
+      })
+
+      return {
+        success: true,
+        repositories: formattedRepos,
+        message: `Found ${formattedRepos.length} repositories`
+      }
+    } catch (error: unknown) {
+      const err = error as { message?: string }
+      return {
+        success: false,
+        message: `Failed to list repositories: ${err.message || 'Unknown error'}`
+      }
+    }
+  }
+
+  async deleteRepository(owner: string, repo: string): Promise<{ success: boolean; message: string }> {
+    if (!this.isAvailable) {
+      return {
+        success: false,
+        message: 'GitHub token not available'
+      }
+    }
+
+    try {
+      // Verify the repository exists and we have access to it
+      const repoInfo = await this.getRepositoryInfo({ owner, repo })
+      if (!repoInfo.success) {
+        return {
+          success: false,
+          message: `Repository ${owner}/${repo} not found or access denied`
+        }
+      }
+
+      // Delete the repository
+      await this.octokit.repos.delete({
+        owner,
+        repo
+      })
+
+      return {
+        success: true,
+        message: `Repository ${owner}/${repo} deleted successfully`
+      }
+    } catch (error: unknown) {
+      const err = error as { message?: string; status?: number }
+
+      if (err.status === 403) {
+        return {
+          success: false,
+          message: `Insufficient permissions to delete repository ${owner}/${repo}`
+        }
+      }
+
+      if (err.status === 404) {
+        return {
+          success: false,
+          message: `Repository ${owner}/${repo} not found`
+        }
+      }
+
+      return {
+        success: false,
+        message: `Failed to delete repository ${owner}/${repo}: ${err.message || 'Unknown error'}`
+      }
+    }
+  }
+
+  async bulkDeleteRepositories(
+    repositories: Array<{ owner: string; repo: string }>,
+    dryRun: boolean = true
+  ): Promise<{
+    success: boolean;
+    results: Array<{
+      repository: string;
+      success: boolean;
+      message: string;
+    }>;
+    message: string
+  }> {
+    if (!this.isAvailable) {
+      return {
+        success: false,
+        results: [],
+        message: 'GitHub token not available'
+      }
+    }
+
+    const results: Array<{
+      repository: string;
+      success: boolean;
+      message: string;
+    }> = []
+
+    let successCount = 0
+    let failureCount = 0
+
+    for (const { owner, repo } of repositories) {
+      const repoName = `${owner}/${repo}`
+
+      if (dryRun) {
+        // Dry run - just check if repository exists and we have access
+        const repoInfo = await this.getRepositoryInfo({ owner, repo })
+        results.push({
+          repository: repoName,
+          success: repoInfo.success,
+          message: dryRun ? `[DRY RUN] Would delete: ${repoName}` : repoInfo.message
+        })
+
+        if (repoInfo.success) successCount++
+        else failureCount++
+      } else {
+        // Actually delete the repository
+        const deleteResult = await this.deleteRepository(owner, repo)
+        results.push({
+          repository: repoName,
+          success: deleteResult.success,
+          message: deleteResult.message
+        })
+
+        if (deleteResult.success) successCount++
+        else failureCount++
+
+        // Add a small delay between deletions to avoid rate limits
+        await new Promise(resolve => setTimeout(resolve, 1000))
+      }
+    }
+
+    const actionText = dryRun ? 'checked' : 'processed'
+    return {
+      success: failureCount === 0,
+      results,
+      message: `${actionText} ${repositories.length} repositories: ${successCount} successful, ${failureCount} failed`
     }
   }
 }

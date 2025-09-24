@@ -188,6 +188,22 @@ export const mcpTools = {
     }
   },
 
+  check_github_owner_type: async (params: { owner: string }) => {
+    try {
+      const githubService = new GitHubService()
+      const result = await githubService.checkOwnerType(params.owner)
+
+      return {
+        success: result.success,
+        type: result.type,
+        message: result.message,
+        owner: params.owner
+      }
+    } catch (error) {
+      throw new Error(`Failed to check GitHub owner type: ${error}`)
+    }
+  },
+
   // AI-Powered Planning and Decision Tools
   analyze_project_request: async (params: { description: string }) => {
     try {
