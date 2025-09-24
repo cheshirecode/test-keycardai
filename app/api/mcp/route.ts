@@ -123,15 +123,15 @@ export async function GET() {
     },
     {
       name: 'git_configure_user',
-      description: 'Configure git user name and email for repository',
+      description: 'Configure git user name and email for repository (uses environment variables as fallback)',
       inputSchema: {
         type: 'object',
         properties: {
           path: { type: 'string', description: 'Project path' },
-          name: { type: 'string', description: 'User name' },
-          email: { type: 'string', description: 'User email' }
+          name: { type: 'string', description: 'User name (optional if GIT_USER_NAME env var is set)' },
+          email: { type: 'string', description: 'User email (optional if GIT_USER_EMAIL env var is set)' }
         },
-        required: ['path', 'name', 'email']
+        required: ['path']
       }
     },
     {
@@ -142,6 +142,17 @@ export async function GET() {
         properties: {
           path: { type: 'string', description: 'Project path' },
           limit: { type: 'number', description: 'Number of commits to show (default: 10)' }
+        },
+        required: ['path']
+      }
+    },
+    {
+      name: 'git_configure_user_from_env',
+      description: 'Configure git user from environment variables (GIT_USER_NAME and GIT_USER_EMAIL)',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          path: { type: 'string', description: 'Project path' }
         },
         required: ['path']
       }

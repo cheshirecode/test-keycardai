@@ -65,6 +65,14 @@ logs
 `.trim()
 
       fs.writeFileSync(path.join(projectPath, '.gitignore'), gitignore)
+
+      // Auto-configure git user from environment variables if available
+      const envName = process.env.GIT_USER_NAME
+      const envEmail = process.env.GIT_USER_EMAIL
+
+      if (envName && envEmail) {
+        await this.configureUser(projectPath, envName, envEmail)
+      }
     } catch (error) {
       throw new Error(`Git init failed: ${error}`)
     }

@@ -70,10 +70,18 @@ export const mcpTools = {
     }
   },
 
-  git_configure_user: async (params: { path: string; name: string; email: string }) => {
+  git_configure_user: async (params: { path: string; name?: string; email?: string }) => {
     try {
-      await GitTools.configureUser(params.path, params.name, params.email)
-      return { success: true, message: `Configured git user: ${params.name} <${params.email}>` }
+      // Use provided parameters or fall back to environment variables
+      const name = params.name || process.env.GIT_USER_NAME
+      const email = params.email || process.env.GIT_USER_EMAIL
+
+      if (!name || !email) {
+        throw new Error('Git user name and email are required. Provide them as parameters or set GIT_USER_NAME and GIT_USER_EMAIL environment variables.')
+      }
+
+      await GitTools.configureUser(params.path, name, email)
+      return { success: true, message: `Configured git user: ${name} <${email}>` }
     } catch (error) {
       throw new Error(`Git user configuration failed: ${error}`)
     }
@@ -85,6 +93,26 @@ export const mcpTools = {
       return { success: true, history }
     } catch (error) {
       throw new Error(`Git history failed: ${error}`)
+    }
+  },
+
+  git_configure_user_from_env: async (params: { path: string }) => {
+    try {
+      const name = process.env.GIT_USER_NAME
+      const email = process.env.GIT_USER_EMAIL
+
+      if (!name || !email) {
+        throw new Error('GIT_USER_NAME and GIT_USER_EMAIL environment variables are required but not set.')
+      }
+
+      await GitTools.configureUser(params.path, name, email)
+      return {
+        success: true,
+        message: `Configured git user from environment: ${name} <${email}>`,
+        source: 'environment_variables'
+      }
+    } catch (error) {
+      throw new Error(`Git user configuration from environment failed: ${error}`)
     }
   },
 
