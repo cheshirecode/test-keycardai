@@ -458,13 +458,13 @@ export const mcpTools = {
       // Step 5: Get final project information
       // Extract repository URL from execution results if git_init was executed
       let repositoryUrl: string | null = null
-      
+
       const gitInitResult = executionResults.find(result => result.tool === 'git_init')
       if (gitInitResult && gitInitResult.success && gitInitResult.result) {
         const result = gitInitResult.result as { repoUrl?: string }
         repositoryUrl = result.repoUrl || null
       }
-      
+
       // Fallback: try to get repository URL using tools (less reliable)
       if (!repositoryUrl) {
         repositoryUrl = await RepositoryTools.getRepositoryUrl(projectPath)

@@ -77,9 +77,6 @@ export function useChat() {
         const { project } = result
 
         // Set project info from AI response
-        console.log('[useChat] Debug - project.repositoryUrl from API:', project.repositoryUrl)
-        console.log('[useChat] Debug - full project from API:', project)
-        
         setCurrentProject({
           name: project.name,
           path: project.path,
