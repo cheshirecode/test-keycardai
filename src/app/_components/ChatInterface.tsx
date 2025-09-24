@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { useChat } from '../../lib/hooks/useChat'
+import { useChat } from '../../../lib/hooks/useChat'
 import { ProjectPreview } from './ProjectPreview'
 
 export function ChatInterface() {

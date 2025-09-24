@@ -1,4 +1,4 @@
-import { MCPRequest, MCPResponse } from '@/types/mcp'
+import { MCPRequest, MCPResponse } from '../types/mcp'
 
 export class MCPClient {
   private baseUrl: string

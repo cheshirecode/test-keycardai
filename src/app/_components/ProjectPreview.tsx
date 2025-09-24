@@ -1,9 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { templates } from '../../lib/templates'
-import { ProjectInfo } from '../../types/mcp'
-import { MCPClient } from '../../lib/mcp-client'
+import { templates } from '../../../lib/templates'
+import { ProjectInfo } from '../../../types/mcp'
+import { MCPClient } from '../../../lib/mcp-client'
 
 interface ProjectPreviewProps {
   project: ProjectInfo
@@ -179,7 +179,7 @@ export function ProjectPreview({ project }: ProjectPreviewProps) {
               <div>
                 <p className="text-sm font-medium text-gray-700 mb-1">Runtime:</p>
                 <div className="flex flex-wrap gap-1">
-                  {template.dependencies.slice(0, 6).map((dep: string) => (
+                  {template.dependencies.slice(0, 6).map((dep) => (
                     <span
                       key={dep}
                       className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded"
@@ -199,7 +199,7 @@ export function ProjectPreview({ project }: ProjectPreviewProps) {
               <div>
                 <p className="text-sm font-medium text-gray-700 mb-1">Development:</p>
                 <div className="flex flex-wrap gap-1">
-                  {template.devDependencies.slice(0, 4).map((dep: string) => (
+                  {template.devDependencies.slice(0, 4).map((dep) => (
                     <span
                       key={dep}
                       className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded"

@@ -14,7 +14,19 @@ export default defineConfig({
       '**/node_modules/**',
       '**/dist/**',
       '**/.{idea,git,cache,output,temp}/**',
-      '**/{karma,rollup,webpack,vite,vitest,jest,ava,babel,nyc,cypress,tsup,build}.config.*'
+      '**/{karma,rollup,webpack,vite,vitest,jest,ava,babel,nyc,cypress,tsup,build}.config.*',
+      // Next.js artifacts
+      '**/.next/**',
+      '**/out/**',
+      '**/build/**',
+      '**/public/**',
+      '**/*.config.{js,ts,mjs}',
+      '**/next-env.d.ts',
+      // Vercel artifacts
+      '**/.vercel/**',
+      // Additional build artifacts
+      '**/.turbo/**',
+      '**/tsconfig.tsbuildinfo'
     ],
     coverage: {
       provider: 'v8',
@@ -26,17 +38,31 @@ export default defineConfig({
         '**/src/test/**',
         '**/*.d.ts',
         '**/*.config.*',
-        '**/eslint.config.*'
+        '**/eslint.config.*',
+        // Next.js artifacts
+        '**/.next/**',
+        '**/out/**',
+        '**/build/**',
+        '**/public/**',
+        '**/next-env.d.ts',
+        // Vercel artifacts
+        '**/.vercel/**',
+        // Build artifacts
+        '**/.turbo/**',
+        '**/tsconfig.tsbuildinfo',
+        // Generated files
+        '**/generated/**',
+        '**/auto-generated/**'
       ],
     },
   },
   resolve: {
     alias: {
-      '@': resolve(__dirname, './'),
-      '@/app': resolve(__dirname, './app'),
-      '@/lib': resolve(__dirname, './lib'),
-      '@/types': resolve(__dirname, './types'),
-      '@/components': resolve(__dirname, './app/components'),
+      '@': resolve(__dirname, './src'),
+      '@/lib': resolve(__dirname, './src/lib'),
+      '@/types': resolve(__dirname, './src/lib/types'),
+      '@/app': resolve(__dirname, './src/app'),
+      '@/components': resolve(__dirname, './src/app/_components'),
     },
   },
 })

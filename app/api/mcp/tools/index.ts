@@ -1,11 +1,11 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import archiver from 'archiver'
-import { RepositoryTools } from '@/lib/repository-tools'
-import { GitHubService, GitHubRepoConfig } from '@/lib/github-service'
+import { RepositoryTools } from '../../../../lib/repository-tools'
+import { GitHubService, GitHubRepoConfig } from '../../../../lib/github-service'
 import { execSync } from 'child_process'
-import { templates } from '@/lib/templates'
-import { AIService } from '@/lib/ai-service'
+import { templates } from '../../../../lib/templates'
+import { AIService } from '../../../../lib/ai-service'
 
 export const mcpTools = {
   create_directory: async (params: { path: string }) => {
@@ -614,9 +614,9 @@ export const mcpTools = {
         fs.mkdirSync(dir, { recursive: true })
 
         // Replace project name placeholder if provided
-        let fileContent = content
+        let fileContent = content as string
         if (params.projectName) {
-          fileContent = content.replace(/react-ts-app|nextjs-fullstack-app|node-api/g, params.projectName)
+          fileContent = (content as string).replace(/react-ts-app|nextjs-fullstack-app|node-api/g, params.projectName)
         }
 
         fs.writeFileSync(fullPath, fileContent)
@@ -629,13 +629,13 @@ export const mcpTools = {
 
         // Add dependencies
         packageJson.dependencies = packageJson.dependencies || {}
-        template.dependencies.forEach(dep => {
+        template.dependencies.forEach((dep: string) => {
           packageJson.dependencies[dep] = 'latest'
         })
 
         // Add devDependencies
         packageJson.devDependencies = packageJson.devDependencies || {}
-        template.devDependencies.forEach(dep => {
+        template.devDependencies.forEach((dep: string) => {
           packageJson.devDependencies[dep] = 'latest'
         })
 
