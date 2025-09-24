@@ -25,8 +25,9 @@
       "@/types": ["./types"],
       "@/types/*": ["./types/*"],
       "@/components/*": ["./app/components/*"],
+      "@/components": ["./app/components"],
       "@/contexts/*": ["./app/contexts/*"],
-      "@/hooks/*": ["./src/hooks/*", "./app/hooks/*"],
+      "@/hooks/*": ["./app/hooks/*"],
       "@/api/*": ["./app/api/*"]
     }
   },

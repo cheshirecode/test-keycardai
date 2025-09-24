@@ -2,10 +2,10 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { useChat } from '@/lib/hooks/useChat'
-import { ProjectPreview } from './ProjectPreview'
-import { RepositoryPreview } from './RepositoryPreview'
+import { ProjectPreview } from '@/components/project'
+import { RepositoryPreview } from '@/components/repository'
 import { useRepository } from '@/contexts/RepositoryContext'
-import UserProfile from '@/components/UserProfile'
+import { UserProfile } from '@/components/user'
 import { useLocalStorage } from '@/hooks/useLocalStorage'
 
 export function ChatInterface() {

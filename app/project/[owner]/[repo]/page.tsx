@@ -1,6 +1,6 @@
 import React from 'react'
-import { MainLayout } from '@/components/MainLayout'
-import { ChatInterface } from '@/components/ChatInterface'
+import { MainLayout } from '@/components/layout'
+import { ChatInterface } from '@/components/chat'
 import { RepositoryPageWrapper } from './RepositoryPageWrapper'
 
 interface ProjectPageProps {

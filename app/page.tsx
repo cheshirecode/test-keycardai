@@ -1,6 +1,6 @@
 import React from 'react'
-import { ChatInterface } from '@/components/ChatInterface'
-import { MainLayout } from '@/components/MainLayout'
+import { ChatInterface } from '@/components/chat'
+import { MainLayout } from '@/components/layout'
 
 export default function Home() {
   return (

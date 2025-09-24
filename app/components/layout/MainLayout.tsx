@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useRef, useCallback } from 'react'
-import { ProjectSidebar } from '@/components/ProjectSidebar'
+import { ProjectSidebar } from '@/components/project'
 import { useRepository } from '@/contexts/RepositoryContext'
 import { useRepositorySync } from '@/hooks/useRepositorySync'
 
