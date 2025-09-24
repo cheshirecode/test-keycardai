@@ -63,8 +63,8 @@ export function ChatInterface() {
       <div className="flex-1 max-w-6xl mx-auto w-full p-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
           {/* Chat Panel */}
-          <div className="flex flex-col bg-white rounded-lg shadow-sm border">
-            <div className="flex-1 p-4 overflow-y-auto">
+          <div className="flex flex-col bg-white rounded-lg shadow-sm border h-full">
+            <div className="flex-1 p-4 overflow-y-auto max-h-[calc(100vh-200px)]">
               {messages.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-center space-y-6">
                   <div className="space-y-2">
@@ -91,36 +91,56 @@ export function ChatInterface() {
                   </div>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-4 min-h-full">
                   {messages.map((message) => (
                     <div
                       key={message.id}
                       className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                     >
                       <div
-                        className={`max-w-[80%] p-3 rounded-lg ${
+                        className={`max-w-[85%] p-3 rounded-lg ${
                           message.role === 'user'
                             ? 'bg-blue-500 text-white'
                             : 'bg-gray-100 text-gray-900'
                         }`}
                       >
                         <div className="text-sm font-medium mb-1">
-                          {message.role === 'user' ? 'You' : 'Agent'}
+                          {message.role === 'user' ? 'You' : '🤖 Agent'}
                         </div>
-                        <div className="whitespace-pre-wrap">{message.content}</div>
-                        <div className="text-xs opacity-75 mt-1">
+                        <div className="whitespace-pre-wrap text-sm leading-relaxed">
+                          {message.content}
+                        </div>
+                        <div className="text-xs opacity-75 mt-2">
                           {message.timestamp.toLocaleTimeString()}
                         </div>
+
+                        {/* Chain of Thought Section - Only for agent messages */}
+                        {message.role === 'assistant' && message.chainOfThought && (
+                          <details className="mt-2">
+                            <summary className="cursor-pointer text-xs opacity-75 hover:opacity-100">
+                              🔍 View Agent Reasoning
+                            </summary>
+                            <div className="mt-2 p-2 bg-gray-50 rounded text-xs text-gray-700 border-l-2 border-gray-300">
+                              <div className="font-medium mb-1">🤔 Chain of Thought:</div>
+                              <div className="whitespace-pre-wrap text-xs leading-relaxed">
+                                {message.chainOfThought}
+                              </div>
+                            </div>
+                          </details>
+                        )}
                       </div>
                     </div>
                   ))}
                   {isLoading && (
                     <div className="flex justify-start">
-                      <div className="bg-gray-100 text-gray-900 p-3 rounded-lg max-w-[80%]">
-                        <div className="text-sm font-medium mb-1">Agent</div>
+                      <div className="bg-gray-100 text-gray-900 p-3 rounded-lg max-w-[85%]">
+                        <div className="text-sm font-medium mb-1">🤖 Agent</div>
                         <div className="flex items-center space-x-2">
                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
-                          <span className="text-gray-600">Working on your project...</span>
+                          <span className="text-gray-600">Analyzing your request...</span>
+                        </div>
+                        <div className="mt-2 text-xs text-gray-500">
+                          Using AI to understand and plan your project
                         </div>
                       </div>
                     </div>

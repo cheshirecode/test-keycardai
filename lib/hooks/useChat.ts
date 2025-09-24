@@ -8,12 +8,13 @@ export function useChat() {
   const [currentProject, setCurrentProject] = useState<ProjectInfo | null>(null)
   const mcpClient = new MCPClient()
 
-  const addMessage = useCallback((role: 'user' | 'assistant', content: string) => {
+  const addMessage = useCallback((role: 'user' | 'assistant', content: string, chainOfThought?: string) => {
     const message: Message = {
       id: Date.now().toString(),
       role,
       content,
-      timestamp: new Date()
+      timestamp: new Date(),
+      chainOfThought: chainOfThought
     }
     setMessages(prev => [...prev, message])
     return message
@@ -69,7 +70,7 @@ export function useChat() {
         createdAt: string;
         aiPowered: boolean;
         llmUsed: string;
-      } }
+      }; chainOfThought?: string }
 
       if (result.success && result.project) {
         const { project } = result
@@ -81,6 +82,18 @@ export function useChat() {
           template: project.type,
           status: 'completed'
         })
+
+        // Use chainOfThought from server response if available, otherwise create summary
+        const chainOfThought = result.chainOfThought || [
+          `🤖 AI Analysis: ${project.reasoning}`,
+          `📊 Confidence: ${(project.confidence * 100).toFixed(1)}%`,
+          `📁 Project Type: ${project.type}`,
+          ...(project.features && project.features.length > 0 ? [`✨ Detected Features: ${project.features.join(', ')}`] : []),
+          '🔄 Execution Plan:',
+          ...(project.executionSteps?.map(step => `  ${step.success ? '✅' : '❌'} Step ${step.step}: ${step.action}`) || []),
+          project.repositoryUrl ? `🔗 Repository: ${project.repositoryUrl}` : '',
+          `📂 Project Path: ${project.path}`
+        ].filter(Boolean).join('\n')
 
         // Show AI analysis and reasoning
         addMessage('assistant', `🤖 AI Analysis: ${project.reasoning}`)
@@ -110,7 +123,7 @@ export function useChat() {
           ? `🎉 Project created successfully!\n📂 Local Path: ${project.path}\n🔗 Repository: ${project.repositoryUrl}`
           : `🎉 Project created successfully!\n📂 Path: ${project.path}`
 
-        addMessage('assistant', finalMessage)
+        addMessage('assistant', finalMessage, chainOfThought)
       } else {
         // Fallback to basic project creation if AI fails
         addMessage('assistant', '🤖 AI analysis failed, using fallback method...')
