@@ -3,10 +3,13 @@
 import { useState, useRef, useEffect } from 'react'
 import { useChat } from '@/lib/hooks/useChat'
 import { ProjectPreview } from './ProjectPreview'
+import { RepositoryPreview } from './RepositoryPreview'
+import { useRepository } from '@/contexts/RepositoryContext'
 
 export function ChatInterface() {
   const [input, setInput] = useState('')
   const { messages, isLoading, currentProject, sendMessage, clearChat } = useChat()
+  const { selectedRepository, isRepositoryMode } = useRepository()
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const scrollToBottom = () => {
@@ -25,7 +28,13 @@ export function ChatInterface() {
     setInput('')
   }
 
-  const quickStartOptions = [
+  const quickStartOptions = isRepositoryMode ? [
+    'Add authentication to this project',
+    'Add a database integration',
+    'Improve the UI/UX design',
+    'Add testing framework',
+    'Optimize performance'
+  ] : [
     'Create a React TypeScript app',
     'Create a Next.js fullstack project',
     'Create a Node.js API',
@@ -41,8 +50,8 @@ export function ChatInterface() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header - Sticky */}
-      <header className="sticky top-0 z-10 bg-white shadow-sm border-b px-6 py-4">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
+      <header className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm shadow-sm border-b px-4 py-4">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">🚀 Project Scaffolder</h1>
             <p className="text-gray-600">Create projects with natural language</p>
@@ -60,8 +69,8 @@ export function ChatInterface() {
       </header>
 
       {/* Main Content */}
-      <div className="max-w-6xl mx-auto w-full p-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="max-w-7xl mx-auto w-full px-4 py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Chat Panel */}
           <div className="flex flex-col bg-white rounded-lg shadow-sm border">
             <div className="p-4 max-h-[70vh] overflow-y-auto">
@@ -69,10 +78,13 @@ export function ChatInterface() {
                 <div className="h-full flex flex-col items-center justify-center text-center space-y-6">
                   <div className="space-y-2">
                     <h2 className="text-xl font-semibold text-gray-900">
-                      👋 Welcome to Project Scaffolder
+                      {isRepositoryMode ? '🔧 Project Modification Mode' : '👋 Welcome to Project Scaffolder'}
                     </h2>
                     <p className="text-gray-600">
-                      I can help you create new projects quickly. Just describe what you want to build!
+                      {isRepositoryMode 
+                        ? `I can help you modify and improve "${selectedRepository?.name}". Tell me what changes you'd like to make!`
+                        : 'I can help you create new projects quickly. Just describe what you want to build!'
+                      }
                     </p>
                   </div>
 
@@ -219,7 +231,10 @@ export function ChatInterface() {
                   type="text"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  placeholder="Describe your project (e.g., 'Create a React app with authentication')"
+                  placeholder={isRepositoryMode 
+                    ? `Describe changes for ${selectedRepository?.name} (e.g., 'Add user authentication')`
+                    : "Describe your project (e.g., 'Create a React app with authentication')"
+                  }
                   className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   disabled={isLoading}
                 />
@@ -232,25 +247,39 @@ export function ChatInterface() {
                 </button>
               </form>
               <p className="text-xs text-gray-500 mt-2">
-                💡 Try: &quot;Create a Next.js app with TypeScript&quot; or &quot;Build a Node.js API&quot;
+                💡 Try: {isRepositoryMode 
+                  ? `"Add authentication" or "Improve the UI design"`
+                  : `"Create a Next.js app with TypeScript" or "Build a Node.js API"`
+                }
               </p>
             </div>
           </div>
 
           {/* Project Preview Panel */}
           <div className="bg-white rounded-lg shadow-sm border p-4">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Project Preview</h2>
-            {currentProject ? (
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              {isRepositoryMode ? 'Repository Details' : 'Project Preview'}
+            </h2>
+            {isRepositoryMode && selectedRepository ? (
+              <RepositoryPreview repository={selectedRepository} />
+            ) : currentProject ? (
               <ProjectPreview project={currentProject} />
             ) : (
               <div className="min-h-[400px] flex items-center justify-center text-center">
                 <div className="space-y-3">
                   <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
-                    <span className="text-2xl">📁</span>
+                    <span className="text-2xl">{isRepositoryMode ? '🔧' : '📁'}</span>
                   </div>
                   <div>
-                    <p className="text-gray-900 font-medium">No project created yet</p>
-                    <p className="text-gray-500 text-sm">Start a conversation to create your first project</p>
+                    <p className="text-gray-900 font-medium">
+                      {isRepositoryMode ? 'Select a repository to modify' : 'No project created yet'}
+                    </p>
+                    <p className="text-gray-500 text-sm">
+                      {isRepositoryMode 
+                        ? 'Choose a repository from the sidebar to start making modifications'
+                        : 'Start a conversation to create your first project'
+                      }
+                    </p>
                   </div>
                 </div>
               </div>
