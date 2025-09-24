@@ -186,6 +186,43 @@ export async function GET() {
         },
         required: ['projectPath', 'templateId']
       }
+    },
+    {
+      name: 'analyze_project_request',
+      description: 'Use AI to analyze project requirements and recommend optimal templates and features',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          description: { type: 'string', description: 'Natural language description of the project to create' }
+        },
+        required: ['description']
+      }
+    },
+    {
+      name: 'generate_project_plan',
+      description: 'Generate intelligent step-by-step project creation plan using AI analysis',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          description: { type: 'string', description: 'Project description' },
+          projectPath: { type: 'string', description: 'Target project path' },
+          projectName: { type: 'string', description: 'Optional project name' }
+        },
+        required: ['description', 'projectPath']
+      }
+    },
+    {
+      name: 'intelligent_project_setup',
+      description: 'AI-powered complete project setup with analysis, planning, and optional execution',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          description: { type: 'string', description: 'Project requirements in natural language' },
+          projectPath: { type: 'string', description: 'Where to create the project' },
+          autoExecute: { type: 'boolean', description: 'Whether to automatically execute the plan (default: false)' }
+        },
+        required: ['description', 'projectPath']
+      }
     }
   ]
 

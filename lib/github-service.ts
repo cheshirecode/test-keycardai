@@ -21,7 +21,7 @@ export class GitHubService {
   constructor() {
     const token = process.env.GITHUB_TOKEN
     this.isAvailable = !!token
-    
+
     if (token) {
       this.octokit = new Octokit({
         auth: token,
@@ -66,7 +66,7 @@ export class GitHubService {
           message: `Repository '${config.repo}' already exists`
         }
       }
-      
+
       return {
         success: false,
         message: `Failed to create repository: ${err.message || 'Unknown error'}`
@@ -75,8 +75,8 @@ export class GitHubService {
   }
 
   async commitFiles(
-    config: GitHubRepoConfig, 
-    files: CommitFile[], 
+    config: GitHubRepoConfig,
+    files: CommitFile[],
     commitMessage: string
   ): Promise<{ success: boolean; message: string }> {
     if (!this.isAvailable) {
@@ -208,21 +208,21 @@ export class GitHubService {
   // Helper method to collect files from a directory
   static collectFilesFromDirectory(projectPath: string): CommitFile[] {
     const files: CommitFile[] = []
-    
+
     function walkDirectory(dir: string, basePath: string = '') {
       const items = fs.readdirSync(dir)
-      
+
       for (const item of items) {
         const fullPath = path.join(dir, item)
         const relativePath = path.join(basePath, item)
-        
+
         // Skip certain directories and files
         if (item === 'node_modules' || item === '.git' || item === '.next' || item.startsWith('.')) {
           continue
         }
-        
+
         const stat = fs.statSync(fullPath)
-        
+
         if (stat.isDirectory()) {
           walkDirectory(fullPath, relativePath)
         } else if (stat.isFile()) {
@@ -234,11 +234,11 @@ export class GitHubService {
         }
       }
     }
-    
+
     if (fs.existsSync(projectPath)) {
       walkDirectory(projectPath)
     }
-    
+
     return files
   }
 
@@ -250,7 +250,7 @@ export class GitHubService {
       .replace(/[^a-z0-9-]/g, '-')
       .replace(/-+/g, '-')
       .replace(/^-|-$/g, '')
-    
+
     return `${cleanName}-${timestamp}`
   }
 
@@ -265,7 +265,7 @@ export class GitHubService {
 
     try {
       const { data: user } = await this.octokit.users.getAuthenticated()
-      
+
       return {
         success: true,
         user: {

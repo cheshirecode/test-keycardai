@@ -21,6 +21,17 @@ const MCPActionSchema = z.object({
 
 export class AIService {
   static async analyzeProjectRequest(userMessage: string) {
+    // Check if OpenAI API key is available
+    if (!process.env.OPENAI_API_KEY) {
+      console.warn('OpenAI API key not found, returning fallback analysis')
+      return {
+        projectType: 'react-ts' as const,
+        features: ['basic-setup'],
+        confidence: 0.3,
+        reasoning: 'Fallback analysis: OpenAI API key not configured. Using default React TypeScript template.',
+        projectName: 'my-project'
+      }
+    }
     try {
       const result = await generateObject({
         model: openai('gpt-3.5-turbo'),
@@ -145,6 +156,92 @@ If something went wrong, be helpful but concise.
     } catch (error) {
       console.error('Response generation failed:', error)
       return 'I encountered an issue. Please try again.'
+    }
+  }
+
+  static async optimizeProjectStructure(projectPath: string, projectType: string) {
+    try {
+      if (!process.env.OPENAI_API_KEY) {
+        return {
+          recommendations: [],
+          reasoning: 'OpenAI API key not configured'
+        }
+      }
+
+      const result = await generateText({
+        model: openai('gpt-3.5-turbo'),
+        prompt: `
+Analyze this ${projectType} project structure and provide optimization recommendations:
+
+Project type: ${projectType}
+Project path: ${projectPath}
+
+Consider:
+- Best practices for ${projectType} projects
+- Recommended directory structure
+- Essential configuration files
+- Development workflow optimizations
+- Performance and maintainability improvements
+
+Provide 3-5 specific, actionable recommendations.
+        `.trim()
+      })
+
+      return {
+        recommendations: result.text.split('\n').filter(line => line.trim().length > 0),
+        reasoning: `AI analysis for ${projectType} project optimization`,
+        aiPowered: true
+      }
+    } catch (error) {
+      console.error('Project optimization failed:', error)
+      return {
+        recommendations: [`Consider using standard ${projectType} project structure`],
+        reasoning: 'Fallback recommendations due to AI service error'
+      }
+    }
+  }
+
+  static async recommendGitWorkflow(projectType: string, features: string[]) {
+    try {
+      if (!process.env.OPENAI_API_KEY) {
+        return {
+          workflow: 'standard',
+          steps: ['init', 'add', 'commit'],
+          reasoning: 'OpenAI API key not configured - using standard workflow'
+        }
+      }
+
+      const result = await generateText({
+        model: openai('gpt-3.5-turbo'),
+        prompt: `
+Recommend the optimal Git workflow for this project:
+
+Project type: ${projectType}
+Features: ${features.join(', ')}
+
+Consider:
+- Project complexity and team size
+- Deployment strategy (GitHub integration vs local)
+- Best practices for ${projectType} projects
+- Continuous integration needs
+
+Recommend workflow type and key steps.
+        `.trim()
+      })
+
+      return {
+        workflow: 'ai-optimized',
+        recommendations: result.text,
+        aiPowered: true,
+        reasoning: `AI-recommended workflow for ${projectType} with features: ${features.join(', ')}`
+      }
+    } catch (error) {
+      console.error('Git workflow recommendation failed:', error)
+      return {
+        workflow: 'standard',
+        steps: ['init', 'add', 'commit'],
+        reasoning: 'Fallback to standard workflow due to AI service error'
+      }
     }
   }
 }

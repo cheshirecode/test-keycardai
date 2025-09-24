@@ -11,7 +11,7 @@ export class RepositoryTools {
 
   static async initRepository(projectPath: string): Promise<{ success: boolean; message: string; repoUrl?: string }> {
     const tools = new RepositoryTools()
-    
+
     try {
       // Ensure the directory exists
       if (!fs.existsSync(projectPath)) {
@@ -69,11 +69,11 @@ logs
       if (tools.githubService.isGitHubAvailable()) {
         // Get authenticated user to use as owner
         const userResult = await tools.githubService.getAuthenticatedUser()
-        
+
         if (userResult.success && userResult.user) {
           const projectName = path.basename(projectPath)
           const repoName = GitHubService.generateRepoName(projectName)
-          
+
           const repoConfig: GitHubRepoConfig = {
             owner: userResult.user.login,
             repo: repoName,
@@ -82,7 +82,7 @@ logs
           }
 
           const createResult = await tools.githubService.createRepository(repoConfig)
-          
+
           if (createResult.success) {
             return {
               success: true,
@@ -116,12 +116,12 @@ logs
   }
 
   static async addAndCommit(
-    projectPath: string, 
+    projectPath: string,
     message: string,
     repoConfig?: GitHubRepoConfig
   ): Promise<{ success: boolean; message: string }> {
     const tools = new RepositoryTools()
-    
+
     try {
       // Check if directory exists
       if (!fs.existsSync(projectPath)) {
@@ -158,7 +158,7 @@ logs
 
       // Collect all files from the project directory
       const files = GitHubService.collectFilesFromDirectory(projectPath)
-      
+
       if (files.length === 0) {
         return {
           success: false,
@@ -168,7 +168,7 @@ logs
 
       // Commit files to GitHub
       const commitResult = await tools.githubService.commitFiles(repoConfig, files, message)
-      
+
       return commitResult
     } catch (error) {
       return {
@@ -180,12 +180,12 @@ logs
 
   static async getStatus(projectPath: string): Promise<string> {
     const tools = new RepositoryTools()
-    
+
     try {
       if (!tools.githubService.isGitHubAvailable()) {
         return 'GitHub not available in this environment'
       }
-      
+
       if (!fs.existsSync(projectPath)) {
         return 'Project directory does not exist'
       }
@@ -215,7 +215,7 @@ logs
   }
 
   static async configureUser(
-    name: string, 
+    name: string,
     email: string
   ): Promise<{ success: boolean; message: string }> {
     // With GitHub API, user info comes from the authenticated user and environment variables
@@ -227,7 +227,7 @@ logs
 
   static async getCommitHistory(): Promise<string> {
     const tools = new RepositoryTools()
-    
+
     if (!tools.githubService.isGitHubAvailable()) {
       return 'GitHub not available in this environment'
     }
@@ -249,7 +249,7 @@ logs
     repoConfig?: GitHubRepoConfig
   ): Promise<string | null> {
     const tools = new RepositoryTools()
-    
+
     if (!tools.githubService.isGitHubAvailable()) {
       return null
     }
