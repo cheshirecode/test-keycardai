@@ -51,7 +51,7 @@ export function ChatInterface() {
   return (
     <div className="h-full bg-gray-50 flex flex-col">
       {/* Header - Sticky */}
-      <header className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm shadow-sm border-b px-4 py-4">
+      <header className="sticky top-0 z-10 bg-white shadow-sm border-b px-4 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">🚀 Project Scaffolder</h1>
@@ -62,15 +62,33 @@ export function ChatInterface() {
               }
             </p>
           </div>
-          {messages.length > 0 && (
-            <button
-              onClick={clearChat}
-              className="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
-              disabled={isLoading}
-            >
-              Clear Chat
-            </button>
-          )}
+          <div className="flex items-center space-x-3">
+            {!isRepositoryMode && (
+              <button
+                onClick={() => {
+                  clearChat()
+                  // Focus on the input field after clearing
+                  setTimeout(() => {
+                    const input = document.querySelector('input[type="text"]') as HTMLInputElement
+                    input?.focus()
+                  }, 100)
+                }}
+                className="px-4 py-2 text-sm bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors font-medium"
+                disabled={isLoading}
+              >
+                + New Project
+              </button>
+            )}
+            {messages.length > 0 && (
+              <button
+                onClick={clearChat}
+                className="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
+                disabled={isLoading}
+              >
+                Clear Chat
+              </button>
+            )}
+          </div>
         </div>
       </header>
 

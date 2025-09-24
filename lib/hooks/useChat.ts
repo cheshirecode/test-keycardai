@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react'
 import { MCPClient } from '@/lib/mcp-client'
+import { useRepository } from '@/contexts/RepositoryContext'
 import type { Message, ProjectInfo, MCPLogEntry } from '@/types'
 
 export function useChat() {
@@ -7,6 +8,7 @@ export function useChat() {
   const [isLoading, setIsLoading] = useState(false)
   const [currentProject, setCurrentProject] = useState<ProjectInfo | null>(null)
   const mcpClient = new MCPClient()
+  const { setNewlyCreatedRepository, refreshRepositories } = useRepository()
 
   const addMessage = useCallback((role: 'user' | 'assistant', content: string, chainOfThought?: string, mcpLogs?: MCPLogEntry[]) => {
     const message: Message = {
@@ -150,6 +152,18 @@ export function useChat() {
 
         // Add single comprehensive message with debugging info
         addMessage('assistant', responseContent, chainOfThought, mcpLogs)
+
+        // Notify the repository context about the new project
+        if (project.repositoryUrl) {
+          // Extract repository name from URL or use project name
+          const repoName = project.repositoryUrl.split('/').pop() || project.name
+          setNewlyCreatedRepository(repoName)
+          
+          // Refresh the repositories list
+          setTimeout(() => {
+            refreshRepositories()
+          }, 1000) // Small delay to ensure GitHub API is updated
+        }
 
         // Final message is already included in the comprehensive response above
       } else {

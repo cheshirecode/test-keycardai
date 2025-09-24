@@ -1,35 +1,33 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import type { Repository } from '@/types'
-import { ChevronDownIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
+import { ChevronDownIcon, ChevronRightIcon, TrashIcon } from '@heroicons/react/24/outline'
 import { FolderIcon, GlobeAltIcon, LockClosedIcon } from '@heroicons/react/24/solid'
 
 interface ProjectSidebarProps {
   selectedRepository?: Repository | null
   onRepositorySelect: (repository: Repository | null) => void
   className?: string
+  onRefresh?: (refreshFn: () => void) => void
+  newlyCreatedRepository?: string | null
 }
 
-export function ProjectSidebar({ selectedRepository, onRepositorySelect, className = '' }: ProjectSidebarProps) {
+export function ProjectSidebar({ selectedRepository, onRepositorySelect, className = '', onRefresh, newlyCreatedRepository }: ProjectSidebarProps) {
   const [repositories, setRepositories] = useState<Repository[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [filter, setFilter] = useState('')
 
-  useEffect(() => {
-    loadRepositories()
-  }, [])
-
-  const loadRepositories = async () => {
+  const loadRepositories = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
-      
+
       const response = await fetch('/api/repositories')
       const data = await response.json()
-      
+
       if (data.success) {
         setRepositories(data.repositories || [])
       } else {
@@ -40,9 +38,78 @@ export function ProjectSidebar({ selectedRepository, onRepositorySelect, classNa
     } finally {
       setLoading(false)
     }
+  }, [])
+
+  useEffect(() => {
+    loadRepositories()
+    // Register the refresh function with the parent
+    if (onRefresh) {
+      onRefresh(loadRepositories)
+    }
+  }, [onRefresh, loadRepositories])
+
+  // Auto-refresh and select newly created repository
+  useEffect(() => {
+    if (newlyCreatedRepository) {
+      loadRepositories().then(() => {
+        // Find and select the newly created repository after repositories are loaded
+        // We'll handle this in a separate effect that watches repositories
+      })
+    }
+  }, [newlyCreatedRepository, loadRepositories])
+
+  // Select newly created repository when repositories list updates
+  useEffect(() => {
+    if (newlyCreatedRepository && repositories.length > 0) {
+      const newRepo = repositories.find(repo =>
+        repo.name === newlyCreatedRepository ||
+        repo.fullName.includes(newlyCreatedRepository)
+      )
+      if (newRepo) {
+        onRepositorySelect(newRepo)
+        // Clear the newly created repository flag
+        // setNewlyCreatedRepository(null) // We'll handle this in the context
+      }
+    }
+  }, [repositories, newlyCreatedRepository, onRepositorySelect])
+
+  const handleDeleteRepository = async (repository: Repository, event: React.MouseEvent) => {
+    event.stopPropagation() // Prevent repository selection
+
+    if (!confirm(`Are you sure you want to delete "${repository.name}"? This action cannot be undone.`)) {
+      return
+    }
+
+    try {
+      const [owner, repo] = repository.fullName.split('/')
+      const response = await fetch('/api/repositories', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ owner, repo }),
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        // Remove from local state
+        setRepositories(prev => prev.filter(r => r.id !== repository.id))
+
+        // Deselect if this was the selected repository
+        if (selectedRepository?.id === repository.id) {
+          onRepositorySelect(null)
+        }
+      } else {
+        alert(`Failed to delete repository: ${result.message}`)
+      }
+    } catch (error) {
+      console.error('Delete error:', error)
+      alert('Failed to delete repository. Please try again.')
+    }
   }
 
-  const filteredRepositories = repositories.filter(repo => 
+  const filteredRepositories = repositories.filter(repo =>
     repo.name.toLowerCase().includes(filter.toLowerCase()) ||
     (repo.description && repo.description.toLowerCase().includes(filter.toLowerCase()))
   )
@@ -89,7 +156,7 @@ export function ProjectSidebar({ selectedRepository, onRepositorySelect, classNa
             <ChevronDownIcon className="w-4 h-4 transform rotate-90" />
           </button>
         </div>
-        
+
         {/* Search/Filter */}
         <div className="relative">
           <input
@@ -140,6 +207,7 @@ export function ProjectSidebar({ selectedRepository, onRepositorySelect, classNa
                       repository={repo}
                       isSelected={selectedRepository?.id === repo.id}
                       onClick={() => handleRepositoryClick(repo)}
+                      onDelete={(e) => handleDeleteRepository(repo, e)}
                     />
                   ))}
                 </div>
@@ -159,6 +227,7 @@ export function ProjectSidebar({ selectedRepository, onRepositorySelect, classNa
                       repository={repo}
                       isSelected={selectedRepository?.id === repo.id}
                       onClick={() => handleRepositoryClick(repo)}
+                      onDelete={(e) => handleDeleteRepository(repo, e)}
                     />
                   ))}
                 </div>
@@ -181,9 +250,10 @@ interface RepositoryItemProps {
   repository: Repository
   isSelected: boolean
   onClick: () => void
+  onDelete: (event: React.MouseEvent) => void
 }
 
-function RepositoryItem({ repository, isSelected, onClick }: RepositoryItemProps) {
+function RepositoryItem({ repository, isSelected, onClick, onDelete }: RepositoryItemProps) {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'short',
@@ -209,7 +279,7 @@ function RepositoryItem({ repository, isSelected, onClick }: RepositoryItemProps
               <div className="w-4 h-4 rounded bg-gray-300" />
             )}
           </div>
-          
+
           <div className="flex-1 min-w-0">
             <div className="flex items-center space-x-1">
               <h4 className={`text-sm font-medium truncate ${
@@ -223,7 +293,7 @@ function RepositoryItem({ repository, isSelected, onClick }: RepositoryItemProps
                 <GlobeAltIcon className="w-3 h-3 text-gray-400 flex-shrink-0" />
               )}
             </div>
-            
+
             {repository.description && (
               <p className={`text-xs mt-1 line-clamp-2 ${
                 isSelected ? 'text-blue-700' : 'text-gray-600'
@@ -231,7 +301,7 @@ function RepositoryItem({ repository, isSelected, onClick }: RepositoryItemProps
                 {repository.description}
               </p>
             )}
-            
+
             <p className={`text-xs mt-1 ${
               isSelected ? 'text-blue-600' : 'text-gray-500'
             }`}>
@@ -239,6 +309,17 @@ function RepositoryItem({ repository, isSelected, onClick }: RepositoryItemProps
             </p>
           </div>
         </div>
+
+        {/* Delete button - only show for scaffolded projects */}
+        {repository.isScaffoldedProject && (
+          <button
+            onClick={onDelete}
+            className="flex-shrink-0 p-1 text-gray-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+            title={`Delete ${repository.name}`}
+          >
+            <TrashIcon className="w-4 h-4" />
+          </button>
+        )}
       </div>
     </button>
   )

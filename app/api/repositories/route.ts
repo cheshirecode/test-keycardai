@@ -100,3 +100,38 @@ function isScaffoldedProject(name: string, description: string | null): boolean 
 
   return nameMatches || descriptionMatches
 }
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const { owner, repo } = await request.json()
+
+    if (!owner || !repo) {
+      return NextResponse.json({
+        success: false,
+        message: 'Owner and repository name are required'
+      }, { status: 400 })
+    }
+
+    const githubService = new GitHubService()
+    const result = await githubService.deleteRepository(owner, repo)
+
+    if (!result.success) {
+      return NextResponse.json({
+        success: false,
+        message: result.message
+      }, { status: 400 })
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: result.message
+    })
+
+  } catch (error) {
+    console.error('Failed to delete repository:', error)
+    return NextResponse.json({
+      success: false,
+      message: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 })
+  }
+}

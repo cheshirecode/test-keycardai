@@ -11,6 +11,11 @@ interface RepositoryContextType {
   isRepositoryMode: boolean
   navigateToRepository: (repository: Repository) => void
   navigateToHome: () => void
+  newlyCreatedRepository: string | null
+  setNewlyCreatedRepository: (repositoryName: string | null) => void
+  refreshRepositories: () => void
+  onRepositoryRefresh: (() => void) | null
+  setOnRepositoryRefresh: (callback: (() => void) | null) => void
 }
 
 const RepositoryContext = createContext<RepositoryContextType | undefined>(undefined)
@@ -21,6 +26,8 @@ interface RepositoryProviderProps {
 
 export function RepositoryProvider({ children }: RepositoryProviderProps) {
   const [selectedRepository, setSelectedRepository] = useState<Repository | null>(null)
+  const [newlyCreatedRepository, setNewlyCreatedRepository] = useState<string | null>(null)
+  const [onRepositoryRefresh, setOnRepositoryRefresh] = useState<(() => void) | null>(null)
   const router = useRouter()
   const pathname = usePathname()
 
@@ -57,6 +64,12 @@ export function RepositoryProvider({ children }: RepositoryProviderProps) {
     }
   }, [pathname, navigateToRepository, navigateToHome])
 
+  const refreshRepositories = useCallback(() => {
+    if (onRepositoryRefresh) {
+      onRepositoryRefresh()
+    }
+  }, [onRepositoryRefresh])
+
   return (
     <RepositoryContext.Provider value={{
       selectedRepository,
@@ -64,7 +77,12 @@ export function RepositoryProvider({ children }: RepositoryProviderProps) {
       setSelectedRepositoryInternal: setSelectedRepository,
       isRepositoryMode,
       navigateToRepository,
-      navigateToHome
+      navigateToHome,
+      newlyCreatedRepository,
+      setNewlyCreatedRepository,
+      refreshRepositories,
+      onRepositoryRefresh,
+      setOnRepositoryRefresh
     }}>
       {children}
     </RepositoryContext.Provider>
