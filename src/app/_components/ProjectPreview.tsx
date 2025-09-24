@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { templates } from '../../../lib/templates'
 import { ProjectInfo } from '../../../types/mcp'
 import { MCPClient } from '../../../lib/mcp-client'
@@ -15,26 +15,61 @@ export function ProjectPreview({ project }: ProjectPreviewProps) {
     repositoryUrl: string
     branchName: string
     cloneCommand: string
+    githubUser?: string
   } | null>(null)
-  const mcpClient = new MCPClient()
+  const [isLoadingGitInfo, setIsLoadingGitInfo] = useState(false)
+  const mcpClient = useMemo(() => new MCPClient(), [])
   const template = templates[project.template]
 
   // Generate git info when project is completed
   useEffect(() => {
-    if (project.status === 'completed') {
-      const timestamp = Date.now()
-      const sanitizedName = project.name.toLowerCase().replace(/[^a-z0-9-]/g, '-')
-      const branchName = `project-${sanitizedName}-${timestamp}`
-      const repositoryUrl = `https://github.com/your-username/${branchName}`
-      const cloneCommand = `git clone ${repositoryUrl}`
-
-      setGitInfo({
-        repositoryUrl,
-        branchName,
-        cloneCommand
-      })
+    if (project.status === 'completed' && !gitInfo && !isLoadingGitInfo) {
+      setIsLoadingGitInfo(true)
+      
+      // Fetch GitHub user info
+      mcpClient.call('get_github_user', {})
+        .then((result: unknown) => {
+          const gitResult = result as { success: boolean; user?: { login: string; name?: string; email?: string }; message: string }
+          const timestamp = Date.now()
+          const sanitizedName = project.name.toLowerCase().replace(/[^a-z0-9-]/g, '-')
+          const branchName = `project-${sanitizedName}-${timestamp}`
+          
+          let username = 'your-username' // fallback
+          if (gitResult.success && gitResult.user?.login) {
+            username = gitResult.user.login
+          }
+          
+          const repositoryUrl = `https://github.com/${username}/${branchName}`
+          const cloneCommand = `git clone ${repositoryUrl}`
+          
+          setGitInfo({
+            repositoryUrl,
+            branchName,
+            cloneCommand,
+            githubUser: username
+          })
+        })
+        .catch((error) => {
+          console.error('Failed to get GitHub user:', error)
+          // Fallback to placeholder
+          const timestamp = Date.now()
+          const sanitizedName = project.name.toLowerCase().replace(/[^a-z0-9-]/g, '-')
+          const branchName = `project-${sanitizedName}-${timestamp}`
+          const repositoryUrl = `https://github.com/your-username/${branchName}`
+          const cloneCommand = `git clone ${repositoryUrl}`
+          
+          setGitInfo({
+            repositoryUrl,
+            branchName,
+            cloneCommand,
+            githubUser: 'your-username'
+          })
+        })
+        .finally(() => {
+          setIsLoadingGitInfo(false)
+        })
     }
-  }, [project.status, project.name])
+  }, [project.status, project.name, gitInfo, isLoadingGitInfo, mcpClient])
 
   const handleDownload = async () => {
     if (isDownloading) return
@@ -239,8 +274,18 @@ export function ProjectPreview({ project }: ProjectPreviewProps) {
             {/* GitHub Repository Info */}
             <div className="bg-purple-50 border border-purple-200 p-4 rounded-lg">
               <h5 className="font-medium text-purple-900 mb-3">🌿 GitHub Repository</h5>
-              {gitInfo ? (
+              {isLoadingGitInfo ? (
+                <div className="flex items-center gap-2 text-purple-700">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-500"></div>
+                  <span className="text-sm">Getting GitHub user info...</span>
+                </div>
+              ) : gitInfo ? (
                 <div className="space-y-3">
+                  {gitInfo.githubUser && gitInfo.githubUser !== 'your-username' && (
+                    <div className="text-xs text-purple-600 bg-purple-100 px-2 py-1 rounded">
+                      👤 GitHub User: <span className="font-medium">{gitInfo.githubUser}</span>
+                    </div>
+                  )}
                   <div>
                     <p className="text-sm font-medium text-purple-800 mb-1">Repository URL:</p>
                     <div className="flex items-center gap-2">
@@ -273,6 +318,11 @@ export function ProjectPreview({ project }: ProjectPreviewProps) {
                   </div>
                   <p className="text-xs text-purple-600">
                     💡 Use the clone command to get your project code locally
+                    {gitInfo.githubUser === 'your-username' && (
+                      <span className="block text-orange-600 mt-1">
+                        ⚠️ Note: GitHub token not available, showing placeholder username
+                      </span>
+                    )}
                   </p>
                 </div>
               ) : (

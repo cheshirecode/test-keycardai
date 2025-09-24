@@ -173,6 +173,21 @@ export const mcpTools = {
     }
   },
 
+  get_github_user: async () => {
+    try {
+      const githubService = new GitHubService()
+      const result = await githubService.getAuthenticatedUser()
+      
+      return {
+        success: result.success,
+        user: result.user,
+        message: result.message
+      }
+    } catch (error) {
+      throw new Error(`Failed to get GitHub user: ${error}`)
+    }
+  },
+
   // AI-Powered Planning and Decision Tools
   analyze_project_request: async (params: { description: string }) => {
     try {
