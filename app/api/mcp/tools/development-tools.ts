@@ -1,7 +1,7 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import { execSync } from 'child_process'
-// import { AIService } from '../../../../src/lib/ai-service' // Currently unused
+// import { AIService } from '@/lib/ai-service' // Currently unused
 
 export interface RunScriptParams {
   projectPath: string

@@ -1,6 +1,6 @@
 import * as fs from 'fs'
 import * as path from 'path'
-import { GitHubService, GitHubRepoConfig } from '../../../../src/lib/github-service'
+import { GitHubService, GitHubRepoConfig } from '@/lib/github-service'
 
 export interface CheckOwnerTypeParams {
   owner: string

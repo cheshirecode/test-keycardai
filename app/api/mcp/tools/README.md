@@ -94,4 +94,4 @@ const result = await mcpTools.create_project_with_ai({
 
 ---
 
-For detailed API documentation, see [docs/API_GUIDE.md](../../../../docs/API_GUIDE.md)
+For detailed API documentation, see [docs/API_GUIDE.md](/docs/API_GUIDE.md)
