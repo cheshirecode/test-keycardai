@@ -36,9 +36,14 @@ An intelligent project scaffolding agent that creates ready-to-use development p
 
 **IMPORTANT**: The MCP server uses your system's git configuration for all git operations.
 
-**Current System Configuration:**
+#### Development Environment
 - **User**: `aelf-fred <fred.tran@aelf.io>`
 - **Source**: Global git config (`git config --global user.name/email`)
+
+#### 🚨 Vercel Production Environment
+- **⚠️ CRITICAL**: **NO git user configuration** in Vercel serverless environment
+- **Git operations FAIL** without explicit user configuration
+- **MANDATORY**: Always use `git_configure_user` before git operations in production
 
 **Setup Git (if not already configured):**
 ```bash
@@ -47,9 +52,17 @@ git config --global user.email "your.email@example.com"
 ```
 
 **For Generated Projects:**
-- All git commits will use the system's global git user by default
-- Use the `git_configure_user` MCP tool to set repository-specific authorship
-- **Recommended workflow**: `git_init` → `git_configure_user` → `git_add_commit`
+- **Development**: Uses system's global git user by default OR environment variables
+- **Production**: Uses environment variables automatically (recommended)
+- **Environment Variables**: `GIT_USER_NAME` and `GIT_USER_EMAIL` (see `.env.example`)
+- **Automatic workflow**: `git_init` (auto-configures from env vars) → `git_add_commit`
+- **Manual workflow**: `git_init` → `git_configure_user` → `git_add_commit`
+
+#### Environment Comparison
+| Environment | Git Config | Status |
+|-------------|------------|--------|
+| **Development** | ✅ Global config OR env vars | Works automatically |
+| **Vercel Production** | ✅ Environment variables | **Works with `GIT_USER_NAME/EMAIL`** |
 
 ### Installation
 
@@ -69,11 +82,15 @@ npm install
 # Copy the example environment file
 cp .env.example .env.local
 
-# Edit .env.local and add your OpenAI API key:
+# Edit .env.local and add your configuration:
 # OPENAI_API_KEY=your_actual_api_key_here
+# GIT_USER_NAME=Your Name
+# GIT_USER_EMAIL=your.email@example.com
 ```
 
-> **⚠️ Important**: You **must** configure your OpenAI API key for the AI features to work. The application will not function without it.
+> **⚠️ Important**: 
+> - You **must** configure your OpenAI API key for the AI features to work
+> - **Recommended**: Set `GIT_USER_NAME` and `GIT_USER_EMAIL` for automatic git configuration in generated projects
 
 4. **Start the development server:**
 ```bash
@@ -119,6 +136,8 @@ graph TD
 
 The following environment variables are configured in Vercel:
 - `OPENAI_API_KEY` - Encrypted and secure
+- `GIT_USER_NAME` - For automatic git user configuration (e.g., "Project Scaffolder")
+- `GIT_USER_EMAIL` - For automatic git user configuration (e.g., "scaffolder@example.com")
 - `NODE_ENV` - Automatically set to `production`
 
 ## Usage
@@ -335,6 +354,35 @@ vercel ls
 - ✅ Automatic deployments enabled
 - ✅ Preview deployments for all branches
 
+### 🚨 Vercel Production Limitations
+
+**Git Operations in Production:**
+- **⚠️ CRITICAL**: Vercel serverless environment has **NO system git configuration**
+- **All git operations require explicit user setup** via `git_configure_user` MCP tool
+- **Without user config**: Git operations will fail with authentication errors
+- **Deployment authentication**: Commit authors must have Vercel project access
+
+**Production Workflow Requirements:**
+```bash
+# RECOMMENDED: Set environment variables in Vercel dashboard
+# GIT_USER_NAME=Project Scaffolder
+# GIT_USER_EMAIL=scaffolder@example.com
+
+# Automatic workflow (with environment variables)
+1. git_init (auto-configures user from env vars)
+2. git_add_commit (works automatically)
+
+# Manual workflow (without environment variables)
+1. git_init
+2. git_configure_user (REQUIRED - will fail without this)
+3. git_add_commit
+```
+
+**Deployment Authentication:**
+- Git commit authors must have access to the Vercel project
+- Mismatched commit authorship can cause deployment failures
+- Use consistent email addresses between git config and Vercel account
+
 ## Development Workflow
 
 ### Git Hooks & Commit Standards
@@ -431,11 +479,22 @@ MIT License - see [LICENSE](./LICENSE) file for details.
    - Verify environment variables are configured in Vercel
    - Ensure main branch is up to date: `git push origin main`
 
-4. **Permission Errors**:
+4. **Git Operations Fail in Production**:
+   - **Error**: "Git author must have access to the project on Vercel"
+   - **Cause**: No git user configuration in Vercel serverless environment
+   - **Solution**: Always use `git_configure_user` before `git_add_commit` in production
+   - **Example**: Set user with `git_configure_user` MCP tool before any git operations
+
+5. **Vercel Authentication Issues**:
+   - **Error**: Git commit author doesn't match Vercel account
+   - **Solution**: Ensure git user email matches Vercel account email
+   - **Check**: Verify commit authorship with proper user configuration
+
+6. **Permission Errors**:
    - Check file system permissions for project creation
    - Ensure Node.js has write access to project directory
 
-5. **Port Conflicts**:
+7. **Port Conflicts**:
    - Change the port in `next.config.js` if needed
    - Or use: `npm run dev -- --port 3001`
 

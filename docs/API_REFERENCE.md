@@ -41,20 +41,54 @@ interface MCPError {
 
 **IMPORTANT**: All git operations use the system's git configuration for commit authorship.
 
-### Current System Configuration
+### Development Environment
 - **Global User**: `aelf-fred <fred.tran@aelf.io>`
 - **Source**: System's global git config (`git config --global user.name/email`)
 
+### Vercel Production Environment
+- **⚠️ CRITICAL**: Vercel deployment environment has **NO git user configuration**
+- **Git operations will FAIL** in production without explicit user configuration
+- **System user**: Undefined/not configured in Vercel serverless environment
+- **Required**: Always use `git_configure_user` before any git operations in production
+
+### Environment-Specific Behavior
+
+| Environment | Git User Source | Behavior |
+|-------------|----------------|----------|
+| **Development** | Global git config (`aelf-fred <fred.tran@aelf.io>`) | ✅ Works with system user |
+| **Vercel Production** | ❌ **No git config** | ❌ **Git operations fail** |
+| **With `git_configure_user`** | Repository-specific config | ✅ Works in all environments |
+
 ### Best Practices
-1. **Always use `git_configure_user`** after `git_init` to set proper authorship
+1. **ALWAYS use `git_configure_user`** after `git_init` (especially for production)
 2. **Repository-specific config overrides global config**
-3. **Without proper config**: All commits will be authored by the system user
-4. **For production**: Ensure each generated project has appropriate user configuration
+3. **Without proper config**: Git operations fail in Vercel production
+4. **For production**: Mandatory to set user configuration before any git operations
 
 ### Recommended Workflow
 ```bash
 git_init → git_configure_user → git_add_commit
 ```
+
+### Production Considerations
+- **Vercel serverless functions** don't have persistent git configuration
+- **SOLUTION**: Use `GIT_USER_NAME` and `GIT_USER_EMAIL` environment variables
+- **Automatic configuration**: `git_init` auto-configures user from environment variables
+- **Deployment authentication** requires commit author to have Vercel project access
+- **Generated projects** work automatically with environment variables configured
+
+### Environment Variable Configuration
+Set these in your deployment environment (e.g., Vercel dashboard):
+```bash
+GIT_USER_NAME=Project Scaffolder
+GIT_USER_EMAIL=scaffolder@example.com
+```
+
+**Benefits:**
+- ✅ **Automatic git user configuration** in all environments
+- ✅ **No manual `git_configure_user` calls needed**
+- ✅ **Consistent authorship** across all generated projects
+- ✅ **Works in development and production**
 
 ## Available MCP Tools
 
@@ -446,7 +480,55 @@ curl -X POST http://localhost:3000/api/mcp \
 
 ---
 
-### 10. install_dependencies
+### 10. git_configure_user_from_env
+
+Configure git user from environment variables only.
+
+**Method:** `git_configure_user_from_env`
+
+**Parameters:**
+```typescript
+{
+  path: string    // Project directory path
+}
+```
+
+**Response:**
+```typescript
+{
+  success: boolean
+  message: string   // Confirmation message
+  source: string    // Always "environment_variables"
+}
+```
+
+**Example:**
+```bash
+curl -X POST http://localhost:3000/api/mcp \
+  -H "Content-Type: application/json" \
+  -d '{
+    "method": "git_configure_user_from_env",
+    "params": {"path": "/tmp/my-project"},
+    "id": 10
+  }'
+```
+
+**What it does:**
+- Reads `GIT_USER_NAME` and `GIT_USER_EMAIL` environment variables
+- Configures git user for the specified repository
+- Fails if environment variables are not set
+
+**Use Case:**
+- Explicit environment variable configuration
+- Testing environment variable setup
+- When you want to ensure environment variables are used
+
+**Error Codes:**
+- `-32603`: Environment variables not set or git configuration failed
+
+---
+
+### 11. install_dependencies
 
 Installs npm dependencies in the specified project.
 

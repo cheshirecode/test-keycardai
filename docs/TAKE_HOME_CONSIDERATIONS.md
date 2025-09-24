@@ -214,16 +214,24 @@ git config --global user.email "your.email@example.com"
 ```
 
 **⚠️ Git User Behavior in MCP Operations:**
-- **Current System User**: `aelf-fred <fred.tran@aelf.io>` (from global config)
+- **Development User**: `aelf-fred <fred.tran@aelf.io>` (from global config)
 - **All git commits use system's global git configuration by default**
 - **Repository-specific config overrides global config when set**
 - **Recommendation**: Always use `git_configure_user` MCP tool after `git_init`
 - **Without proper config**: Generated projects will have incorrect commit authorship
 
+**🚨 CRITICAL: Vercel Production Environment:**
+- **NO git user configuration** in Vercel serverless environment
+- **Git operations FAIL** without explicit user configuration
+- **MANDATORY**: Use `git_configure_user` before any git operations in production
+- **Deployment authentication**: Commit author must have Vercel project access
+- **System behavior**: No persistent git config in serverless functions
+
 **Vercel Deployment:**
 - Environment variables must be configured in Vercel dashboard
 - Build process skips Git hooks (intentional)
 - Production URLs differ from development
+- **Git operations require explicit user setup** in production environment
 
 ## Future Enhancements
 
