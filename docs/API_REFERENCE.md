@@ -1,6 +1,7 @@
 # API Reference: AI-Powered MCP Project Scaffolder
 
 ## Overview
+
 This document provides complete API documentation for the AI-powered MCP Project Scaffolder, featuring intelligent decision-making, GitHub API integration, and comprehensive project automation capabilities.
 
 ## 🏗️ System Architecture
@@ -8,34 +9,41 @@ This document provides complete API documentation for the AI-powered MCP Project
 The system uses a sophisticated architecture with AI at its core:
 
 ### **Security-First Design**
+
 - ✅ **Server-side AI**: All LLM operations happen on the server
 - ✅ **No API Key Exposure**: OpenAI and GitHub tokens never reach client
 - ✅ **Environment Variables**: All secrets managed server-side
 - ✅ **MCP Protocol**: Standardized tool interface for extensibility
 
 ### **AI Integration**
+
 - ✅ **OpenAI GPT-3.5-turbo**: Powers all intelligent decision-making
 - ✅ **Confidence Scoring**: AI provides confidence levels for recommendations
 - ✅ **Natural Language Processing**: Understands complex project requirements
 - ✅ **Fallback Systems**: Graceful degradation when AI unavailable
 
 ### **GitHub API Integration**
+
+- ✅ **Intelligent Owner Detection**: Automatically determines if GitHub owner is user or organization
 - ✅ **Repository Automation**: Direct GitHub repository creation with full project files
-- ✅ **Organization Support**: Configurable repository ownership (personal/organization)
+- ✅ **Organization Support**: Configurable repository ownership via `GITHUB_OWNER` environment variable
+- ✅ **Smart API Selection**: Uses correct GitHub endpoints (`createInOrg` vs `createForAuthenticatedUser`)
 - ✅ **Serverless Compatible**: No local git CLI dependency
 - ✅ **Automatic Commits**: Complete project files committed directly to GitHub
 - ✅ **Repository Metadata**: Persistent tracking to ensure proper file uploads
-- ✅ **Token-based Auth**: Secure API authentication
+- ✅ **Token-based Auth**: Secure API authentication with permission validation
 
 ## MCP Protocol Implementation
 
 ### Base URL
+
 ```
 Local Development: http://localhost:3000/api/mcp
 Production: https://test-keycardai-hmmx4tn4f-dac4158s-projects.vercel.app/api/mcp
 ```
 
 ### Request Format
+
 All MCP requests follow the JSON-RPC 2.0 specification:
 
 ```typescript
@@ -47,6 +55,7 @@ interface MCPRequest {
 ```
 
 ### Response Format
+
 ```typescript
 interface MCPResponse {
   result?: any            // Tool execution result
@@ -66,6 +75,7 @@ interface MCPError {
 **SECURITY FIRST**: All sensitive operations happen server-side to protect API keys and tokens.
 
 ### Environment Variables (Server-Side Only)
+
 ```bash
 # Required for AI functionality
 OPENAI_API_KEY=sk-your-openai-key
@@ -82,6 +92,7 @@ GIT_USER_EMAIL=your.email@example.com
 ```
 
 ### Security Measures
+
 - ✅ **No Client-Side API Keys**: All LLM calls happen on server
 - ✅ **Environment Variable Encryption**: Vercel encrypts all sensitive data
 - ✅ **Token Scope Limitation**: GitHub token has minimal required permissions
@@ -89,12 +100,14 @@ GIT_USER_EMAIL=your.email@example.com
 - ✅ **Error Masking**: Detailed errors not exposed to client
 
 ### GitHub Token Setup
+
 1. Visit [GitHub Settings > Tokens](https://github.com/settings/tokens)
 2. Click "Generate new token (classic)"
 3. Select scopes: `repo`, `user`
 4. Set in Vercel dashboard environment variables
 
 ### Architecture Benefits
+
 - ✅ **Serverless Compatible**: No local git CLI dependency
 - ✅ **Direct GitHub Integration**: Repository operations via HTTP API
 - ✅ **Automatic Repository Creation**: GitHub repos created automatically
@@ -102,11 +115,13 @@ GIT_USER_EMAIL=your.email@example.com
 - ✅ **No Git Installation Required**: Pure API-based operations
 
 ### Recommended Workflow
+
 ```bash
 git_init → git_configure_user → git_add_commit
 ```
 
 ### Production Considerations
+
 - **Vercel serverless functions** don't have persistent git configuration
 - **SOLUTION**: Use `GIT_USER_NAME` and `GIT_USER_EMAIL` environment variables
 - **Automatic configuration**: `git_init` auto-configures user from environment variables
@@ -114,6 +129,7 @@ git_init → git_configure_user → git_add_commit
 - **Generated projects** work automatically with environment variables configured
 
 ### Environment Variable Configuration
+
 Set these in your deployment environment (e.g., Vercel dashboard):
 ```bash
 GIT_USER_NAME=Project Scaffolder
@@ -798,7 +814,109 @@ curl -X POST http://localhost:3000/api/mcp \
 
 ---
 
-### 10. git_configure_user_from_env
+### 10. get_github_user
+
+**Get authenticated GitHub user information.**
+
+**Method:** `get_github_user`
+
+**Parameters:** None
+
+**Response:**
+```typescript
+{
+  success: boolean
+  user?: {
+    login: string
+    name: string | null
+    email: string | null
+  }
+  message: string
+}
+```
+
+**Example:**
+```bash
+curl -X POST http://localhost:3000/api/mcp \
+  -H "Content-Type: application/json" \
+  -d '{
+    "method": "get_github_user",
+    "params": {},
+    "id": 10
+  }'
+```
+
+**What it does:**
+- Retrieves information about the authenticated GitHub user
+- Uses the configured `GITHUB_TOKEN` for authentication
+- Returns user login, name, and email information
+- Used internally for repository ownership determination
+
+---
+
+### 11. check_github_owner_type
+
+**Determine if a GitHub account is a user or organization and verify it exists.**
+
+**Method:** `check_github_owner_type`
+
+**Parameters:**
+```typescript
+{
+  owner: string  // GitHub username or organization name
+}
+```
+
+**Response:**
+```typescript
+{
+  success: boolean
+  type?: 'user' | 'organization'
+  message: string
+  owner: string
+}
+```
+
+**Example:**
+```bash
+curl -X POST http://localhost:3000/api/mcp \
+  -H "Content-Type: application/json" \
+  -d '{
+    "method": "check_github_owner_type",
+    "params": {
+      "owner": "mcp-integration"
+    },
+    "id": 11
+  }'
+```
+
+**Response:**
+```json
+{
+  "result": {
+    "success": true,
+    "type": "organization",
+    "message": "mcp-integration is a GitHub organization",
+    "owner": "mcp-integration"
+  }
+}
+```
+
+**What it does:**
+- **Intelligent Detection**: Automatically determines if a GitHub account is a user or organization
+- **Validation**: Verifies the account exists and is accessible
+- **API Optimization**: Enables correct GitHub API endpoint selection for repository creation
+- **Error Prevention**: Prevents failed repository creation attempts with invalid owners
+
+**Use Cases:**
+- ✅ **Repository Planning**: Verify owner exists before creating repositories
+- ✅ **Access Validation**: Check if you have permissions to create repositories under an owner
+- ✅ **Automation**: Programmatically determine correct GitHub API endpoints
+- ✅ **Debugging**: Troubleshoot repository creation issues
+
+---
+
+### 12. git_configure_user_from_env
 
 Configure git user from environment variables only.
 
@@ -1137,10 +1255,12 @@ function ProjectScaffolder() {
 ## Rate Limiting
 
 ### Current Limits
+
 - **Development**: No rate limiting
 - **Production**: 100 requests per minute per IP
 
 ### Headers
+
 Rate limit information is included in response headers:
 ```
 X-RateLimit-Limit: 100
@@ -1151,10 +1271,12 @@ X-RateLimit-Reset: 1640995200
 ## Authentication
 
 ### Current Implementation
+
 - No authentication required for local development
 - Production deployments should implement API key authentication
 
 ### Recommended Security
+
 ```typescript
 // Add to MCP server
 const authMiddleware = (req: Request) => {
@@ -1168,12 +1290,14 @@ const authMiddleware = (req: Request) => {
 ## Performance Considerations
 
 ### Optimization Strategies
+
 - **Template Caching**: Pre-load common templates in memory
 - **Streaming**: Stream large file generation progress
 - **Background Processing**: Execute git/npm operations asynchronously
 - **Request Batching**: Combine multiple tool calls when possible
 
 ### Monitoring Metrics
+
 - Tool execution time
 - Error rates by tool
 - Project creation success rate
@@ -1255,6 +1379,7 @@ export const templates = {
 ## Testing
 
 ### Tool Testing
+
 ```typescript
 // Test individual tools
 describe('MCP Tools', () => {
@@ -1267,6 +1392,7 @@ describe('MCP Tools', () => {
 ```
 
 ### Integration Testing
+
 ```typescript
 // Test full workflow
 describe('Project Creation', () => {
