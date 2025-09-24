@@ -11,6 +11,7 @@ export async function GET() {
       services: {
         openai: !!process.env.OPENAI_API_KEY,
         github: !!process.env.GITHUB_TOKEN,
+        githubOrg: process.env.GITHUB_ORG || 'default (authenticated user)',
         // Add other service checks as needed
       },
       uptime: process.uptime(),

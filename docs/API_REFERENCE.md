@@ -20,9 +20,11 @@ The system uses a sophisticated architecture with AI at its core:
 - ✅ **Fallback Systems**: Graceful degradation when AI unavailable
 
 ### **GitHub API Integration**
-- ✅ **Repository Automation**: Direct GitHub repository creation
+- ✅ **Repository Automation**: Direct GitHub repository creation with full project files
+- ✅ **Organization Support**: Configurable repository ownership (personal/organization)
 - ✅ **Serverless Compatible**: No local git CLI dependency
-- ✅ **Automatic Commits**: Files committed directly to GitHub
+- ✅ **Automatic Commits**: Complete project files committed directly to GitHub
+- ✅ **Repository Metadata**: Persistent tracking to ensure proper file uploads
 - ✅ **Token-based Auth**: Secure API authentication
 
 ## MCP Protocol Implementation
@@ -70,6 +72,9 @@ OPENAI_API_KEY=sk-your-openai-key
 
 # Required for GitHub repository operations
 GITHUB_TOKEN=ghp-your-github-token
+
+# Optional: specify organization/user for repository creation
+GITHUB_ORG=mcp-integration
 
 # Optional for commit authorship
 GIT_USER_NAME=Your Name

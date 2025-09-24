@@ -24,10 +24,12 @@ An intelligent project scaffolding agent that creates ready-to-use development p
 - **Error Recovery**: AI-powered error analysis and recovery strategies
 
 ### 🔧 **GitHub API Integration**
-- **Repository Automation**: Automatic GitHub repository creation
-- **Direct Commits**: No local git dependency - commits directly to GitHub
+- **Repository Automation**: Automatic GitHub repository creation with full project files
+- **Organization Support**: Configurable GitHub organization/user for repository creation
+- **Direct Commits**: No local git dependency - commits directly to GitHub via REST API
+- **Repository Metadata**: Persistent repository tracking to ensure proper file uploads
 - **Vercel Compatible**: Works seamlessly in serverless environments
-- **Environment Variables**: Automatic git user configuration from env vars
+- **Environment Variables**: Automatic git user and organization configuration from env vars
 
 ### 📁 **Template Library**
 - **React TypeScript**: Vite + React 18 + TypeScript + Tailwind CSS 3
@@ -36,9 +38,34 @@ An intelligent project scaffolding agent that creates ready-to-use development p
 
 ### ⚡ **Developer Experience**
 - **Natural Language**: "Create a React app with authentication" → full project
-- **Real-time Progress**: Live updates during project creation
+- **Transparent AI**: Chain of thought reasoning and MCP logs visible in chat
+- **Real-time Progress**: Live updates during project creation with detailed execution logs
 - **One-Click Setup**: Complete project scaffolding in seconds
 - **Modern Tooling**: ESLint, Prettier, TypeScript, Vitest, Tailwind
+
+## 🆕 Recent Updates
+
+### **Repository File Upload Fix** (Latest)
+- **Fixed**: GitHub repositories now contain full project files instead of just README
+- **Enhanced**: Repository metadata storage system to track created repositories
+- **Improved**: Timestamp consistency between repository creation and file uploads
+- **Added**: Proper error handling for repository operations
+
+### **Agent Response Restructuring**
+- **Enhanced**: Chain of thought reasoning now appears at the beginning of responses
+- **Added**: MCP server logs display for complete transparency
+- **Improved**: Debugging sections expanded by default with better visual distinction
+- **Optimized**: Progressive disclosure pattern for technical information
+
+### **GitHub Organization Support**
+- **Added**: `GITHUB_ORG` environment variable for configurable repository ownership
+- **Enhanced**: Support for creating repositories under organizations or personal accounts
+- **Improved**: Flexible repository creation targeting specific GitHub organizations
+
+### **Documentation & Infrastructure**
+- **Updated**: Comprehensive documentation reflecting all recent changes
+- **Enhanced**: Environment variable configuration with organization support
+- **Improved**: Vercel deployment configuration and setup instructions
 
 ## 🏗️ Built With
 
@@ -292,6 +319,7 @@ The following environment variables are configured in Vercel:
 
 #### **GitHub Integration**
 - `GITHUB_TOKEN` - **Required** for GitHub API repository operations
+- `GITHUB_ORG` - **Optional** specify organization/user for repository creation (default: authenticated user)
 - `GIT_USER_NAME` - **Recommended** for commit authorship (e.g., "Project Scaffolder")
 - `GIT_USER_EMAIL` - **Recommended** for commit authorship (e.g., "scaffolder@cheshirecode.dev")
 
@@ -303,6 +331,7 @@ The following environment variables are configured in Vercel:
 # Production environment variables:
 OPENAI_API_KEY=sk-...          # Required for AI functionality
 GITHUB_TOKEN=ghp_...          # Required for GitHub API
+GITHUB_ORG=mcp-integration     # Optional: target organization for repositories
 GIT_USER_NAME=Project Scaffolder    # Optional but recommended
 GIT_USER_EMAIL=scaffolder@cheshirecode.dev  # Optional but recommended
 ```

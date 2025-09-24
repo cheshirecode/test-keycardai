@@ -70,15 +70,18 @@ logs
 
       // If GitHub is available, create a repository
       if (tools.githubService.isGitHubAvailable()) {
-        // Get authenticated user to use as owner
+        // Get authenticated user and determine owner (organization or user)
         const userResult = await tools.githubService.getAuthenticatedUser()
 
         if (userResult.success && userResult.user) {
           const projectName = path.basename(projectPath)
           const repoName = GitHubService.generateRepoName(projectName)
+          
+          // Use GITHUB_ORG environment variable if specified, otherwise use authenticated user
+          const owner = process.env.GITHUB_ORG || userResult.user.login
 
           const repoConfig: GitHubRepoConfig = {
-            owner: userResult.user.login,
+            owner: owner,
             repo: repoName,
             description: `Generated project: ${projectName}`,
             private: false
@@ -152,40 +155,43 @@ logs
         }
       }
 
-      // If no repo config provided, try to find existing repository
-      if (!repoConfig) {
-        const userResult = await tools.githubService.getAuthenticatedUser()
-        if (!userResult.success || !userResult.user) {
-          return {
-            success: false,
-            message: 'Cannot commit: GitHub user authentication failed'
-          }
-        }
-
-        // Try to read repository info from project metadata file
-        const projectName = path.basename(projectPath)
-        const metadataPath = path.join(projectPath, '.repo-metadata.json')
-        
-        if (fs.existsSync(metadataPath)) {
-          try {
-            const metadata = JSON.parse(fs.readFileSync(metadataPath, 'utf-8'))
-            repoConfig = {
-              owner: metadata.owner,
-              repo: metadata.repo
-            }
-          } catch (error) {
-            console.warn('Failed to read repository metadata:', error)
-          }
-        }
-        
-        // Fallback: generate new repo name (this might create a new repo)
+        // If no repo config provided, try to find existing repository
         if (!repoConfig) {
-          repoConfig = {
-            owner: userResult.user.login,
-            repo: GitHubService.generateRepoName(projectName)
+          const userResult = await tools.githubService.getAuthenticatedUser()
+          if (!userResult.success || !userResult.user) {
+            return {
+              success: false,
+              message: 'Cannot commit: GitHub user authentication failed'
+            }
+          }
+
+          // Try to read repository info from project metadata file
+          const projectName = path.basename(projectPath)
+          const metadataPath = path.join(projectPath, '.repo-metadata.json')
+          
+          if (fs.existsSync(metadataPath)) {
+            try {
+              const metadata = JSON.parse(fs.readFileSync(metadataPath, 'utf-8'))
+              repoConfig = {
+                owner: metadata.owner,
+                repo: metadata.repo
+              }
+            } catch (error) {
+              console.warn('Failed to read repository metadata:', error)
+            }
+          }
+          
+          // Fallback: generate new repo name (this might create a new repo)
+          if (!repoConfig) {
+            // Use GITHUB_ORG environment variable if specified, otherwise use authenticated user
+            const owner = process.env.GITHUB_ORG || userResult.user.login
+            
+            repoConfig = {
+              owner: owner,
+              repo: GitHubService.generateRepoName(projectName)
+            }
           }
         }
-      }
 
       // Collect all files from the project directory
       const files = GitHubService.collectFilesFromDirectory(projectPath)
