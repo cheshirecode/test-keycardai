@@ -76,7 +76,7 @@ logs
       if (!fs.existsSync(projectPath)) {
         throw new Error(`Directory does not exist: ${projectPath}`)
       }
-      
+
       if (!fs.existsSync(path.join(projectPath, '.git'))) {
         throw new Error(`Not a git repository: ${projectPath}`)
       }
