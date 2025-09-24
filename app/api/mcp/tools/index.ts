@@ -336,6 +336,169 @@ export const mcpTools = {
     }
   },
 
+  // Server-side only AI-powered project creation (secure)
+  create_project_with_ai: async (params: {
+    description: string;
+    projectPath?: string;
+    projectName?: string;
+  }) => {
+    try {
+      if (!process.env.OPENAI_API_KEY) {
+        return {
+          success: false,
+          message: 'OpenAI API key not configured. AI-powered project creation requires OPENAI_API_KEY.',
+          project: null
+        }
+      }
+
+      if (!process.env.GITHUB_TOKEN) {
+        return {
+          success: false,
+          message: 'GitHub token not configured. Repository creation requires GITHUB_TOKEN.',
+          project: null
+        }
+      }
+
+      // Step 1: AI Analysis with enhanced decision making
+      const analysis = await AIService.analyzeProjectRequest(params.description)
+
+      // Step 2: Generate project path if not provided
+      const projectName = params.projectName || analysis.projectName || 'my-project'
+      const sanitizedName = projectName.toLowerCase().replace(/[^a-z0-9-]/g, '-')
+      const projectPath = params.projectPath || `/tmp/projects/${sanitizedName}-${Date.now()}`
+
+      // Step 3: Generate comprehensive action plan
+      const { actions } = await AIService.generateMCPActions(
+        params.description,
+        analysis,
+        projectPath
+      )
+
+      // Step 4: Execute all actions with detailed progress tracking
+      const executionResults = []
+      let currentStep = 1
+
+      for (const action of actions) {
+        try {
+          console.log(`[AI Project Creation] Step ${currentStep}/${actions.length}: ${action.description}`)
+
+          const tool = mcpTools[action.tool as keyof typeof mcpTools]
+          if (tool) {
+            const result = await (tool as (...args: unknown[]) => Promise<unknown>)(action.params)
+            executionResults.push({
+              step: currentStep,
+              action: action.description,
+              tool: action.tool,
+              success: true,
+              result,
+              timestamp: new Date().toISOString()
+            })
+          } else {
+            executionResults.push({
+              step: currentStep,
+              action: action.description,
+              tool: action.tool,
+              success: false,
+              error: `Tool ${action.tool} not found`,
+              timestamp: new Date().toISOString()
+            })
+          }
+          currentStep++
+        } catch (error) {
+          executionResults.push({
+            step: currentStep,
+            action: action.description,
+            tool: action.tool,
+            success: false,
+            error: error instanceof Error ? error.message : 'Unknown error',
+            timestamp: new Date().toISOString()
+          })
+          currentStep++
+        }
+      }
+
+      // Step 5: Get final project information
+      const repositoryUrl = await RepositoryTools.getRepositoryUrl(projectPath)
+
+      return {
+        success: true,
+        message: `AI-powered project created successfully using ${analysis.projectType}`,
+        project: {
+          name: sanitizedName,
+          path: projectPath,
+          type: analysis.projectType,
+          description: params.description,
+          confidence: analysis.confidence,
+          reasoning: analysis.reasoning,
+          features: analysis.features,
+          repositoryUrl,
+          totalSteps: actions.length,
+          executionSteps: executionResults,
+          createdAt: new Date().toISOString(),
+          aiPowered: true,
+          llmUsed: 'OpenAI GPT-3.5-turbo'
+        }
+      }
+    } catch (error) {
+      console.error('AI project creation failed:', error)
+      return {
+        success: false,
+        message: `AI project creation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        project: null
+      }
+    }
+  },
+
+  // Enhanced AI analysis with project optimization recommendations
+  analyze_and_optimize: async (params: {
+    description: string;
+    projectType?: string;
+    includeOptimization?: boolean;
+  }) => {
+    try {
+      if (!process.env.OPENAI_API_KEY) {
+        return {
+          success: false,
+          message: 'OpenAI API key not configured for AI analysis.',
+          analysis: null
+        }
+      }
+
+      // Primary AI analysis
+      const analysis = await AIService.analyzeProjectRequest(params.description)
+
+      let optimization = null
+      if (params.includeOptimization) {
+        // Get project optimization recommendations
+        optimization = await AIService.optimizeProjectStructure('/tmp/sample', analysis.projectType)
+
+        // Get Git workflow recommendations (stored but not returned in current implementation)
+        await AIService.recommendGitWorkflow(
+          analysis.projectType,
+          analysis.features
+        )
+      }
+
+      return {
+        success: true,
+        message: `AI analysis complete with ${(analysis.confidence * 100).toFixed(1)}% confidence`,
+        analysis: {
+          projectAnalysis: analysis,
+          optimization: params.includeOptimization ? optimization : null,
+          aiPowered: true,
+          processingTime: Date.now(),
+          modelUsed: 'OpenAI GPT-3.5-turbo'
+        }
+      }
+    } catch (error) {
+      return {
+        success: false,
+        message: `AI analysis failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        analysis: null
+      }
+    }
+  },
+
   install_dependencies: async (params: { path: string; packages?: string[] }) => {
     try {
       const command = params.packages

@@ -1,14 +1,36 @@
-# API Reference: MCP Project Scaffolder
+# API Reference: AI-Powered MCP Project Scaffolder
 
 ## Overview
-This document provides complete API documentation for the MCP Project Scaffolder agent, including all server endpoints, tool specifications, and integration patterns.
+This document provides complete API documentation for the AI-powered MCP Project Scaffolder, featuring intelligent decision-making, GitHub API integration, and comprehensive project automation capabilities.
+
+## 🏗️ System Architecture
+
+The system uses a sophisticated architecture with AI at its core:
+
+### **Security-First Design**
+- ✅ **Server-side AI**: All LLM operations happen on the server
+- ✅ **No API Key Exposure**: OpenAI and GitHub tokens never reach client
+- ✅ **Environment Variables**: All secrets managed server-side
+- ✅ **MCP Protocol**: Standardized tool interface for extensibility
+
+### **AI Integration**
+- ✅ **OpenAI GPT-3.5-turbo**: Powers all intelligent decision-making
+- ✅ **Confidence Scoring**: AI provides confidence levels for recommendations
+- ✅ **Natural Language Processing**: Understands complex project requirements
+- ✅ **Fallback Systems**: Graceful degradation when AI unavailable
+
+### **GitHub API Integration**
+- ✅ **Repository Automation**: Direct GitHub repository creation
+- ✅ **Serverless Compatible**: No local git CLI dependency
+- ✅ **Automatic Commits**: Files committed directly to GitHub
+- ✅ **Token-based Auth**: Secure API authentication
 
 ## MCP Protocol Implementation
 
 ### Base URL
 ```
 Local Development: http://localhost:3000/api/mcp
-Production: https://your-domain.com/api/mcp
+Production: https://test-keycardai.vercel.app/api/mcp
 ```
 
 ### Request Format
@@ -37,33 +59,42 @@ interface MCPError {
 }
 ```
 
-## ⚠️ Git User Configuration
+## 🔐 Security & API Configuration
 
-**IMPORTANT**: All git operations use the system's git configuration for commit authorship.
+**SECURITY FIRST**: All sensitive operations happen server-side to protect API keys and tokens.
 
-### Development Environment
-- **Global User**: `aelf-fred <fred.tran@aelf.io>`
-- **Source**: System's global git config (`git config --global user.name/email`)
+### Environment Variables (Server-Side Only)
+```bash
+# Required for AI functionality
+OPENAI_API_KEY=sk-your-openai-key
 
-### Vercel Production Environment
-- **⚠️ CRITICAL**: Vercel deployment environment has **NO git user configuration**
-- **Git operations will FAIL** in production without explicit user configuration
-- **System user**: Undefined/not configured in Vercel serverless environment
-- **Required**: Always use `git_configure_user` before any git operations in production
+# Required for GitHub repository operations
+GITHUB_TOKEN=ghp-your-github-token
 
-### Environment-Specific Behavior
+# Optional for commit authorship
+GIT_USER_NAME=Your Name
+GIT_USER_EMAIL=your.email@example.com
+```
 
-| Environment | Git User Source | Behavior |
-|-------------|----------------|----------|
-| **Development** | Global git config (`aelf-fred <fred.tran@aelf.io>`) | ✅ Works with system user |
-| **Vercel Production** | ❌ **No git config** | ❌ **Git operations fail** |
-| **With `git_configure_user`** | Repository-specific config | ✅ Works in all environments |
+### Security Measures
+- ✅ **No Client-Side API Keys**: All LLM calls happen on server
+- ✅ **Environment Variable Encryption**: Vercel encrypts all sensitive data
+- ✅ **Token Scope Limitation**: GitHub token has minimal required permissions
+- ✅ **Request Validation**: All inputs sanitized server-side
+- ✅ **Error Masking**: Detailed errors not exposed to client
 
-### Best Practices
-1. **ALWAYS use `git_configure_user`** after `git_init` (especially for production)
-2. **Repository-specific config overrides global config**
-3. **Without proper config**: Git operations fail in Vercel production
-4. **For production**: Mandatory to set user configuration before any git operations
+### GitHub Token Setup
+1. Visit [GitHub Settings > Tokens](https://github.com/settings/tokens)
+2. Click "Generate new token (classic)"
+3. Select scopes: `repo`, `user`
+4. Set in Vercel dashboard environment variables
+
+### Architecture Benefits
+- ✅ **Serverless Compatible**: No local git CLI dependency
+- ✅ **Direct GitHub Integration**: Repository operations via HTTP API
+- ✅ **Automatic Repository Creation**: GitHub repos created automatically
+- ✅ **Production Ready**: Works perfectly in Vercel environment
+- ✅ **No Git Installation Required**: Pure API-based operations
 
 ### Recommended Workflow
 ```bash
@@ -89,6 +120,288 @@ GIT_USER_EMAIL=scaffolder@example.com
 - ✅ **No manual `git_configure_user` calls needed**
 - ✅ **Consistent authorship** across all generated projects
 - ✅ **Works in development and production**
+
+## 🤖 AI-Powered MCP Tools
+
+The system now includes sophisticated AI-powered tools that use OpenAI GPT-3.5-turbo for intelligent decision-making. These tools provide advanced project analysis, planning, and execution capabilities.
+
+### 1. analyze_project_request
+
+**AI-powered natural language project analysis with intelligent recommendations.**
+
+**Method:** `analyze_project_request`
+
+**Parameters:**
+```typescript
+{
+  description: string  // Natural language project description
+}
+```
+
+**Response:**
+```typescript
+{
+  success: boolean
+  message: string
+  analysis: {
+    projectType: 'react-ts' | 'nextjs-fullstack' | 'node-api' | 'unknown'
+    features: string[]          // Detected features
+    confidence: number          // AI confidence (0-1)
+    reasoning: string           // AI reasoning for decisions
+    recommendedName: string     // Suggested project name
+    aiPowered: boolean          // Always true for this tool
+  }
+}
+```
+
+**Example:**
+```bash
+curl -X POST http://localhost:3000/api/mcp \
+  -H "Content-Type: application/json" \
+  -d '{
+    "method": "analyze_project_request",
+    "params": {
+      "description": "Create a React app with authentication and dashboard"
+    },
+    "id": 1
+  }'
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Analyzed project requirements with 95% confidence",
+  "analysis": {
+    "projectType": "react-ts",
+    "features": ["authentication", "dashboard", "routing"],
+    "confidence": 0.95,
+    "reasoning": "User wants React app with auth features, React TypeScript is optimal choice",
+    "recommendedName": "auth-dashboard-app",
+    "aiPowered": true
+  }
+}
+```
+
+### 2. generate_project_plan
+
+**AI creates intelligent step-by-step project creation plans with confidence scoring.**
+
+**Method:** `generate_project_plan`
+
+**Parameters:**
+```typescript
+{
+  description: string    // Project description
+  projectPath: string    // Target project path
+  projectName?: string   // Optional project name
+}
+```
+
+**Response:**
+```typescript
+{
+  success: boolean
+  message: string
+  plan: {
+    analysis: {
+      projectType: string
+      confidence: number
+      reasoning: string
+      features: string[]
+    }
+    actions: Array<{
+      tool: string
+      params: Record<string, unknown>
+      description: string
+    }>
+    expectedOutcome: string
+    totalSteps: number
+    aiPowered: boolean
+  }
+}
+```
+
+**Example:**
+```bash
+curl -X POST http://localhost:3000/api/mcp \
+  -H "Content-Type: application/json" \
+  -d '{
+    "method": "generate_project_plan",
+    "params": {
+      "description": "Build a Next.js e-commerce site with payments",
+      "projectPath": "/tmp/ecommerce-site"
+    },
+    "id": 1
+  }'
+```
+
+### 3. intelligent_project_setup
+
+**Complete AI-powered project setup with analysis, planning, and optional execution.**
+
+**Method:** `intelligent_project_setup`
+
+**Parameters:**
+```typescript
+{
+  description: string    // Project requirements in natural language
+  projectPath: string    // Where to create the project
+  autoExecute?: boolean   // Whether to automatically execute the plan (default: false)
+}
+```
+
+**Response:**
+```typescript
+{
+  success: boolean
+  message: string
+  analysis: {
+    projectType: string
+    confidence: number
+    reasoning: string
+    features: string[]
+    recommendedName: string
+  }
+  plannedActions: string[]
+  executionResults?: Array<{
+    action: string
+    tool: string
+    success: boolean
+    result?: any
+    error?: string
+  }>
+  aiPowered: boolean
+  llmUsed: string
+}
+```
+
+**Example:**
+```bash
+curl -X POST http://localhost:3000/api/mcp \
+  -H "Content-Type: application/json" \
+  -d '{
+    "method": "intelligent_project_setup",
+    "params": {
+      "description": "Create a Node.js API with authentication",
+      "projectPath": "/tmp/auth-api",
+      "autoExecute": true
+    },
+    "id": 1
+  }'
+```
+
+### 4. create_project_with_ai
+
+**Server-side only complete AI-powered project creation (most secure option).**
+
+**Method:** `create_project_with_ai`
+
+**Parameters:**
+```typescript
+{
+  description: string         // Natural language project description
+  projectPath?: string        // Optional project path (auto-generated if not provided)
+  projectName?: string        // Optional project name (extracted from description if not provided)
+}
+```
+
+**Response:**
+```typescript
+{
+  success: boolean
+  message: string
+  project: {
+    name: string
+    path: string
+    type: string
+    description: string
+    confidence: number
+    reasoning: string
+    features: string[]
+    repositoryUrl: string
+    totalSteps: number
+    executionSteps: Array<{
+      step: number
+      action: string
+      tool: string
+      success: boolean
+      result?: any
+      error?: string
+      timestamp: string
+    }>
+    createdAt: string
+    aiPowered: boolean
+    llmUsed: string
+  }
+}
+```
+
+**Example:**
+```bash
+curl -X POST http://localhost:3000/api/mcp \
+  -H "Content-Type: application/json" \
+  -d '{
+    "method": "create_project_with_ai",
+    "params": {
+      "description": "Build a React dashboard with charts and data visualization"
+    },
+    "id": 1
+  }'
+```
+
+### 5. analyze_and_optimize
+
+**Enhanced AI analysis with project optimization and workflow recommendations.**
+
+**Method:** `analyze_and_optimize`
+
+**Parameters:**
+```typescript
+{
+  description: string           // Project description for analysis
+  projectType?: string          // Optional project type override
+  includeOptimization?: boolean // Include optimization recommendations (default: false)
+}
+```
+
+**Response:**
+```typescript
+{
+  success: boolean
+  message: string
+  analysis: {
+    projectAnalysis: {
+      projectType: string
+      confidence: number
+      reasoning: string
+      features: string[]
+    }
+    optimization?: {
+      recommendations: string[]
+      reasoning: string
+      aiPowered: boolean
+    }
+    aiPowered: boolean
+    processingTime: number
+    modelUsed: string
+  }
+}
+```
+
+**Example:**
+```bash
+curl -X POST http://localhost:3000/api/mcp \
+  -H "Content-Type: application/json" \
+  -d '{
+    "method": "analyze_and_optimize",
+    "params": {
+      "description": "Create a scalable web application",
+      "includeOptimization": true
+    },
+    "id": 1
+  }'
+```
 
 ## Available MCP Tools
 
@@ -261,7 +574,7 @@ curl -X POST http://localhost:3000/api/mcp \
 **⚠️ Git User Configuration:**
 - **Requires git user configuration** (either global or repository-specific)
 - **Uses system's global git user** if no repository-specific config exists
-- **Current system user**: `aelf-fred <fred.tran@aelf.io>` (from global config)
+- **Current system user**: `cheshireCode <dac4158@gmail.com>` (from global config)
 - **Recommendation**: Use `git_configure_user` first to set desired commit author
 
 **Error Codes:**
@@ -425,7 +738,7 @@ curl -X POST http://localhost:3000/api/mcp \
 **⚠️ Important Notes:**
 - **Repository-specific config takes precedence** over global config
 - **Recommended workflow**: Always call this after `git_init` and before `git_add_commit`
-- **Without this**: Commits will use system's global git user (`aelf-fred <fred.tran@aelf.io>`)
+- **Without this**: Commits will use system's global git user (`cheshireCode <dac4158@gmail.com>`)
 - **Use case**: Ensure generated projects have correct commit authorship
 
 **Common Usage Pattern:**

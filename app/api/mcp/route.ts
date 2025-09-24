@@ -223,6 +223,32 @@ export async function GET() {
         },
         required: ['description', 'projectPath']
       }
+    },
+    {
+      name: 'create_project_with_ai',
+      description: 'Server-side only AI-powered project creation (secure, complete workflow)',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          description: { type: 'string', description: 'Natural language project description' },
+          projectPath: { type: 'string', description: 'Optional project path (auto-generated if not provided)' },
+          projectName: { type: 'string', description: 'Optional project name (extracted from description if not provided)' }
+        },
+        required: ['description']
+      }
+    },
+    {
+      name: 'analyze_and_optimize',
+      description: 'Enhanced AI analysis with project optimization and workflow recommendations',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          description: { type: 'string', description: 'Project description for analysis' },
+          projectType: { type: 'string', description: 'Optional project type override' },
+          includeOptimization: { type: 'boolean', description: 'Include optimization recommendations (default: false)' }
+        },
+        required: ['description']
+      }
     }
   ]
 

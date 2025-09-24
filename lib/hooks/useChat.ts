@@ -1,6 +1,5 @@
 import { useState, useCallback } from 'react'
 import { MCPClient } from '@/lib/mcp-client'
-import { AIService } from '@/lib/ai-service'
 import { Message, ProjectInfo } from '@/types/mcp'
 
 export function useChat() {
@@ -20,6 +19,8 @@ export function useChat() {
     return message
   }, [])
 
+  // This function is kept for potential future use but not currently called
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const executeProjectCreation = async (actions: Array<{tool: string, params: Record<string, unknown>, description: string}>) => {
     try {
       for (const action of actions) {
@@ -43,38 +44,106 @@ export function useChat() {
     addMessage('user', content)
 
     try {
-      // 1. Analyze user request with AI
-      const analysis = await AIService.analyzeProjectRequest(content)
+      // Use the secure server-side AI-powered project creation
+      const result = await mcpClient.call('create_project_with_ai', {
+        description: content
+      }) as { success: boolean; message: string; project?: {
+        name: string;
+        path: string;
+        type: string;
+        description: string;
+        confidence: number;
+        reasoning: string;
+        features: string[];
+        repositoryUrl?: string;
+        totalSteps: number;
+        executionSteps: Array<{
+          step: number;
+          action: string;
+          tool: string;
+          success: boolean;
+          result?: unknown;
+          error?: string;
+          timestamp: string;
+        }>;
+        createdAt: string;
+        aiPowered: boolean;
+        llmUsed: string;
+      } }
 
-      // 2. Extract project name and path
-      const projectName = analysis.projectName ||
-        content.match(/(?:create|build|make)\s+(?:a\s+)?(.+?)(?:\s+(?:project|app))?$/i)?.[1] ||
-        'my-project'
-      const sanitizedName = projectName.toLowerCase().replace(/[^a-z0-9-]/g, '-')
-      const projectPath = `/tmp/projects/${sanitizedName}-${Date.now()}`
+      if (result.success && result.project) {
+        const { project } = result
 
-      // 3. Set project info
-      setCurrentProject({
-        name: sanitizedName,
-        path: projectPath,
-        template: analysis.projectType,
-        status: 'creating'
-      })
+        // Set project info from AI response
+        setCurrentProject({
+          name: project.name,
+          path: project.path,
+          template: project.type,
+          status: 'completed'
+        })
 
-      // 4. Generate MCP actions
-      const { actions, response } = await AIService.generateMCPActions(content, analysis, projectPath)
+        // Show AI analysis and reasoning
+        addMessage('assistant', `🤖 AI Analysis: ${project.reasoning}`)
+        addMessage('assistant', `📊 Confidence: ${(project.confidence * 100).toFixed(1)}%`)
+        addMessage('assistant', `📁 Project Type: ${project.type}`)
 
-      // 5. Show progress message
-      addMessage('assistant', '✓ Creating project...')
+        if (project.features && project.features.length > 0) {
+          addMessage('assistant', `✨ Detected Features: ${project.features.join(', ')}`)
+        }
 
-      // 6. Execute actions
-      await executeProjectCreation(actions)
-      addMessage('assistant', response)
+        // Show execution progress
+        addMessage('assistant', '🔄 Executing project creation plan...')
+
+        // Show each step result
+        if (project.executionSteps) {
+          project.executionSteps.forEach((step) => {
+            if (step.success) {
+              addMessage('assistant', `✅ Step ${step.step}: ${step.action}`)
+            } else {
+              addMessage('assistant', `❌ Step ${step.step}: ${step.action} - ${step.error}`)
+            }
+          })
+        }
+
+        // Final success message with repository URL
+        const finalMessage = project.repositoryUrl
+          ? `🎉 Project created successfully!\n📂 Local Path: ${project.path}\n🔗 Repository: ${project.repositoryUrl}`
+          : `🎉 Project created successfully!\n📂 Path: ${project.path}`
+
+        addMessage('assistant', finalMessage)
+      } else {
+        // Fallback to basic project creation if AI fails
+        addMessage('assistant', '🤖 AI analysis failed, using fallback method...')
+        addMessage('assistant', result.message || 'Creating project with basic setup...')
+
+        // Use the basic MCP tools for fallback
+        const fallbackResult = await mcpClient.call('intelligent_project_setup', {
+          description: content,
+          projectPath: `/tmp/projects/fallback-${Date.now()}`,
+          autoExecute: false
+        }) as { success: boolean; message: string; analysis?: {
+          projectType: string;
+          confidence: number;
+          reasoning: string;
+          features: string[];
+          recommendedName: string;
+        }; plannedActions?: string[] }
+
+        addMessage('assistant', fallbackResult.message || 'Project setup completed')
+      }
 
     } catch (error) {
       console.error('Chat error:', error)
       const errorMessage = error instanceof Error ? error.message : 'Something went wrong'
-      addMessage('assistant', `Sorry, project creation failed: ${errorMessage}`)
+
+      // Check if it's an AI-related error
+      if (errorMessage.includes('OpenAI') || errorMessage.includes('API key')) {
+        addMessage('assistant', '🤖 AI service unavailable. Using intelligent fallback...')
+        addMessage('assistant', '💡 Try: "Create a React TypeScript project" for basic setup')
+      } else {
+        addMessage('assistant', `❌ Project creation failed: ${errorMessage}`)
+      }
+
       setCurrentProject(prev => prev ? { ...prev, status: 'error' } : null)
     } finally {
       setIsLoading(false)

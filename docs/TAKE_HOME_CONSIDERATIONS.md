@@ -214,7 +214,7 @@ git config --global user.email "your.email@example.com"
 ```
 
 **⚠️ Git User Behavior in MCP Operations:**
-- **Development User**: `aelf-fred <fred.tran@aelf.io>` (from global config)
+- **Development User**: `cheshireCode <dac4158@gmail.com>` (from global config)
 - **All git commits use system's global git configuration by default**
 - **Repository-specific config overrides global config when set**
 - **Recommendation**: Always use `git_configure_user` MCP tool after `git_init`
