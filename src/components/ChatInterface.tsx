@@ -5,10 +5,13 @@ import { useChat } from '../lib/hooks/useChat'
 import { ProjectPreview } from './ProjectPreview'
 import UserProfile from './UserProfile'
 import { useLocalStorage } from '../hooks/useLocalStorage'
+import { useRepository } from '../../app/contexts/RepositoryContext'
+import { RepositoryPreview } from '../../app/components/RepositoryPreview'
 
 export function ChatInterface() {
   const [input, setInput] = useState('')
   const { messages, isLoading, currentProject, sendMessage, clearChat } = useChat()
+  const { selectedRepository, isRepositoryMode } = useRepository()
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   // Demo of extended functionality - user preferences stored locally
@@ -47,18 +50,29 @@ export function ChatInterface() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="flex flex-col h-full bg-gray-50">
       {/* Header - Sticky */}
-      <header className="sticky top-0 z-10 bg-white shadow-sm border-b px-6 py-4">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
+      <header className="sticky top-0 z-10 bg-white shadow-sm border-b px-6 py-4 flex-shrink-0">
+        <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">🚀 Project Scaffolder</h1>
-            <p className="text-gray-600">Create projects with natural language</p>
+            <p className="text-gray-600">
+              {isRepositoryMode ? `Working with ${selectedRepository?.name}` : 'Create projects with natural language'}
+            </p>
           </div>
 
           <div className="flex items-center gap-4">
+            {/* Repository Indicator */}
+            {isRepositoryMode && selectedRepository && (
+              <div className="flex items-center gap-2 px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm">
+                <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                <span className="font-medium">{selectedRepository.name}</span>
+                <span className="text-purple-600">(Repository)</span>
+              </div>
+            )}
+
             {/* Current Project Indicator */}
-            {currentProject && (
+            {!isRepositoryMode && currentProject && (
               <div className="flex items-center gap-2 px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                 <span className="font-medium">{currentProject.name}</span>
@@ -73,22 +87,23 @@ export function ChatInterface() {
                 email={userProfile.email}
               />
             </div>
+
+            {messages.length > 0 && (
+              <button
+                onClick={clearChat}
+                className="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
+                disabled={isLoading}
+              >
+                Clear Chat
+              </button>
+            )}
           </div>
-          {messages.length > 0 && (
-            <button
-              onClick={clearChat}
-              className="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
-              disabled={isLoading}
-            >
-              Clear Chat
-            </button>
-          )}
         </div>
       </header>
 
       {/* Main Content */}
-      <div className="max-w-6xl mx-auto w-full p-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="flex-1 flex flex-col px-6 py-6 max-w-6xl mx-auto w-full">
+        <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Chat Panel */}
           <div className="flex flex-col bg-white rounded-lg shadow-sm border">
             <div className="p-4 max-h-[70vh] overflow-y-auto">
@@ -269,8 +284,12 @@ export function ChatInterface() {
 
           {/* Project Preview Panel */}
           <div className="bg-white rounded-lg shadow-sm border p-4">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Project Preview</h2>
-            {currentProject ? (
+            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              {isRepositoryMode ? 'Repository View' : 'Project Preview'}
+            </h2>
+            {isRepositoryMode && selectedRepository ? (
+              <RepositoryPreview repository={selectedRepository} />
+            ) : currentProject ? (
               <ProjectPreview project={currentProject} />
             ) : (
               <div className="min-h-[400px] flex items-center justify-center text-center">

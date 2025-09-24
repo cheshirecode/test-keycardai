@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "@ai-sdk/openai": "^2.0.32",
+    "@heroicons/react": "^2.2.0",
     "@octokit/rest": "^22.0.0",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
