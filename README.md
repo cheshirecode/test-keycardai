@@ -8,61 +8,116 @@ An intelligent project scaffolding agent that creates ready-to-use development p
 
 > Deployed on Vercel with automatic deployments from the `main` branch.
 
-## Features
+## ✨ Features
 
-- 🤖 **AI-Powered**: Uses OpenAI GPT to understand project requirements
-- 💬 **Chat Interface**: Natural language project creation
-- 🛠️ **MCP Protocol**: Real MCP server implementation for tool orchestration
-- 📁 **Template Library**: Pre-built templates for React, Next.js, and Node.js
-- 🔧 **Git Integration**: Automatic repository initialization and commits
-- ⚡ **Quick Setup**: Full project scaffolding in seconds
+### 🤖 **AI-Powered Decision Making**
+- **Intelligent Template Selection**: AI analyzes natural language to choose optimal templates
+- **Project Planning**: LLM generates step-by-step execution plans
+- **Feature Detection**: Automatically identifies required features from user requests
+- **Confidence Scoring**: AI provides confidence levels for recommendations
+- **Fallback Behavior**: Graceful degradation when AI services unavailable
 
-## Built With
+### 🛠️ **Advanced MCP Protocol**
+- **Real MCP Server**: Full JSON-RPC 2.0 MCP implementation
+- **AI-Enhanced Tools**: MCP tools use LLM for intelligent decision-making
+- **Tool Orchestration**: Complex multi-step project creation workflows
+- **Error Recovery**: AI-powered error analysis and recovery strategies
 
+### 🔧 **GitHub API Integration**
+- **Repository Automation**: Automatic GitHub repository creation
+- **Direct Commits**: No local git dependency - commits directly to GitHub
+- **Vercel Compatible**: Works seamlessly in serverless environments
+- **Environment Variables**: Automatic git user configuration from env vars
+
+### 📁 **Template Library**
+- **React TypeScript**: Vite + React 18 + TypeScript + Tailwind CSS 3
+- **Next.js Fullstack**: Next.js 14 + App Router + API Routes + Tailwind
+- **Node.js API**: Express + TypeScript + Jest + Production-ready config
+
+### ⚡ **Developer Experience**
+- **Natural Language**: "Create a React app with authentication" → full project
+- **Real-time Progress**: Live updates during project creation
+- **One-Click Setup**: Complete project scaffolding in seconds
+- **Modern Tooling**: ESLint, Prettier, TypeScript, Vitest, Tailwind
+
+## 🏗️ Built With
+
+### **Core Architecture**
 - **Frontend**: Next.js 14 + TypeScript + React 18 + Tailwind CSS 3
-- **AI Integration**: Vercel AI SDK + OpenAI GPT-3.5-turbo
-- **Protocol**: MCP (Model Context Protocol) for agent communication
-- **Templates**: React, Next.js, Node.js with modern tooling
+- **MCP Server**: Custom JSON-RPC 2.0 implementation for tool orchestration
+- **AI Engine**: Vercel AI SDK + OpenAI GPT-3.5-turbo for intelligent decision-making
+- **GitHub Integration**: Octokit REST API for repository operations
+
+### **AI & Intelligence Layer**
+- **LLM Integration**: OpenAI GPT-3.5-turbo for natural language processing
+- **Decision Making**: AI-powered template selection and project planning
+- **Confidence Scoring**: AI provides confidence levels for all recommendations
+- **Fallback Systems**: Graceful degradation when AI services unavailable
+
+### **Development Tools**
+- **Testing**: Vitest + React Testing Library + @testing-library/jest-dom
+- **Linting**: ESLint + TypeScript strict mode
+- **Code Quality**: Prettier + Commitlint + Lefthook pre-commit hooks
+- **Type Safety**: Full TypeScript coverage with strict configuration
 
 ## Getting Started
 
 ### Prerequisites
 
 - **Node.js 18+** installed
-- **Git** installed and configured
+- **GitHub Account** with Personal Access Token (PAT)
 - **OpenAI API key** - Get yours from [OpenAI Platform](https://platform.openai.com/api-keys)
+- **Vercel Account** (for deployment) - [Sign up here](https://vercel.com)
 
-### ⚠️ Git Configuration Requirements
+#### Required API Keys & Tokens
 
-**IMPORTANT**: The MCP server uses your system's git configuration for all git operations.
+1. **OpenAI API Key** (for AI-powered decision making):
+   - Visit [OpenAI Platform](https://platform.openai.com/api-keys)
+   - Create new API key with GPT-3.5-turbo access
+   - Required for all AI features (analysis, planning, recommendations)
+
+2. **GitHub Personal Access Token** (for repository operations):
+   - Visit [GitHub Settings > Tokens](https://github.com/settings/tokens)
+   - Click "Generate new token (classic)"
+   - Select scopes: `repo`, `user`
+   - Required for GitHub repository creation and commits
+
+### ⚠️ GitHub API Configuration Requirements
+
+**IMPORTANT**: The system now uses GitHub API instead of local git CLI for all repository operations.
 
 #### Development Environment
-- **User**: `aelf-fred <fred.tran@aelf.io>`
-- **Source**: Global git config (`git config --global user.name/email`)
+- **GitHub Integration**: Uses `GITHUB_TOKEN` for API operations
+- **No Local Git Required**: All operations work through GitHub API
+- **Environment Variables**: `GITHUB_TOKEN`, `GIT_USER_NAME`, `GIT_USER_EMAIL`
 
-#### 🚨 Vercel Production Environment
-- **⚠️ CRITICAL**: **NO git user configuration** in Vercel serverless environment
-- **Git operations FAIL** without explicit user configuration
-- **MANDATORY**: Always use `git_configure_user` before git operations in production
+#### 🚀 Vercel Production Environment
+- **✅ FULLY SUPPORTED**: GitHub API works perfectly in serverless environment
+- **No Git Installation Required**: All operations use HTTP API calls
+- **Automatic Configuration**: Environment variables configured automatically
 
-**Setup Git (if not already configured):**
+**Required GitHub Token Setup:**
 ```bash
-git config --global user.name "Your Name"
-git config --global user.email "your.email@example.com"
+# 1. Create Personal Access Token at: https://github.com/settings/tokens
+# 2. Required scopes: repo, user
+# 3. Set in Vercel dashboard: https://vercel.com/dac4158s-projects/test-keycardai/settings/environment-variables
+GITHUB_TOKEN=ghp_your_token_here
+GIT_USER_NAME=Project Scaffolder
+GIT_USER_EMAIL=scaffolder@cheshirecode.dev
 ```
 
 **For Generated Projects:**
-- **Development**: Uses system's global git user by default OR environment variables
-- **Production**: Uses environment variables automatically (recommended)
-- **Environment Variables**: `GIT_USER_NAME` and `GIT_USER_EMAIL` (see `.env.example`)
-- **Automatic workflow**: `git_init` (auto-configures from env vars) → `git_add_commit`
-- **Manual workflow**: `git_init` → `git_configure_user` → `git_add_commit`
+- **Repository Creation**: Automatic GitHub repository creation
+- **Direct Commits**: Files committed directly to GitHub via API
+- **No Local Git**: No `.git` directory or local git operations required
+- **Vercel Compatible**: Perfect for serverless deployment environments
 
 #### Environment Comparison
-| Environment | Git Config | Status |
+| Environment | GitHub API | Status |
 |-------------|------------|--------|
-| **Development** | ✅ Global config OR env vars | Works automatically |
-| **Vercel Production** | ✅ Environment variables | **Works with `GIT_USER_NAME/EMAIL`** |
+| **Development** | ✅ GitHub token | Works with full AI features |
+| **Vercel Production** | ✅ GitHub token | **Fully functional - no git CLI needed** |
+| **Serverless** | ✅ HTTP-based API | **Perfect compatibility** |
 
 ### Installation
 
@@ -82,15 +137,23 @@ npm install
 # Copy the example environment file
 cp .env.example .env.local
 
-# Edit .env.local and add your configuration:
-# OPENAI_API_KEY=your_actual_api_key_here
-# GIT_USER_NAME=Your Name
-# GIT_USER_EMAIL=your.email@example.com
+# Edit .env.local and add your API keys:
+# Required for AI functionality
+OPENAI_API_KEY=sk-your-openai-api-key-here
+
+# Required for GitHub repository operations
+GITHUB_TOKEN=ghp_your-github-token-here
+
+# Optional but recommended for commit authorship
+GIT_USER_NAME=Your Name
+GIT_USER_EMAIL=your.email@example.com
 ```
 
-> **⚠️ Important**: 
-> - You **must** configure your OpenAI API key for the AI features to work
-> - **Recommended**: Set `GIT_USER_NAME` and `GIT_USER_EMAIL` for automatic git configuration in generated projects
+> **⚠️ Important**:
+> - **OpenAI API Key**: Required for all AI-powered features (analysis, planning, recommendations)
+> - **GitHub Token**: Required for repository creation and commits (scopes: `repo`, `user`)
+> - **Without these keys**: System works with reduced functionality (basic templates only)
+> - **For production**: Configure these in Vercel dashboard
 
 4. **Start the development server:**
 ```bash
@@ -100,29 +163,116 @@ npm run dev
 5. **Open your browser:**
    Visit [http://localhost:3000](http://localhost:3000) to use the application.
 
-## 🚀 Deployment Workflow
+## 🏗️ System Architecture
 
-The project uses continuous deployment with Vercel and GitHub integration:
+The Project Scaffolder uses a sophisticated architecture combining AI-powered decision making with modern web technologies:
 
 ```mermaid
-graph TD
-    A[💻 Local Development] -->|git push| B[📦 GitHub Repository]
-    B -->|webhook| C[🔄 Vercel Build Trigger]
-    C --> D{🏗️ Build Process}
-    D -->|✅ Success| E[🌐 Production Deployment]
-    D -->|❌ Failure| F[📧 Build Error Notification]
-    E --> G[🔗 Live URL Updated]
+graph TB
+    %% User Interaction Layer
+    User[👤 User] -->|Natural Language| ChatInterface[💬 Chat Interface]
 
-    H[🌿 Feature Branch Push] -->|webhook| I[👀 Preview Deployment]
-    I --> J[🔍 Preview URL]
+    %% Frontend Layer
+    ChatInterface -->|Project Request| Frontend[⚛️ Next.js Frontend]
+    Frontend -->|WebSocket| MCPClient[🔌 MCP Client]
 
-    K[⚙️ Environment Variables] --> C
-    L[🔐 API Keys] --> K
+    %% MCP Server Layer
+    MCPClient -->|JSON-RPC| MCPServer[🛠️ MCP Server]
+    MCPServer -->|Tool Calls| MCPTools[🔧 MCP Tools]
 
-    style E fill:#28a745
-    style F fill:#dc3545
-    style I fill:#17a2b8
-    style A fill:#6f42c1
+    %% AI Decision Layer
+    MCPTools -->|AI Analysis| AIService[🤖 AI Service]
+    AIService -->|LLM Calls| OpenAI[🧠 OpenAI GPT-3.5-turbo]
+    OpenAI -->|Responses| AIService
+    AIService -->|Decisions| MCPTools
+
+    %% Repository Management Layer
+    MCPTools -->|Repository Ops| GitHubService[📦 GitHub Service]
+    GitHubService -->|API Calls| GitHubAPI[🐙 GitHub API]
+    GitHubAPI -->|Repository Data| GitHubService
+
+    %% Template & Project Layer
+    MCPTools -->|Template Loading| Templates[📁 Project Templates]
+    Templates -->|Project Files| FileSystem[💾 File System]
+
+    %% External Dependencies
+    subgraph "🔐 External Services"
+        OpenAI
+        GitHubAPI
+    end
+
+    %% Environment Configuration
+    subgraph "⚙️ Environment Config"
+        Vercel[🌐 Vercel Deployment]
+        EnvVars[🔑 Environment Variables]
+        GitConfig[🔧 Git Configuration]
+    end
+
+    %% Styling
+    classDef frontend fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    classDef mcp fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    classDef ai fill:#fff3e0,stroke:#f57c00,stroke-width:2px
+    classDef github fill:#e8f5e8,stroke:#388e3c,stroke-width:2px
+    classDef templates fill:#fce4ec,stroke:#c2185b,stroke-width:2px
+    classDef external fill:#fafafa,stroke:#616161,stroke-width:2px
+
+    class Frontend,ChatInterface,MCPClient frontend
+    class MCPServer,MCPTools mcp
+    class AIService ai
+    class GitHubService,GitHubAPI github
+    class Templates,FileSystem templates
+    class OpenAI external
+```
+
+### **Data Flow & Decision Making**
+
+```mermaid
+flowchart TD
+    %% Input Processing
+    Input[📝 User Input] -->|Natural Language| Analysis[🧠 AI Analysis]
+
+    %% Decision Making
+    Analysis -->|Template Selection| TemplateDecision{🎯 Template Decision}
+    TemplateDecision -->|React TS| ReactTemplate[⚛️ React TypeScript]
+    TemplateDecision -->|Next.js| NextJSTemplate[🌐 Next.js Fullstack]
+    TemplateDecision -->|Node API| NodeTemplate[🚀 Node.js API]
+
+    %% Project Planning
+    Analysis -->|Feature Detection| FeatureAnalysis{🔍 Feature Analysis}
+    FeatureAnalysis -->|Dependencies| DepPlanning[📦 Dependency Planning]
+    FeatureAnalysis -->|Structure| StructurePlanning[🏗️ Structure Planning]
+
+    %% Execution Planning
+    Planning[📋 Execution Plan] -->|MCP Actions| ActionSequence[⚡ Action Sequence]
+
+    %% Tool Execution
+    ActionSequence -->|1. Create Project| ProjectCreation[📁 Project Creation]
+    ActionSequence -->|2. GitHub Repo| GitHubRepo[🐙 GitHub Repository]
+    ActionSequence -->|3. Dependencies| Dependencies[📚 Dependencies]
+    ActionSequence -->|4. Initial Commit| InitialCommit[✅ Initial Commit]
+
+    %% Output Generation
+    ProjectCreation -->|Project Files| Output[🎉 Project Output]
+    GitHubRepo -->|Repository URL| Output
+    Dependencies -->|package.json| Output
+    InitialCommit -->|Git History| Output
+
+    %% Confidence & Reasoning
+    Analysis -->|Confidence Score| Confidence[📊 Confidence: 95%]
+    Analysis -->|Reasoning| Reasoning[💭 AI Reasoning: Optimal for user requirements]
+
+    %% Styling
+    classDef input fill:#e1f5fe
+    classDef decision fill:#f3e5f5
+    classDef planning fill:#e8f5e8
+    classDef execution fill:#fff3e0
+    classDef output fill:#fce4ec
+
+    class Input,Analysis input
+    class TemplateDecision,FeatureAnalysis decision
+    class Planning,StructurePlanning,DepPlanning planning
+    class ActionSequence,ProjectCreation,GitHubRepo,Dependencies,InitialCommit execution
+    class Output,Confidence,Reasoning output
 ```
 
 ### Deployment Process
@@ -135,10 +285,34 @@ graph TD
 ### Environment Variables in Production
 
 The following environment variables are configured in Vercel:
-- `OPENAI_API_KEY` - Encrypted and secure
-- `GIT_USER_NAME` - For automatic git user configuration (e.g., "Project Scaffolder")
-- `GIT_USER_EMAIL` - For automatic git user configuration (e.g., "scaffolder@example.com")
+
+#### **AI & Intelligence**
+- `OPENAI_API_KEY` - **Required** for AI-powered decision making and project analysis
 - `NODE_ENV` - Automatically set to `production`
+
+#### **GitHub Integration**
+- `GITHUB_TOKEN` - **Required** for GitHub API repository operations
+- `GIT_USER_NAME` - **Recommended** for commit authorship (e.g., "Project Scaffolder")
+- `GIT_USER_EMAIL` - **Recommended** for commit authorship (e.g., "scaffolder@cheshirecode.dev")
+
+#### **Environment Configuration**
+```bash
+# Vercel Dashboard: https://vercel.com/dac4158s-projects/test-keycardai/settings/environment-variables
+# All variables are encrypted and securely stored
+
+# Production environment variables:
+OPENAI_API_KEY=sk-...          # Required for AI functionality
+GITHUB_TOKEN=ghp_...          # Required for GitHub API
+GIT_USER_NAME=Project Scaffolder    # Optional but recommended
+GIT_USER_EMAIL=scaffolder@cheshirecode.dev  # Optional but recommended
+```
+
+#### **Environment Variable Status**
+- ✅ `OPENAI_API_KEY` - Configured and encrypted
+- ✅ `GITHUB_TOKEN` - Configured and encrypted
+- ✅ `GIT_USER_NAME` - Configured for automatic git user setup
+- ✅ `GIT_USER_EMAIL` - Configured for automatic git user setup
+- ✅ Automatic deployments enabled
 
 ## Usage
 
@@ -165,49 +339,119 @@ Simply describe what you want to build:
    - Express + TypeScript + Jest
    - CORS + Helmet + Environment config
 
-## MCP Integration
+## 🤖 AI-Powered MCP Integration
 
-This project implements a real MCP server with the following tools:
+This project implements an intelligent MCP server with AI-enhanced tools for automated project creation:
 
+### **Core MCP Tools**
 - `create_directory`: Create project directories
-- `write_file`: Write template files
-- `git_init`: Initialize Git repository
-- `git_add_commit`: Stage and commit changes
-- `install_dependencies`: Install npm packages
-- `setup_project_from_template`: Complete project setup
+- `write_file`: Write template files with smart content replacement
+- `install_dependencies`: Install npm packages with dependency analysis
+- `setup_project_from_template`: Complete project setup with AI optimization
 
-### MCP API
+### **AI-Enhanced MCP Tools** ✨
+- `analyze_project_request`: **AI analyzes natural language** to understand requirements
+- `generate_project_plan`: **AI creates intelligent execution plans** with confidence scoring
+- `intelligent_project_setup`: **Complete AI-powered setup** with auto-execution options
+- `git_init`: **GitHub API integration** for repository creation (no local git needed)
+- `git_add_commit`: **Direct GitHub commits** via API (Vercel-compatible)
+
+### **MCP API Usage**
 
 The MCP server is available at `/api/mcp` and follows JSON-RPC 2.0 specification.
 
-Example request:
+#### **Basic Project Creation:**
 ```bash
 curl -X POST http://localhost:3000/api/mcp \
   -H "Content-Type: application/json" \
   -d '{
-    "method": "get_project_templates",
-    "params": {},
+    "method": "setup_project_from_template",
+    "params": {
+      "projectPath": "/tmp/my-react-app",
+      "templateId": "react-ts",
+      "projectName": "my-awesome-app"
+    },
     "id": 1
   }'
 ```
 
-## Architecture
+#### **AI-Powered Project Creation:**
+```bash
+curl -X POST http://localhost:3000/api/mcp \
+  -H "Content-Type: application/json" \
+  -d '{
+    "method": "intelligent_project_setup",
+    "params": {
+      "description": "Create a React app with authentication and dashboard",
+      "projectPath": "/tmp/ai-project",
+      "autoExecute": true
+    },
+    "id": 1
+  }'
+```
+
+#### **AI Analysis Only:**
+```bash
+curl -X POST http://localhost:3000/api/mcp \
+  -H "Content-Type: application/json" \
+  -d '{
+    "method": "analyze_project_request",
+    "params": {
+      "description": "Build a Next.js e-commerce site with payments"
+    },
+    "id": 1
+  }'
+```
+
+### **AI Decision Flow**
+1. **Natural Language Analysis**: AI understands user requirements
+2. **Template Selection**: AI chooses optimal template with confidence score
+3. **Feature Detection**: AI identifies required features and dependencies
+4. **Plan Generation**: AI creates step-by-step execution plan
+5. **Intelligent Execution**: Tools execute plan with AI guidance
+
+## 🏗️ Updated Architecture
+
+The system now features a sophisticated multi-layered architecture with AI at its core:
 
 ```
 test-keycardai/
 ├── app/
-│   ├── api/mcp/           # MCP server implementation
-│   ├── components/        # React components
-│   └── page.tsx          # Main application
+│   ├── api/mcp/              # MCP server with AI-enhanced tools
+│   ├── components/           # React components with real-time updates
+│   └── page.tsx             # Main application interface
 ├── lib/
-│   ├── templates/        # Project templates
-│   ├── ai-service.ts     # AI integration
-│   ├── mcp-client.ts     # MCP client
-│   └── git-tools.ts      # Git utilities
+│   ├── ai-service.ts        # AI decision-making engine
+│   ├── github-service.ts    # GitHub API integration
+│   ├── repository-tools.ts  # Repository management (replaces git-tools)
+│   ├── mcp-client.ts        # MCP client for tool orchestration
+│   ├── templates/           # Project template library
+│   └── hooks/               # React hooks for state management
 ├── types/
-│   └── mcp.ts           # TypeScript definitions
-└── docs/                # Comprehensive documentation
+│   └── mcp.ts              # TypeScript definitions and schemas
+├── docs/                   # Comprehensive documentation
+└── src/test/               # Testing infrastructure with Vitest
 ```
+
+### **Component Overview**
+
+| Component | Purpose | Technology |
+|-----------|---------|------------|
+| **Chat Interface** | Natural language project requests | React + TypeScript |
+| **MCP Server** | Tool orchestration and execution | Next.js API Routes |
+| **AI Service** | Intelligent decision making | Vercel AI SDK + OpenAI |
+| **GitHub Service** | Repository operations via API | Octokit + GitHub REST API |
+| **Repository Tools** | Project creation and management | Node.js + File System |
+| **Template Engine** | Project template rendering | Custom template system |
+| **Testing Suite** | Quality assurance | Vitest + React Testing Library |
+
+### **Key Architectural Decisions**
+
+1. **AI-First Approach**: LLM integration for all major decisions
+2. **GitHub API**: No local git dependency for serverless compatibility
+3. **MCP Protocol**: Standardized tool interface for extensibility
+4. **TypeScript**: Full type safety throughout the stack
+5. **Modular Design**: Clean separation of concerns for maintainability
 
 ## Documentation
 
@@ -462,41 +706,91 @@ MIT License - see [LICENSE](./LICENSE) file for details.
 
 ## Troubleshooting
 
-### Common Issues
+### Common Issues & Solutions
+
+#### **🤖 AI & LLM Related Issues**
 
 1. **OpenAI API Error**:
-   - Check your API key is correctly set in `.env.local`
-   - Verify the API key is valid at [OpenAI Platform](https://platform.openai.com/api-keys)
-   - For Vercel deployment, ensure environment variable is set in dashboard
+   - **Error**: "OpenAI API key not configured" or rate limit errors
+   - **Solution**: Verify `OPENAI_API_KEY` is set in Vercel dashboard
+   - **Check**: Visit [OpenAI Platform](https://platform.openai.com/api-keys) to validate key
+   - **Fallback**: System works with reduced functionality when AI unavailable
 
-2. **Git Commands Fail**:
-   - Ensure Git is installed and configured
-   - Set global Git user: `git config --global user.name "Your Name"`
-   - Set global Git email: `git config --global user.email "your.email@example.com"`
+2. **AI Analysis Failures**:
+   - **Error**: "AI analysis failed" or low confidence scores
+   - **Cause**: Complex requirements or unclear natural language
+   - **Solution**: Use more specific language or try `intelligent_project_setup` tool
+   - **Debug**: Check Vercel function logs for detailed error messages
 
-3. **Deployment Failures**:
-   - Check build logs in Vercel dashboard
-   - Verify environment variables are configured in Vercel
-   - Ensure main branch is up to date: `git push origin main`
+#### **🐙 GitHub API Issues**
 
-4. **Git Operations Fail in Production**:
-   - **Error**: "Git author must have access to the project on Vercel"
-   - **Cause**: No git user configuration in Vercel serverless environment
-   - **Solution**: Always use `git_configure_user` before `git_add_commit` in production
-   - **Example**: Set user with `git_configure_user` MCP tool before any git operations
+3. **GitHub Token Errors**:
+   - **Error**: "GitHub token not available" or 401/403 responses
+   - **Solution**: Verify `GITHUB_TOKEN` has `repo` and `user` scopes
+   - **Check**: Test token at [GitHub Settings > Tokens](https://github.com/settings/tokens)
+   - **Scopes Required**: `repo`, `user` (for repository operations)
 
-5. **Vercel Authentication Issues**:
-   - **Error**: Git commit author doesn't match Vercel account
-   - **Solution**: Ensure git user email matches Vercel account email
-   - **Check**: Verify commit authorship with proper user configuration
+4. **Repository Creation Fails**:
+   - **Error**: "Repository already exists" or permission denied
+   - **Cause**: Repository name conflicts or insufficient token permissions
+   - **Solution**: Check token permissions and ensure unique repository names
+   - **Note**: Automatic naming prevents conflicts with timestamps
 
-6. **Permission Errors**:
-   - Check file system permissions for project creation
-   - Ensure Node.js has write access to project directory
+#### **🚀 Deployment & Production Issues**
 
-7. **Port Conflicts**:
-   - Change the port in `next.config.js` if needed
-   - Or use: `npm run dev -- --port 3001`
+5. **Vercel Deployment Failures**:
+   - **Error**: Build errors or missing environment variables
+   - **Solution**: Check Vercel dashboard build logs and environment configuration
+   - **Required Variables**: `OPENAI_API_KEY`, `GITHUB_TOKEN` must be set
+   - **Debug**: Use `vercel logs` or check dashboard for detailed error messages
+
+6. **Environment Variable Issues**:
+   - **Error**: "Environment variable not found" in production
+   - **Solution**: Configure all variables in Vercel dashboard
+   - **Check**: [Vercel Environment Variables](https://vercel.com/dac4158s-projects/test-keycardai/settings/environment-variables)
+   - **Required**: All variables must be set for full functionality
+
+#### **💻 Development Issues**
+
+7. **Local Development Errors**:
+   - **Error**: Port conflicts or missing dependencies
+   - **Solution**: Use `npm run dev -- --port 3001` for port conflicts
+   - **Check**: Ensure all dependencies installed with `npm install`
+   - **Debug**: Check console logs for detailed error messages
+
+8. **MCP Tool Failures**:
+   - **Error**: "Tool not found" or execution errors
+   - **Cause**: Tool not available or parameters incorrect
+   - **Solution**: Use `get_project_templates` to see available tools
+   - **Check**: Verify tool parameters match MCP schema
+
+#### **🔧 Testing Issues**
+
+9. **Test Failures**:
+   - **Error**: Vitest errors or test timeouts
+   - **Solution**: Run `npm run test:run` to see specific failures
+   - **Check**: Ensure all dependencies installed and environment configured
+   - **Debug**: Use `npm run test:ui` for interactive debugging
+
+10. **Mock Issues**:
+    - **Error**: "OpenAI API mock not working"
+    - **Cause**: Test setup or mocking issues
+    - **Solution**: Check `src/test/setup.ts` for proper mocking
+    - **Fix**: Update test environment variables and mocks
+
+#### **📦 Project Creation Issues**
+
+11. **Project Generation Fails**:
+    - **Error**: "Template not found" or file write errors
+    - **Solution**: Use `get_project_templates` to verify available templates
+    - **Check**: Ensure write permissions to target directory
+    - **Debug**: Use `analyze_project_request` for AI analysis before creation
+
+12. **Dependency Installation Issues**:
+    - **Error**: npm install failures in generated projects
+    - **Cause**: Network issues or incompatible package versions
+    - **Solution**: Run `npm install` manually in generated project
+    - **Check**: Verify Node.js version compatibility
 
 ### Getting Help
 
