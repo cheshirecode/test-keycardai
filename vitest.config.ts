@@ -8,7 +8,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
-    setupFiles: ['./src/test/setup.ts'],
+    setupFiles: ['./test-setup.ts'],
     include: ['**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     exclude: [
       '**/node_modules/**',
@@ -58,11 +58,16 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@': resolve(__dirname, './src'),
-      '@/lib': resolve(__dirname, './src/lib'),
-      '@/types': resolve(__dirname, './src/lib/types'),
-      '@/app': resolve(__dirname, './src/app'),
-      '@/components': resolve(__dirname, './src/app/_components'),
+      '@': resolve(__dirname, '.'),
+      '@/lib': resolve(__dirname, './app/lib'),
+      '@/lib/*': resolve(__dirname, './app/lib/*'),
+      '@/types': resolve(__dirname, './types'),
+      '@/types/*': resolve(__dirname, './types/*'),
+      '@/components': resolve(__dirname, './app/components'),
+      '@/components/*': resolve(__dirname, './app/components/*'),
+      '@/contexts/*': resolve(__dirname, './app/contexts/*'),
+      '@/hooks/*': resolve(__dirname, './app/hooks/*'),
+      '@/api/*': resolve(__dirname, './app/api/*'),
     },
   },
 })
