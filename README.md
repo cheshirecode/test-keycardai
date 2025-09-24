@@ -133,11 +133,18 @@ npm run ci
 ```
 ├── app/                 # Next.js App Router
 │   ├── api/mcp/        # MCP protocol server
-│   └── typings/        # Server-side types
+│   ├── components/     # Server-side components
+│   └── contexts/       # React contexts
 ├── src/                # Frontend source
 │   ├── components/     # React components
-│   ├── lib/           # Utilities and services
-│   └── typings/       # Client-side types
+│   └── hooks/          # Custom React hooks
+├── lib/                # Shared utilities and services
+│   ├── ai-service.ts   # AI integration
+│   ├── github-service.ts # GitHub API client
+│   ├── mcp-client.ts   # MCP protocol client
+│   ├── hooks/          # Shared hooks
+│   └── templates/      # Project templates
+├── types/              # Centralized type definitions
 └── docs/              # Additional documentation
 ```
 
