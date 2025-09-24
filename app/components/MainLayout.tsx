@@ -3,6 +3,7 @@
 import React from 'react'
 import { ProjectSidebar } from '@/components/ProjectSidebar'
 import { useRepository } from '@/contexts/RepositoryContext'
+import { useRepositorySync } from '@/hooks/useRepositorySync'
 
 interface MainLayoutProps {
   children: React.ReactNode
@@ -10,6 +11,9 @@ interface MainLayoutProps {
 
 export function MainLayout({ children }: MainLayoutProps) {
   const { selectedRepository, setSelectedRepository } = useRepository()
+  
+  // Sync repository selection with URL changes
+  useRepositorySync()
 
   return (
     <div className="flex h-screen bg-white">
