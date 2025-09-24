@@ -204,7 +204,195 @@ curl -X POST http://localhost:3000/api/mcp \
 
 ---
 
-### 5. install_dependencies
+### 5. git_status
+
+Get the current status of a git repository.
+
+**Method:** `git_status`
+
+**Parameters:**
+```typescript
+{
+  path: string  // Project directory path
+}
+```
+
+**Response:**
+```typescript
+{
+  success: boolean
+  status: string    // Git status output
+}
+```
+
+**Example:**
+```bash
+curl -X POST http://localhost:3000/api/mcp \
+  -H "Content-Type: application/json" \
+  -d '{
+    "method": "git_status",
+    "params": {"path": "/tmp/my-project"},
+    "id": 5
+  }'
+```
+
+---
+
+### 6. git_create_branch
+
+Create a new git branch and switch to it.
+
+**Method:** `git_create_branch`
+
+**Parameters:**
+```typescript
+{
+  path: string,        // Project directory path
+  branchName: string   // Name of the new branch
+}
+```
+
+**Response:**
+```typescript
+{
+  success: boolean
+  message: string   // Confirmation message
+}
+```
+
+**Example:**
+```bash
+curl -X POST http://localhost:3000/api/mcp \
+  -H "Content-Type: application/json" \
+  -d '{
+    "method": "git_create_branch",
+    "params": {
+      "path": "/tmp/my-project",
+      "branchName": "feature/new-feature"
+    },
+    "id": 6
+  }'
+```
+
+---
+
+### 7. git_set_remote
+
+Set or update the git remote origin URL.
+
+**Method:** `git_set_remote`
+
+**Parameters:**
+```typescript
+{
+  path: string,      // Project directory path
+  remoteUrl: string  // Remote repository URL
+}
+```
+
+**Response:**
+```typescript
+{
+  success: boolean
+  message: string   // Confirmation message
+}
+```
+
+**Example:**
+```bash
+curl -X POST http://localhost:3000/api/mcp \
+  -H "Content-Type: application/json" \
+  -d '{
+    "method": "git_set_remote",
+    "params": {
+      "path": "/tmp/my-project",
+      "remoteUrl": "https://github.com/user/repo.git"
+    },
+    "id": 7
+  }'
+```
+
+---
+
+### 8. git_configure_user
+
+Configure git user name and email for a specific repository.
+
+**Method:** `git_configure_user`
+
+**Parameters:**
+```typescript
+{
+  path: string,   // Project directory path
+  name: string,   // User name
+  email: string   // User email
+}
+```
+
+**Response:**
+```typescript
+{
+  success: boolean
+  message: string   // Confirmation message
+}
+```
+
+**Example:**
+```bash
+curl -X POST http://localhost:3000/api/mcp \
+  -H "Content-Type: application/json" \
+  -d '{
+    "method": "git_configure_user",
+    "params": {
+      "path": "/tmp/my-project",
+      "name": "John Doe",
+      "email": "john@example.com"
+    },
+    "id": 8
+  }'
+```
+
+---
+
+### 9. git_history
+
+Get the commit history of a git repository.
+
+**Method:** `git_history`
+
+**Parameters:**
+```typescript
+{
+  path: string,    // Project directory path
+  limit?: number   // Number of commits to show (default: 10)
+}
+```
+
+**Response:**
+```typescript
+{
+  success: boolean
+  history: string   // Commit history output
+}
+```
+
+**Example:**
+```bash
+curl -X POST http://localhost:3000/api/mcp \
+  -H "Content-Type: application/json" \
+  -d '{
+    "method": "git_history",
+    "params": {
+      "path": "/tmp/my-project",
+      "limit": 5
+    },
+    "id": 9
+  }'
+```
+
+---
+
+### 10. install_dependencies
 
 Installs npm dependencies in the specified project.
 

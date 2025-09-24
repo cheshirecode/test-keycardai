@@ -87,6 +87,66 @@ export async function GET() {
       }
     },
     {
+      name: 'git_status',
+      description: 'Get git repository status',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          path: { type: 'string', description: 'Project path' }
+        },
+        required: ['path']
+      }
+    },
+    {
+      name: 'git_create_branch',
+      description: 'Create a new git branch',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          path: { type: 'string', description: 'Project path' },
+          branchName: { type: 'string', description: 'Branch name' }
+        },
+        required: ['path', 'branchName']
+      }
+    },
+    {
+      name: 'git_set_remote',
+      description: 'Set git remote origin URL',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          path: { type: 'string', description: 'Project path' },
+          remoteUrl: { type: 'string', description: 'Remote repository URL' }
+        },
+        required: ['path', 'remoteUrl']
+      }
+    },
+    {
+      name: 'git_configure_user',
+      description: 'Configure git user name and email for repository',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          path: { type: 'string', description: 'Project path' },
+          name: { type: 'string', description: 'User name' },
+          email: { type: 'string', description: 'User email' }
+        },
+        required: ['path', 'name', 'email']
+      }
+    },
+    {
+      name: 'git_history',
+      description: 'Get git commit history',
+      inputSchema: {
+        type: 'object',
+        properties: {
+          path: { type: 'string', description: 'Project path' },
+          limit: { type: 'number', description: 'Number of commits to show (default: 10)' }
+        },
+        required: ['path']
+      }
+    },
+    {
       name: 'install_dependencies',
       description: 'Install npm dependencies',
       inputSchema: {

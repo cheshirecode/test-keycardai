@@ -43,6 +43,51 @@ export const mcpTools = {
     }
   },
 
+  git_status: async (params: { path: string }) => {
+    try {
+      const status = await GitTools.getStatus(params.path)
+      return { success: true, status }
+    } catch (error) {
+      throw new Error(`Git status failed: ${error}`)
+    }
+  },
+
+  git_create_branch: async (params: { path: string; branchName: string }) => {
+    try {
+      await GitTools.createBranch(params.path, params.branchName)
+      return { success: true, message: `Created branch: ${params.branchName}` }
+    } catch (error) {
+      throw new Error(`Branch creation failed: ${error}`)
+    }
+  },
+
+  git_set_remote: async (params: { path: string; remoteUrl: string }) => {
+    try {
+      await GitTools.setRemoteOrigin(params.path, params.remoteUrl)
+      return { success: true, message: `Set remote origin: ${params.remoteUrl}` }
+    } catch (error) {
+      throw new Error(`Set remote failed: ${error}`)
+    }
+  },
+
+  git_configure_user: async (params: { path: string; name: string; email: string }) => {
+    try {
+      await GitTools.configureUser(params.path, params.name, params.email)
+      return { success: true, message: `Configured git user: ${params.name} <${params.email}>` }
+    } catch (error) {
+      throw new Error(`Git user configuration failed: ${error}`)
+    }
+  },
+
+  git_history: async (params: { path: string; limit?: number }) => {
+    try {
+      const history = await GitTools.getCommitHistory(params.path, params.limit || 10)
+      return { success: true, history }
+    } catch (error) {
+      throw new Error(`Git history failed: ${error}`)
+    }
+  },
+
   install_dependencies: async (params: { path: string; packages?: string[] }) => {
     try {
       const command = params.packages
