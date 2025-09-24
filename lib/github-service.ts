@@ -141,12 +141,12 @@ export class GitHubService {
       const { data: newCommit } = await this.octokit.git.createCommit({
         owner: config.owner,
         repo: config.repo,
-        message: commitMessage,
+        message: commitMessage.replace(/\n/g, ' ').trim(),
         tree: newTree.sha,
         parents: [latestCommitSha],
         author: {
-          name: process.env.GIT_USER_NAME || 'Project Scaffolder',
-          email: process.env.GIT_USER_EMAIL || 'scaffolder@example.com',
+          name: (process.env.GIT_USER_NAME || 'Project Scaffolder').replace(/\n/g, ' ').trim(),
+          email: (process.env.GIT_USER_EMAIL || 'scaffolder@example.com').replace(/\n/g, ' ').trim(),
         },
       })
 

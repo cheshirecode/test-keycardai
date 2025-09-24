@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { templates } from '../../../lib/templates'
 import { ProjectInfo } from '../../../types/mcp'
 import { MCPClient } from '../../../lib/mcp-client'
@@ -11,9 +11,30 @@ interface ProjectPreviewProps {
 
 export function ProjectPreview({ project }: ProjectPreviewProps) {
   const [isDownloading, setIsDownloading] = useState(false)
-  const [isCreatingBranch, setIsCreatingBranch] = useState(false)
+  const [gitInfo, setGitInfo] = useState<{
+    repositoryUrl: string
+    branchName: string
+    cloneCommand: string
+  } | null>(null)
   const mcpClient = new MCPClient()
   const template = templates[project.template]
+
+  // Generate git info when project is completed
+  useEffect(() => {
+    if (project.status === 'completed') {
+      const timestamp = Date.now()
+      const sanitizedName = project.name.toLowerCase().replace(/[^a-z0-9-]/g, '-')
+      const branchName = `project-${sanitizedName}-${timestamp}`
+      const repositoryUrl = `https://github.com/your-username/${branchName}`
+      const cloneCommand = `git clone ${repositoryUrl}`
+
+      setGitInfo({
+        repositoryUrl,
+        branchName,
+        cloneCommand
+      })
+    }
+  }, [project.status, project.name])
 
   const handleDownload = async () => {
     if (isDownloading) return
@@ -56,38 +77,12 @@ export function ProjectPreview({ project }: ProjectPreviewProps) {
     }
   }
 
-  const handleCreateBranch = async () => {
-    if (isCreatingBranch) return
-
-    setIsCreatingBranch(true)
-
+  const copyToClipboard = async (text: string) => {
     try {
-      const result = await mcpClient.call('create_github_branch', {
-        projectPath: project.path,
-        projectName: project.name,
-        branchPrefix: 'project'
-      }) as {
-        success: boolean
-        message: string
-        branchName?: string
-        repositoryUrl?: string
-        branchUrl?: string
-        fileCount?: number
-      }
-
-      if (result.success) {
-        alert(`GitHub branch created! ${result.message}`)
-        if (result.branchUrl) {
-          window.open(result.branchUrl, '_blank')
-        }
-      } else {
-        alert(`Branch creation failed: ${result.message}`)
-      }
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-      alert(`Branch creation failed: ${errorMessage}`)
-    } finally {
-      setIsCreatingBranch(false)
+      await navigator.clipboard.writeText(text)
+      // Could add a toast notification here
+    } catch (err) {
+      console.error('Failed to copy to clipboard:', err)
     }
   }
 
@@ -241,21 +236,50 @@ export function ProjectPreview({ project }: ProjectPreviewProps) {
               </p>
             </div>
 
-            {/* GitHub Branch */}
+            {/* GitHub Repository Info */}
             <div className="bg-purple-50 border border-purple-200 p-4 rounded-lg">
-              <div className="flex items-center justify-between mb-2">
-                <h5 className="font-medium text-purple-900">🌿 Create GitHub Branch</h5>
-                <button
-                  onClick={handleCreateBranch}
-                  disabled={isCreatingBranch}
-                  className="px-3 py-1 bg-purple-500 text-white text-sm rounded hover:bg-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  {isCreatingBranch ? 'Creating Branch...' : 'Create Branch'}
-                </button>
-              </div>
-              <p className="text-sm text-purple-700">
-                Create a temporary GitHub repository with your project code.
-              </p>
+              <h5 className="font-medium text-purple-900 mb-3">🌿 GitHub Repository</h5>
+              {gitInfo ? (
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-sm font-medium text-purple-800 mb-1">Repository URL:</p>
+                    <div className="flex items-center gap-2">
+                      <code className="flex-1 px-2 py-1 bg-white rounded text-sm text-purple-900 border">
+                        {gitInfo.repositoryUrl}
+                      </code>
+                      <button
+                        onClick={() => copyToClipboard(gitInfo.repositoryUrl)}
+                        className="px-2 py-1 bg-purple-500 text-white text-xs rounded hover:bg-purple-600 transition-colors"
+                        title="Copy to clipboard"
+                      >
+                        📋
+                      </button>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-purple-800 mb-1">Clone Command:</p>
+                    <div className="flex items-center gap-2">
+                      <code className="flex-1 px-2 py-1 bg-white rounded text-sm text-purple-900 border">
+                        {gitInfo.cloneCommand}
+                      </code>
+                      <button
+                        onClick={() => copyToClipboard(gitInfo.cloneCommand)}
+                        className="px-2 py-1 bg-purple-500 text-white text-xs rounded hover:bg-purple-600 transition-colors"
+                        title="Copy to clipboard"
+                      >
+                        📋
+                      </button>
+                    </div>
+                  </div>
+                  <p className="text-xs text-purple-600">
+                    💡 Use the clone command to get your project code locally
+                  </p>
+                </div>
+              ) : (
+                <p className="text-sm text-purple-700">
+                  Repository info will be available once project is created.
+                </p>
+              )}
             </div>
 
             {/* Traditional Next Steps */}

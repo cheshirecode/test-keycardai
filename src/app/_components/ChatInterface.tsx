@@ -39,9 +39,9 @@ export function ChatInterface() {
   }
 
   return (
-    <div className="h-screen bg-gray-50 flex flex-col">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b px-6 py-4">
+    <div className="min-h-screen bg-gray-50">
+      {/* Header - Sticky */}
+      <header className="sticky top-0 z-10 bg-white shadow-sm border-b px-6 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">🚀 Project Scaffolder</h1>
@@ -60,11 +60,11 @@ export function ChatInterface() {
       </header>
 
       {/* Main Content */}
-      <div className="flex-1 max-w-6xl mx-auto w-full p-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full">
+      <div className="max-w-6xl mx-auto w-full p-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Chat Panel */}
-          <div className="flex flex-col bg-white rounded-lg shadow-sm border h-full">
-            <div className="flex-1 p-4 overflow-y-auto max-h-[calc(100vh-200px)]">
+          <div className="flex flex-col bg-white rounded-lg shadow-sm border">
+            <div className="p-4 max-h-[70vh] overflow-y-auto">
               {messages.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-center space-y-6">
                   <div className="space-y-2">
@@ -180,7 +180,7 @@ export function ChatInterface() {
             {currentProject ? (
               <ProjectPreview project={currentProject} />
             ) : (
-              <div className="h-full flex items-center justify-center text-center">
+              <div className="min-h-[400px] flex items-center justify-center text-center">
                 <div className="space-y-3">
                   <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
                     <span className="text-2xl">📁</span>
