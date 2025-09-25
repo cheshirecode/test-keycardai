@@ -98,21 +98,21 @@ export function ChatInterface() {
   return (
     <div className="h-full w-full bg-gray-50 flex flex-col overflow-hidden">
       {/* Header - Sticky */}
-      <header className="sticky top-0 z-10 bg-white shadow-sm border-b px-4 py-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">🚀 Project Scaffolder</h1>
-            <p className="text-gray-600">
+      <header className="sticky top-0 z-10 bg-white shadow-sm border-b px-4 py-3 md:py-4 overflow-visible">
+        <div className="max-w-7xl mx-auto flex items-center justify-between relative">
+          <div className="min-w-0 flex-1 mr-3">
+            <h1 className="text-lg md:text-2xl font-bold text-gray-900 truncate">🚀 Project Scaffolder</h1>
+            <p className="text-xs md:text-sm text-gray-600 truncate">
               {isRepositoryMode && selectedRepository
                 ? `Modifying: ${selectedRepository.name}`
                 : 'Create GitHub projects with natural language'
               }
             </p>
           </div>
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2 md:space-x-3">
             {/* Current Project Indicator */}
             {currentProject && (
-              <div className="flex items-center space-x-2 px-3 py-1.5 bg-emerald-50 border border-emerald-200 rounded-full text-sm">
+              <div className="hidden sm:flex items-center space-x-2 px-3 py-1.5 bg-emerald-50 border border-emerald-200 rounded-full text-sm">
                 <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
                 <span className="font-medium text-emerald-700">{currentProject.name}</span>
                 <span className="text-emerald-600">({currentProject.template})</span>
@@ -127,11 +127,12 @@ export function ChatInterface() {
                 e.stopPropagation()
                 handleNewProject()
               }}
-              className="px-4 py-2 text-sm bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors font-medium"
+              className="px-3 md:px-4 py-2 text-xs md:text-sm bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors font-medium"
               disabled={false}
               title="Create a new project (interrupts current operation)"
             >
-              + New Project
+              <span className="hidden sm:inline">+ New Project</span>
+              <span className="sm:hidden">+</span>
             </button>
 
             {/* Fast Mode Toggle */}
@@ -151,8 +152,15 @@ export function ChatInterface() {
                     <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
                   </svg>
                 </div>
-                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 p-2 text-xs text-white bg-gray-900 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
-                  Skips AI processing due to time constraints and complexity of implementing API key rotation. Uses rule-based planning instead.
+                {/* Tooltip positioned to avoid cutoff */}
+                <div className="absolute top-full right-0 mt-2 w-56 sm:w-64 p-3 text-xs text-white bg-gray-900 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-[60] shadow-lg">
+                  <div className="relative">
+                    {/* Arrow pointing up */}
+                    <div className="absolute -top-1 right-3 w-2 h-2 bg-gray-900 transform rotate-45"></div>
+                    <p className="relative">
+                      Skips AI processing due to time constraints and complexity of implementing API key rotation. Uses rule-based planning instead.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
