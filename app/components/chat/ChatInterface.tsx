@@ -68,6 +68,32 @@ export function ChatInterface() {
       
       // Try the first path that works
       const tryPath = async (): Promise<void> => {
+        // First, try to get commits from GitHub API if this is a valid owner/repo format
+        if (selectedRepository.fullName && selectedRepository.fullName.includes('/')) {
+          console.log(`🔍 [ChatInterface] Attempting to fetch commits from GitHub API for: ${selectedRepository.fullName}`)
+          try {
+            const [owner, repo] = selectedRepository.fullName.split('/')
+            const result = await typedMcpClient.call('github_get_commits', { 
+              owner,
+              repo,
+              limit: 10 
+            })
+            
+            if (result.success && result.commits && result.commits.length > 0) {
+              console.log(`✅ [ChatInterface] Found ${result.commits.length} commits from GitHub API`)
+              // Sort commits chronologically (oldest first for chat display)
+              const sortedCommits = [...result.commits].reverse()
+              setCommits(sortedCommits)
+              return // Success, exit early
+            } else {
+              console.log(`⚠️ [ChatInterface] No commits found via GitHub API: ${result.message || 'Unknown error'}`)
+            }
+          } catch (error) {
+            console.log(`❌ [ChatInterface] GitHub API commit fetch failed:`, error)
+          }
+        }
+        
+        // Fallback to local file system search
         const sanitizedName = selectedRepository.name.replace(/[^a-zA-Z0-9_-]/g, '_')
         
         // Build static paths first
@@ -81,16 +107,16 @@ export function ChatInterface() {
           `/tmp/repositories/${sanitizedName}`, // Sanitized repository path
         ]
         
-      // Simple static paths only (no client-side file system access)
-      const possiblePaths = [
-        ...staticPaths,
-        // Fallback paths
-        `./projects/${sanitizedName}`, // Relative projects directory
-        `./${selectedRepository.name}`, // Current directory with original name
-        selectedRepository.name // Just the repository name
-      ]
+        // Simple static paths only (no client-side file system access)
+        const possiblePaths = [
+          ...staticPaths,
+          // Fallback paths
+          `./projects/${sanitizedName}`, // Relative projects directory
+          `./${selectedRepository.name}`, // Current directory with original name
+          selectedRepository.name // Just the repository name
+        ]
         
-        console.log(`🔍 [ChatInterface] Trying to find git repository for: ${selectedRepository.name}`)
+        console.log(`🔍 [ChatInterface] Trying to find local git repository for: ${selectedRepository.name}`)
         console.log(`🔍 [ChatInterface] Checking ${possiblePaths.length} possible paths:`, possiblePaths)
         
         for (const projectPath of possiblePaths) {
@@ -113,34 +139,45 @@ export function ChatInterface() {
             console.log(`❌ [ChatInterface] Git log failed for path ${projectPath}:`, error)
           }
         }
-        // If all paths failed, log it with helpful context
-        console.log(`❌ [ChatInterface] No git repository found for ${selectedRepository.name} in any of the attempted paths`)
+        // If all methods failed, create synthetic commit as last resort
+        console.log(`❌ [ChatInterface] No git repository found for ${selectedRepository.name} via GitHub API or local paths`)
+        console.log(`ℹ️ [ChatInterface] Creating synthetic commit as fallback`)
         
-        // For scaffolded projects, show a helpful message instead of just empty state
-        if (selectedRepository.name.includes('-') && /\d{13}/.test(selectedRepository.name)) {
-          console.log(`ℹ️ [ChatInterface] This appears to be a scaffolded project - showing scaffolding info instead`)
-          
-          // Create a synthetic "scaffolding" commit for display
-          const scaffoldingCommit = {
-            hash: 'scaffold-' + Date.now(),
-            author: 'Project Scaffolder',
-            email: 'scaffolder@system',
-            date: new Date().toISOString(),
-            timestamp: Date.now(),
-            message: 'Initial project scaffolding via MCP tools',
-            subject: 'feat: initial project scaffolding',
-            body: `This project was created using the Project Scaffolder tool.
+        // Create a synthetic commit for display with context about the repository type
+        const isGitHubRepo = selectedRepository.fullName && selectedRepository.fullName.includes('/')
+        const isScaffoldedProject = selectedRepository.name.includes('-') && /\d{13}/.test(selectedRepository.name)
+        
+        const scaffoldingCommit = {
+          hash: 'synthetic-' + Date.now(),
+          author: isGitHubRepo ? 'GitHub Repository' : 'Project Scaffolder',
+          email: isGitHubRepo ? 'github@repository' : 'scaffolder@system',
+          date: new Date().toISOString(),
+          timestamp: Date.now(),
+          message: isGitHubRepo 
+            ? `GitHub Repository: ${selectedRepository.fullName}`
+            : 'Project created via Project Scaffolder',
+          subject: isGitHubRepo 
+            ? `docs: GitHub repository ${selectedRepository.fullName}` 
+            : 'feat: project scaffolding',
+          body: isGitHubRepo 
+            ? `This is a GitHub repository: ${selectedRepository.fullName}
+
+${selectedRepository.description || 'No description available'}
+
+Repository URL: ${selectedRepository.url || 'Not available'}
+Created: ${new Date().toLocaleString()}
+
+Note: Git history should be available via GitHub API. If you're not seeing commits, the repository might be empty or you may need to check your GitHub token permissions.`
+            : `This project was created using the Project Scaffolder tool.
 
 Repository: ${selectedRepository.name}
 Created: ${new Date().toLocaleString()}
-Type: Scaffolded project
+Type: ${isScaffoldedProject ? 'Scaffolded Project' : 'Local Project'}
 
 The actual git history will be available once the repository is cloned locally or after manual git operations.`
-          }
-          
-          setCommits([scaffoldingCommit])
-          return
         }
+        
+        setCommits([scaffoldingCommit])
       }
       
       tryPath().finally(() => {

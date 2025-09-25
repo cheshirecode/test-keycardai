@@ -139,6 +139,41 @@ export function ProjectPreview({ project }: ProjectPreviewProps) {
 
       // Try the first path that works
       const tryPath = async (): Promise<void> => {
+        // First, try to get latest commit from GitHub API if this project has a GitHub repository URL
+        if (project.repositoryUrl && project.repositoryUrl.includes('github.com')) {
+          // Extract owner/repo from GitHub URL
+          const githubMatch = project.repositoryUrl.match(/github\.com[/:]([^/]+)\/([^/.]+)/i)
+          if (githubMatch) {
+            const [, owner, repo] = githubMatch
+            console.log(`🔍 [ProjectPreview] Attempting to fetch latest commit from GitHub API for: ${owner}/${repo}`)
+            try {
+              const result = await typedMcpClient.call('github_get_commits', { 
+                owner,
+                repo,
+                limit: 1 
+              })
+              
+              if (result.success && result.commits && result.commits.length > 0) {
+                console.log(`✅ [ProjectPreview] Found latest commit from GitHub API`)
+                const latest = result.commits[0]
+                setLatestCommit({
+                  hash: latest.hash,
+                  author: latest.author,
+                  date: latest.date,
+                  subject: latest.subject,
+                  timestamp: latest.timestamp
+                })
+                return // Success, exit early
+              } else {
+                console.log(`⚠️ [ProjectPreview] No commits found via GitHub API: ${result.message || 'Unknown error'}`)
+              }
+            } catch (error) {
+              console.log(`❌ [ProjectPreview] GitHub API commit fetch failed:`, error)
+            }
+          }
+        }
+        
+        // Fallback to local file system search
         const sanitizedName = project.name.replace(/[^a-zA-Z0-9_-]/g, '_')
         
         // Build static paths first
@@ -163,7 +198,7 @@ export function ProjectPreview({ project }: ProjectPreviewProps) {
         project.name // Just the project name
       ]
 
-        console.log(`🔍 [ProjectPreview] Trying to find git repository for: ${project.name}`)
+        console.log(`🔍 [ProjectPreview] Trying to find local git repository for: ${project.name}`)
         console.log(`🔍 [ProjectPreview] Checking ${possiblePaths.length} possible paths:`, possiblePaths)
         
         for (const projectPath of possiblePaths) {
@@ -191,22 +226,22 @@ export function ProjectPreview({ project }: ProjectPreviewProps) {
             console.log(`❌ [ProjectPreview] Git log failed for path ${projectPath}:`, error)
           }
         }
-        // If all paths failed, no commit found
-        console.log(`❌ [ProjectPreview] No git repository found for project ${project.name} in any of the attempted paths`)
+        // If all methods failed, create synthetic commit as last resort
+        console.log(`❌ [ProjectPreview] No git repository found for project ${project.name} via GitHub API or local paths`)
+        console.log(`ℹ️ [ProjectPreview] Creating synthetic commit as fallback`)
         
-        // For scaffolded projects, create a synthetic latest commit
-        if (project.name.includes('-') && /\d{13}/.test(project.name)) {
-          console.log(`ℹ️ [ProjectPreview] This appears to be a scaffolded project - creating synthetic commit info`)
-          
-          setLatestCommit({
-            hash: 'scaffold-' + Date.now(),
-            author: 'Project Scaffolder',
-            date: new Date().toISOString(),
-            subject: 'feat: initial project scaffolding',
-            timestamp: Date.now()
-          })
-          return
-        }
+        // Create a synthetic commit for display with context about the repository type
+        const isGitHubRepo = project.repositoryUrl && project.repositoryUrl.includes('github.com')
+        
+        setLatestCommit({
+          hash: 'synthetic-' + Date.now(),
+          author: isGitHubRepo ? 'GitHub Repository' : 'Project Scaffolder',
+          date: new Date().toISOString(),
+          subject: isGitHubRepo 
+            ? `docs: GitHub repository project` 
+            : 'feat: project scaffolding',
+          timestamp: Date.now()
+        })
       }
 
       tryPath().finally(() => {

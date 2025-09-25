@@ -284,5 +284,120 @@ export const githubOperations = {
         error: error instanceof Error ? error.message : 'Unknown error'
       }
     }
+  },
+
+  /**
+   * Get commits from GitHub repository via API
+   */
+  github_get_commits: async (params: {
+    owner: string
+    repo: string
+    limit?: number
+  }): Promise<{
+    success: boolean
+    message: string
+    commits?: Array<{
+      hash: string
+      author: string
+      email: string
+      date: string
+      timestamp: number
+      message: string
+      subject: string
+      body: string
+    }>
+  }> => {
+    try {
+      const { owner, repo, limit = 10 } = params
+
+      if (!owner || !repo) {
+        return {
+          success: false,
+          message: 'Owner and repository name are required'
+        }
+      }
+
+      const githubService = new GitHubService()
+      
+      if (!githubService.isGitHubAvailable()) {
+        return {
+          success: false,
+          message: 'GitHub token not available'
+        }
+      }
+
+      console.log(`[GitHub API] Fetching commits for ${owner}/${repo} (limit: ${limit})`)
+
+      // Get commits from GitHub API
+      const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/commits?per_page=${limit}`, {
+        headers: {
+          'Authorization': `token ${process.env.GITHUB_TOKEN}`,
+          'Accept': 'application/vnd.github.v3+json',
+          'User-Agent': 'Project-Scaffolder'
+        }
+      })
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          return {
+            success: false,
+            message: `Repository ${owner}/${repo} not found or not accessible`
+          }
+        }
+        if (response.status === 403) {
+          return {
+            success: false,
+            message: `Access denied to repository ${owner}/${repo}. Check GitHub token permissions.`
+          }
+        }
+        throw new Error(`GitHub API error: ${response.status} ${response.statusText}`)
+      }
+
+      const githubCommits = await response.json()
+
+      if (!Array.isArray(githubCommits) || githubCommits.length === 0) {
+        return {
+          success: true,
+          message: 'No commits found in repository',
+          commits: []
+        }
+      }
+
+      // Convert GitHub API format to our standard format
+      const commits = githubCommits.map((commit: {
+        sha: string
+        commit: {
+          author: { name: string; email: string; date: string }
+          message: string
+        }
+      }) => {
+        const commitDate = new Date(commit.commit.author.date)
+        return {
+          hash: commit.sha,
+          author: commit.commit.author.name,
+          email: commit.commit.author.email,
+          date: commit.commit.author.date,
+          timestamp: commitDate.getTime(),
+          message: commit.commit.message,
+          subject: commit.commit.message.split('\n')[0],
+          body: commit.commit.message.split('\n').slice(1).join('\n').trim()
+        }
+      })
+
+      console.log(`[GitHub API] Successfully fetched ${commits.length} commits for ${owner}/${repo}`)
+
+      return {
+        success: true,
+        message: `Found ${commits.length} commits`,
+        commits
+      }
+
+    } catch (error) {
+      console.error('GitHub get commits error:', error)
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : 'Failed to fetch commits from GitHub API'
+      }
+    }
   }
 }
