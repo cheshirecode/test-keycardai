@@ -35,7 +35,7 @@ export function MainLayout({ children }: MainLayoutProps) {
   }, [setOnRepositoryRefresh])
 
   return (
-    <div className="flex h-screen bg-white">
+    <div className="flex h-screen bg-white min-h-0">
       {/* Sidebar */}
       <ProjectSidebar
         selectedRepository={selectedRepository}
@@ -46,7 +46,7 @@ export function MainLayout({ children }: MainLayoutProps) {
       />
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col min-w-0 h-full">
+      <div className="flex-1 flex flex-col min-w-0 min-h-0">
         {children}
       </div>
     </div>

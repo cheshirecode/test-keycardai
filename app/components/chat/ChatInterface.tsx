@@ -138,11 +138,11 @@ export function ChatInterface() {
       </header>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col">
-        <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-0">
+      <div className="flex-1 flex flex-col min-h-0">
+        <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-0 min-h-0">
           {/* Chat Panel */}
-          <div className="flex flex-col bg-white border-r border-gray-200">
-            <div className="p-4 flex-1 overflow-y-auto">
+          <div className="flex flex-col bg-white border-r border-gray-200 min-h-0">
+            <div className="p-4 flex-1 overflow-y-auto min-h-0">
               {messages.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-center space-y-6">
                   <div className="space-y-2">
@@ -325,34 +325,38 @@ export function ChatInterface() {
           </div>
 
           {/* Project Preview Panel */}
-          <div className="bg-white p-4">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              {isRepositoryMode ? 'Repository Details' : 'Project Preview'}
-            </h2>
-            {isRepositoryMode && selectedRepository ? (
-              <RepositoryPreview repository={selectedRepository} />
-            ) : currentProject ? (
-              <ProjectPreview project={currentProject} />
-            ) : (
-              <div className="min-h-[400px] flex items-center justify-center text-center">
-                <div className="space-y-3">
-                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
-                    <span className="text-2xl">{isRepositoryMode ? '🔧' : '📁'}</span>
-                  </div>
-                  <div>
-                    <p className="text-gray-900 font-medium">
-                      {isRepositoryMode ? 'Select a repository to modify' : 'No project created yet'}
-                    </p>
-                    <p className="text-gray-500 text-sm">
-                      {isRepositoryMode
-                        ? 'Choose a repository from the sidebar to start making modifications'
-                        : 'Start a conversation to create your first project'
-                      }
-                    </p>
+          <div className="bg-white flex flex-col min-h-0">
+            <div className="p-4 border-b border-gray-200 flex-shrink-0">
+              <h2 className="text-lg font-semibold text-gray-900">
+                {isRepositoryMode ? 'Repository Details' : 'Project Preview'}
+              </h2>
+            </div>
+            <div className="flex-1 p-4 overflow-y-auto min-h-0">
+              {isRepositoryMode && selectedRepository ? (
+                <RepositoryPreview repository={selectedRepository} />
+              ) : currentProject ? (
+                <ProjectPreview project={currentProject} />
+              ) : (
+                <div className="h-full flex items-center justify-center text-center">
+                  <div className="space-y-3">
+                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
+                      <span className="text-2xl">{isRepositoryMode ? '🔧' : '📁'}</span>
+                    </div>
+                    <div>
+                      <p className="text-gray-900 font-medium">
+                        {isRepositoryMode ? 'Select a repository to modify' : 'No project created yet'}
+                      </p>
+                      <p className="text-gray-500 text-sm">
+                        {isRepositoryMode
+                          ? 'Choose a repository from the sidebar to start making modifications'
+                          : 'Start a conversation to create your first project'
+                        }
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </div>

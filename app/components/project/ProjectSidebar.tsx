@@ -6,6 +6,7 @@ import { ChevronDownIcon, ChevronRightIcon, TrashIcon, PlusIcon } from '@heroico
 import { FolderIcon, GlobeAltIcon, LockClosedIcon } from '@heroicons/react/24/solid'
 import { useRepositories } from '@/hooks/useRepositories'
 import { useRepository } from '@/contexts/RepositoryContext'
+import { CONFIG } from '@/lib/config'
 
 interface ProjectSidebarProps {
   selectedRepository?: Repository | null
@@ -53,7 +54,7 @@ export function ProjectSidebar({ selectedRepository, onRepositorySelect, classNa
       if (newRepo) {
         setTimeout(() => {
           // Clear after showing highlighting for a bit
-        }, 3000)
+        }, CONFIG.TIMEOUTS.UI_FEEDBACK)
       }
     }
   }, [repositories, newlyCreatedRepository])
@@ -161,9 +162,9 @@ export function ProjectSidebar({ selectedRepository, onRepositorySelect, classNa
   }
 
   return (
-    <div className={`bg-gray-50 border-r border-gray-200 flex flex-col ${className}`} style={{ width: '320px' }}>
+    <div className={`bg-gray-50 border-r border-gray-200 flex flex-col h-full ${className}`} style={{ width: '320px' }}>
       {/* Header */}
-      <div className="p-4 border-b border-gray-200">
+      <div className="p-4 border-b border-gray-200 flex-shrink-0">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-semibold text-gray-900">Projects</h2>
           <div className="flex items-center space-x-1">
@@ -209,7 +210,7 @@ export function ProjectSidebar({ selectedRepository, onRepositorySelect, classNa
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto min-h-0">
         {loading && (
           <div className="p-4 text-center text-gray-500">
             Loading repositories...
