@@ -16,11 +16,11 @@ const mcpClient = new TypedMCPClient()
 
 const fetcher = async (params: ListRepositoriesParams): Promise<RepositoriesResponse> => {
   const result = await mcpClient.call('list_repositories', params)
-  
+
   if (!result.success) {
     throw new Error(result.message || 'Failed to load repositories')
   }
-  
+
   return {
     success: result.success,
     repositories: result.repositories || [],
@@ -33,7 +33,7 @@ const fetcher = async (params: ListRepositoriesParams): Promise<RepositoriesResp
 export function useRepositories(params: ListRepositoriesParams = {}) {
   // Create a stable cache key that includes the parameters
   const cacheKey = ['/mcp/repositories', params]
-  
+
   const { data, error, isLoading, mutate: mutateFn } = useSWR<RepositoriesResponse>(
     cacheKey,
     () => fetcher(params),

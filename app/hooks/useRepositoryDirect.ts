@@ -28,7 +28,7 @@ const fetcher = async (params: GetRepositoryParams): Promise<RepositoryResponse>
 export function useRepositoryDirect(owner: string, repo: string, enabled: boolean = true) {
   const params: GetRepositoryParams = { owner, repo }
   const cacheKey = enabled ? ['/mcp/repositories/direct', params] : null
-  
+
   const { data, error, isLoading, mutate: mutateFn } = useSWR<RepositoryResponse>(
     cacheKey,
     () => fetcher(params),
