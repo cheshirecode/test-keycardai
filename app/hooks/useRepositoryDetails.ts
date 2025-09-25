@@ -1,5 +1,4 @@
 import useSWR from 'swr'
-import { GitHubService } from '@/lib/github-service'
 import type { Repository } from '@/types'
 
 interface RepositoryDetailsData {
@@ -21,10 +20,18 @@ interface RepositoryDetailsResponse {
   message?: string
 }
 
-const githubService = new GitHubService()
+interface GitHubUserResponse {
+  success: boolean
+  user?: {
+    login: string
+    name?: string
+    email?: string
+  }
+  message?: string
+}
 
 /**
- * Fetcher function that gets comprehensive repository details from GitHub API
+ * Fetcher function that gets repository details from server-side API
  */
 const fetchRepositoryDetails = async (owner: string, repo: string): Promise<RepositoryDetailsResponse> => {
   if (!owner || !repo) {
@@ -34,69 +41,30 @@ const fetchRepositoryDetails = async (owner: string, repo: string): Promise<Repo
     }
   }
 
-  if (!githubService.isGitHubAvailable()) {
-    return {
-      success: false,
-      message: 'GitHub API not available - missing token'
-    }
-  }
-
   try {
-    // Fetch all repository data in parallel
-    const [repoResult, languagesResult, topicsResult, readmeResult] = await Promise.allSettled([
-      githubService.getRepository(owner, repo),
-      githubService.getRepositoryLanguages(owner, repo),
-      githubService.getRepositoryTopics(owner, repo),
-      githubService.getRepositoryReadme(owner, repo)
-    ])
-
-    const data: RepositoryDetailsData = {}
-
-    // Process repository basic info
-    if (repoResult.status === 'fulfilled' && repoResult.value.success && repoResult.value.repository) {
-      const repo = repoResult.value.repository as Record<string, unknown>
-      data.stars = repo.stargazers_count as number
-      data.forks = repo.forks_count as number
-      data.openIssues = repo.open_issues_count as number
-      data.size = repo.size as number // Size in KB
-      const license = repo.license as Record<string, unknown> | null
-      data.license = license?.name as string || license?.spdx_id as string
-      data.defaultBranch = repo.default_branch as string
-    }
-
-    // Process languages
-    if (languagesResult.status === 'fulfilled' && languagesResult.value.success && languagesResult.value.languages) {
-      data.languages = languagesResult.value.languages
-      
-      // Calculate percentages
-      const totalBytes = Object.values(languagesResult.value.languages).reduce((sum, bytes) => sum + bytes, 0)
-      if (totalBytes > 0) {
-        data.languagesPercentages = Object.entries(languagesResult.value.languages).reduce((acc, [lang, bytes]) => {
-          acc[lang] = Math.round((bytes / totalBytes) * 100)
-          return acc
-        }, {} as Record<string, number>)
-      }
-    }
-
-    // Process topics
-    if (topicsResult.status === 'fulfilled' && topicsResult.value.success && topicsResult.value.topics) {
-      data.topics = topicsResult.value.topics
-    }
-
-    // Process README
-    if (readmeResult.status === 'fulfilled' && readmeResult.value.success && readmeResult.value.readme) {
-      data.readme = readmeResult.value.readme
-    }
-
-    return {
-      success: true,
-      data,
-      message: 'Repository details retrieved successfully'
-    }
+    const response = await fetch(`/api/repositories/${owner}/${repo}/details`)
+    const data = await response.json()
+    return data
   } catch (error) {
     return {
       success: false,
       message: `Failed to fetch repository details: ${error instanceof Error ? error.message : 'Unknown error'}`
+    }
+  }
+}
+
+/**
+ * Fetcher function that gets GitHub user details from server-side API
+ */
+const fetchGitHubUser = async (): Promise<GitHubUserResponse> => {
+  try {
+    const response = await fetch('/api/github/user')
+    const data = await response.json()
+    return data
+  } catch (error) {
+    return {
+      success: false,
+      message: `Failed to fetch GitHub user: ${error instanceof Error ? error.message : 'Unknown error'}`
     }
   }
 }
@@ -134,7 +102,7 @@ export function useRepositoryDetails(repository: Repository | null, enabled: boo
     isLoading,
     error: error?.message || (data?.success === false ? data.message : null),
     refresh: mutate,
-    isGitHubAvailable: githubService.isGitHubAvailable(),
+    isGitHubAvailable: data?.success !== false, // If we get a successful response, GitHub is available
   }
 }
 
@@ -144,12 +112,9 @@ export function useRepositoryDetails(repository: Repository | null, enabled: boo
 export function useGitHubUser(enabled: boolean = true) {
   const cacheKey = enabled ? ['github-user'] : null
 
-  const { data, error, isLoading, mutate } = useSWR(
+  const { data, error, isLoading, mutate } = useSWR<GitHubUserResponse>(
     cacheKey,
-    async () => {
-      const result = await githubService.getCurrentUser()
-      return result
-    },
+    fetchGitHubUser,
     {
       // Cache for 10 minutes since user info rarely changes
       dedupingInterval: 10 * 60 * 1000,
@@ -165,6 +130,6 @@ export function useGitHubUser(enabled: boolean = true) {
     isLoading,
     error: error?.message || (data?.success === false ? data.message : null),
     refresh: mutate,
-    isGitHubAvailable: githubService.isGitHubAvailable(),
+    isGitHubAvailable: data?.success !== false, // If we get a successful response, GitHub is available
   }
 }
