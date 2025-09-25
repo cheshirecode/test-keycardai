@@ -37,12 +37,13 @@ export function ProjectSidebar({ selectedRepository, onRepositorySelect, classNa
 
   // Select newly created repository when repositories list updates
   useEffect(() => {
-    if (newlyCreatedRepository && repositories.length > 0) {
+    if (newlyCreatedRepository && repositories.length > 0 && selectedRepository === null) {
+      // Only auto-select if no repository is currently selected (user is on home page)
       const newRepo = repositories.find(repo =>
         repo.name === newlyCreatedRepository ||
         repo.fullName.includes(newlyCreatedRepository)
       )
-      if (newRepo && (!selectedRepository || selectedRepository.id !== newRepo.id)) {
+      if (newRepo) {
         // Only select if it's not already selected to prevent unnecessary navigation
         onRepositorySelect(newRepo)
       }

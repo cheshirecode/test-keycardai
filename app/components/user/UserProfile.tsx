@@ -11,6 +11,11 @@ interface UserProfileProps {
 }
 
 export default function UserProfile({ name, email, avatar }: UserProfileProps) {
+  // Don't render anything if no name is provided
+  if (!name || name.trim() === '') {
+    return null
+  }
+
   return (
     <div className="flex items-center space-x-3">
       {avatar ? (
@@ -29,7 +34,7 @@ export default function UserProfile({ name, email, avatar }: UserProfileProps) {
 
       <div className="hidden sm:block">
         <p className="text-sm font-medium text-slate-900">{name}</p>
-        <p className="text-xs text-slate-500">{email}</p>
+        {email && <p className="text-xs text-slate-500">{email}</p>}
       </div>
     </div>
   )

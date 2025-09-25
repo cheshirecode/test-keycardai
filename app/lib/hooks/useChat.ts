@@ -89,27 +89,98 @@ export function useChat() {
 
   const handleRepositoryModification = async (content: string, repository: Repository) => {
     try {
-      // For repository modifications, we need to work with the repository's local path
-      // First, check if we have a local path for this repository
-      const projectPath = `/tmp/repositories/${repository.fullName.replace('/', '-')}`
+      // For repository modifications, we'll use the AI-powered project creation
+      // but specify that we're modifying an existing repository
+      addMessage('assistant', `🔄 **Modifying Repository: ${repository.name}**\n\nAnalyzing your request and preparing modifications...`)
 
-      // Create a project info object from the repository
-      const projectInfo: ProjectInfo = {
-        name: repository.name,
-        path: projectPath,
-        template: 'repository', // Indicate this is a repository modification
-        status: 'completed',
-        repositoryUrl: repository.url || `https://github.com/${repository.fullName}`
+      const result = await mcpClient.call('create_project_with_ai', {
+        description: `Modify existing repository "${repository.name}": ${content}`,
+        existingRepository: {
+          name: repository.name,
+          fullName: repository.fullName,
+          url: repository.url,
+          description: repository.description
+        }
+      }) as { success: boolean; message: string; project?: {
+        name: string;
+        path: string;
+        type: string;
+        description: string;
+        confidence: number;
+        reasoning: string;
+        features: string[];
+        repositoryUrl?: string;
+        totalSteps: number;
+        executionSteps: Array<{
+          step: number;
+          action: string;
+          tool: string;
+          success: boolean;
+          result?: unknown;
+          error?: string;
+          timestamp: string;
+        }>;
+        createdAt: string;
+        aiPowered: boolean;
+        llmUsed: string;
+      }; chainOfThought?: string }
+
+      if (result.success && result.project) {
+        const { project } = result
+
+        // Convert execution steps to MCP logs
+        const mcpLogs: MCPLogEntry[] = project.executionSteps?.map(step => ({
+          timestamp: step.timestamp,
+          type: step.success ? 'response' : 'error' as const,
+          tool: step.tool,
+          message: step.success ?
+            `Step ${step.step}: ${step.action} completed successfully` :
+            `Step ${step.step}: ${step.action} failed - ${step.error}`,
+          data: step.result || step.error
+        })) || []
+
+        // Create comprehensive response message
+        const responseContent = [
+          `✅ **Repository Modified Successfully!**`,
+          ``,
+          `**📊 Modification Results:**`,
+          `• Repository: ${repository.name}`,
+          `• Type: ${project.type}`,
+          `• Confidence: ${(project.confidence * 100).toFixed(1)}%`,
+          `• AI Model: ${project.llmUsed}`,
+          ...(project.features && project.features.length > 0 ? [`• Changes: ${project.features.join(', ')}`] : []),
+          ``,
+          `**🔗 Repository Details:**`,
+          `• URL: ${repository.url}`,
+          `• Total Steps: ${project.totalSteps}`,
+          `• Modified: ${new Date(project.createdAt).toLocaleString()}`,
+          ``,
+          `🎉 Your repository has been updated! Check the repository for the latest changes.`
+        ].join('\n')
+
+        // Use chainOfThought from server response if available
+        const chainOfThought = result.chainOfThought || [
+          `🤖 AI Analysis: ${project.reasoning}`,
+          `📊 Confidence: ${(project.confidence * 100).toFixed(1)}%`,
+          `🔄 Modification Type: ${project.type}`,
+          ...(project.features && project.features.length > 0 ? [`✨ Applied Changes: ${project.features.join(', ')}`] : []),
+          '🔄 Execution Plan:',
+          ...(project.executionSteps?.map(step => `  ${step.success ? '✅' : '❌'} Step ${step.step}: ${step.action}`) || []),
+          `🔗 Repository: ${repository.url}`
+        ].filter(Boolean).join('\n')
+
+        // Add comprehensive message with debugging info
+        addMessage('assistant', responseContent, chainOfThought, mcpLogs)
+
+        // Refresh the repositories list after successful modification
+        setTimeout(() => {
+          invalidateRepositoriesCache()
+          refreshRepositories()
+        }, 1000)
+
+      } else {
+        addMessage('assistant', `❌ Failed to modify repository: ${result.message || 'Unknown error'}`)
       }
-
-      // Use the existing project modification logic
-      await handleProjectModification(content, projectInfo)
-
-      // After successful modification, refresh the repositories list
-      setTimeout(() => {
-        invalidateRepositoriesCache()
-        refreshRepositories()
-      }, 1000)
 
     } catch (error) {
       console.error('Repository modification error:', error)
