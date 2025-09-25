@@ -448,10 +448,9 @@ function RepositoryItem({ repository, isSelected, isNewlyCreated = false, onClic
   }
 
   return (
-    <button
-      onClick={onClick}
+    <div
       data-testid="repository-item"
-      className={`w-full p-3 text-left rounded-md transition-colors group ${
+      className={`w-full p-3 rounded-md transition-colors group relative ${
         isSelected
           ? 'bg-blue-100 border-l-4 border-blue-500'
           : isNewlyCreated
@@ -460,7 +459,11 @@ function RepositoryItem({ repository, isSelected, isNewlyCreated = false, onClic
       }`}
     >
       <div className="flex items-start justify-between">
-        <div className="flex items-start space-x-2 flex-1 min-w-0">
+        {/* Main clickable area */}
+        <button
+          onClick={onClick}
+          className="flex items-start space-x-2 flex-1 min-w-0 text-left bg-transparent border-none p-0 cursor-pointer"
+        >
           <div className="flex-shrink-0 mt-0.5">
             {repository.isScaffoldedProject ? (
               <FolderIcon className="w-4 h-4 text-blue-500" />
@@ -497,17 +500,20 @@ function RepositoryItem({ repository, isSelected, isNewlyCreated = false, onClic
               Updated {formatDate(repository.updatedAt)}
             </p>
           </div>
-        </div>
+        </button>
 
-        {/* Delete button - show for all repositories */}
+        {/* Delete button - separate from main content */}
         <button
-          onClick={onDelete}
+          onClick={(e) => {
+            e.stopPropagation() // Prevent triggering the main onClick
+            onDelete(e)
+          }}
           className="flex-shrink-0 p-1 text-gray-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
           title={`Delete ${repository.name}`}
         >
           <TrashIcon className="w-4 h-4" />
         </button>
       </div>
-    </button>
+    </div>
   )
 }
