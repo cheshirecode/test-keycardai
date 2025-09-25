@@ -17,6 +17,7 @@ export function useRepositorySync() {
 
   useEffect(() => {
     const controller = new AbortController()
+    console.log('🔄 useRepositorySync: Effect triggered - pathname:', pathname, 'selectedRepository:', selectedRepository?.name || 'null')
 
     const syncRepositoryFromUrl = async () => {
       // Check if we're on a repository route
@@ -57,6 +58,7 @@ export function useRepositorySync() {
             if (repository && (!selectedRepository || selectedRepository.id !== repository.id)) {
               // Check again if not aborted before updating state
               if (!controller.signal.aborted) {
+                console.log('🔄 useRepositorySync: Setting repository from URL:', repository.name)
                 // Use the internal setter to avoid navigation loop
                 setSelectedRepositoryInternal(repository)
               }

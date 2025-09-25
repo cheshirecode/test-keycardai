@@ -45,39 +45,71 @@ export function ChatInterface() {
 
   // Handle new project creation with proper state management
   const handleNewProject = useCallback(() => {
-    console.log('🚀 New Project clicked - Current state:', { 
+    const timestamp = Date.now()
+    console.log(`🚀 [${timestamp}] New Project clicked - Current state:`, { 
       currentProject: !!currentProject, 
       isCreatingNewProject, 
       isRepositoryMode,
       isLoading,
-      selectedRepository: !!selectedRepository,
-      messagesLength: messages.length 
+      selectedRepository: selectedRepository ? { name: selectedRepository.name, id: selectedRepository.id } : null,
+      messagesLength: messages.length,
+      pathname: window.location.pathname
     })
 
     // If we're in loading state, we should still proceed to interrupt the current operation
     if (isLoading) {
-      console.log('⚠️ New Project clicked during loading - proceeding to interrupt current operation')
+      console.log(`⚠️ [${timestamp}] New Project clicked during loading - proceeding to interrupt current operation`)
     }
 
+    console.log(`🧹 [${timestamp}] Step 1: Calling clearChat()`)
     // Clear chat and current project FIRST
     clearChat()
 
+    console.log(`🗑️ [${timestamp}] Step 2: Calling clearAllRepositoryData(true)`)
     // Clear all repository-related state but preserve the creating flag
     clearAllRepositoryData(true)
 
+    console.log(`✅ [${timestamp}] Step 3: Setting isCreatingNewProject(true)`)
     // Set flag to indicate new project creation AFTER clearing
     setIsCreatingNewProject(true)
 
+    console.log(`🏠 [${timestamp}] Step 4: Calling navigateToHome()`)
     // Navigate to home immediately - the state updates should be synchronous enough
     navigateToHome()
 
-    // Use setTimeout only for focus and final state check
+    // Use setTimeout to check final state and focus
     setTimeout(() => {
-      console.log('📍 After navigation and state updates - Final state check')
-
+      console.log(`📍 [${timestamp}] Final state check after 100ms:`, {
+        currentProject: !!currentProject, 
+        isCreatingNewProject, 
+        isRepositoryMode,
+        isLoading,
+        selectedRepository: selectedRepository ? { name: selectedRepository.name, id: selectedRepository.id } : null,
+        messagesLength: messages.length,
+        pathname: window.location.pathname
+      })
+      
       const input = document.querySelector('input[type="text"]') as HTMLInputElement
-      input?.focus()
+      if (input) {
+        input.focus()
+        console.log(`🎯 [${timestamp}] Input focused successfully`)
+      } else {
+        console.log(`❌ [${timestamp}] Input element not found`)
+      }
     }, 100)
+
+    // Also check state after a longer delay to see if something is resetting it
+    setTimeout(() => {
+      console.log(`🔍 [${timestamp}] Extended state check after 500ms:`, {
+        currentProject: !!currentProject, 
+        isCreatingNewProject, 
+        isRepositoryMode,
+        isLoading,
+        selectedRepository: selectedRepository ? { name: selectedRepository.name, id: selectedRepository.id } : null,
+        messagesLength: messages.length,
+        pathname: window.location.pathname
+      })
+    }, 500)
   }, [setIsCreatingNewProject, clearAllRepositoryData, clearChat, navigateToHome, currentProject, isCreatingNewProject, isRepositoryMode, isLoading, selectedRepository, messages.length])
 
 
@@ -142,7 +174,12 @@ export function ChatInterface() {
 
             {/* New Project Button - Always visible */}
             <button
-              onClick={handleNewProject}
+              onClick={(e) => {
+                console.log('🖱️ New Project button clicked - event triggered')
+                e.preventDefault()
+                e.stopPropagation()
+                handleNewProject()
+              }}
               className="px-4 py-2 text-sm bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors font-medium"
               disabled={false}
               title="Create a new project (interrupts current operation)"

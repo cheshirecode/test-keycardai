@@ -46,7 +46,8 @@ export function RepositoryProvider({ children }: RepositoryProviderProps) {
     }
   }, [newlyCreatedRepository])
 
-  const isRepositoryMode = selectedRepository !== null
+  // Repository mode is when we have a selected repository AND we're not explicitly creating a new project
+  const isRepositoryMode = selectedRepository !== null && !isCreatingNewProject
 
   const navigateToRepository = useCallback((repository: Repository) => {
     // Extract owner from fullName (format: "owner/repo")
