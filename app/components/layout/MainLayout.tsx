@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useCallback, useState } from 'react'
 import { ProjectSidebar } from '@/components/project'
 import { useRepositoryState } from '@/hooks/useRepositoryAtoms'
 import { useRepositorySync } from '@/hooks/useRepositorySync'
-import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
+import { XMarkIcon } from '@heroicons/react/24/outline'
 
 interface MainLayoutProps {
   children: React.ReactNode
@@ -38,14 +38,6 @@ export function MainLayout({ children }: MainLayoutProps) {
 
   return (
     <div className="flex h-screen w-full bg-white min-h-0 overflow-hidden">
-      {/* Mobile menu button */}
-      <button
-        onClick={() => setIsSidebarOpen(true)}
-        className="fixed top-4 left-4 z-50 p-2 bg-white shadow-lg rounded-lg lg:hidden"
-        aria-label="Open sidebar"
-      >
-        <Bars3Icon className="h-6 w-6 text-gray-600" />
-      </button>
 
       {/* Mobile sidebar overlay */}
       {isSidebarOpen && (
@@ -91,7 +83,9 @@ export function MainLayout({ children }: MainLayoutProps) {
 
       {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden">
-        {children}
+        {React.cloneElement(children as React.ReactElement, {
+          onToggleSidebar: () => setIsSidebarOpen(true)
+        })}
       </div>
     </div>
   )

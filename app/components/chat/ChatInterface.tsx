@@ -11,7 +11,11 @@ import { useRepositoryCommits } from '@/hooks/useRepositoryCommits'
 import { useAtom } from 'jotai'
 import { isFastModeAtom } from '@/store/aiRequestStore'
 
-export function ChatInterface() {
+interface ChatInterfaceProps {
+  onToggleSidebar?: () => void
+}
+
+export function ChatInterface({ onToggleSidebar }: ChatInterfaceProps = {}) {
   const [input, setInput] = useState('')
   const [isFastMode, setIsFastMode] = useAtom(isFastModeAtom)
   const { messages, isLoading, currentProject, sendMessage, clearChat } = useChat(isFastMode)
@@ -102,14 +106,28 @@ export function ChatInterface() {
         <div className="max-w-7xl mx-auto relative">
           {/* Main header row */}
           <div className="flex items-center justify-between mb-2 sm:mb-0">
-            <div className="min-w-0 flex-1 mr-3">
-              <h1 className="text-base sm:text-lg md:text-2xl font-bold text-gray-900 truncate">🚀 Project Scaffolder</h1>
-              <p className="text-xs md:text-sm text-gray-600 truncate hidden sm:block">
-                {isRepositoryMode && selectedRepository
-                  ? `Modifying: ${selectedRepository.name}`
-                  : 'Create GitHub projects with natural language'
-                }
-              </p>
+            <div className="min-w-0 flex-1 mr-3 flex items-center">
+              {/* Mobile sidebar toggle */}
+              {onToggleSidebar && (
+                <button
+                  onClick={onToggleSidebar}
+                  className="mr-3 p-1.5 bg-gray-100 hover:bg-gray-200 rounded-md lg:hidden"
+                  aria-label="Open sidebar"
+                >
+                  <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                </button>
+              )}
+              <div>
+                <h1 className="text-base sm:text-lg md:text-2xl font-bold text-gray-900 truncate">🚀 Project Scaffolder</h1>
+                <p className="text-xs md:text-sm text-gray-600 truncate hidden sm:block">
+                  {isRepositoryMode && selectedRepository
+                    ? `Modifying: ${selectedRepository.name}`
+                    : 'Create GitHub projects with natural language'
+                  }
+                </p>
+              </div>
             </div>
 
             {/* Mobile: Only essential buttons */}
