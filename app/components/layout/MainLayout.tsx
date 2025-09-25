@@ -22,9 +22,11 @@ export function MainLayout({ children }: MainLayoutProps) {
   // Sync repository selection with URL changes
   useRepositorySync()
 
-  // Set up the refresh callback
+  // Set up the refresh callback - only set if we have a valid function
   useEffect(() => {
-    setOnRepositoryRefresh(sidebarRefreshRef.current)
+    if (sidebarRefreshRef.current) {
+      setOnRepositoryRefresh(sidebarRefreshRef.current)
+    }
   }, [setOnRepositoryRefresh])
 
   const handleSidebarRefresh = useCallback((refreshFn: () => void) => {

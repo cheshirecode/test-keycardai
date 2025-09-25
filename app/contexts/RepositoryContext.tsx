@@ -69,6 +69,14 @@ export function RepositoryProvider({ children }: RepositoryProviderProps) {
       }
     }
 
+    // Also clear if we're selecting a different repository than the newly created one
+    // to prevent unwanted auto-selection later
+    if (repository && newlyCreatedRepository &&
+        repository.name !== newlyCreatedRepository &&
+        !repository.fullName.includes(newlyCreatedRepository)) {
+      setNewlyCreatedRepository(null)
+    }
+
     // Only navigate if we're not already on the correct route
     if (repository) {
       const [owner] = repository.fullName.split('/')
@@ -85,7 +93,7 @@ export function RepositoryProvider({ children }: RepositoryProviderProps) {
   }, [pathname, navigateToRepository, navigateToHome, newlyCreatedRepository])
 
   const refreshRepositories = useCallback(() => {
-    if (onRepositoryRefresh) {
+    if (onRepositoryRefresh && typeof onRepositoryRefresh === 'function') {
       onRepositoryRefresh()
     }
   }, [onRepositoryRefresh])

@@ -42,11 +42,12 @@ export function ProjectSidebar({ selectedRepository, onRepositorySelect, classNa
         repo.name === newlyCreatedRepository ||
         repo.fullName.includes(newlyCreatedRepository)
       )
-      if (newRepo) {
+      if (newRepo && (!selectedRepository || selectedRepository.id !== newRepo.id)) {
+        // Only select if it's not already selected to prevent unnecessary navigation
         onRepositorySelect(newRepo)
       }
     }
-  }, [repositories, newlyCreatedRepository, onRepositorySelect])
+  }, [repositories, newlyCreatedRepository, onRepositorySelect, selectedRepository])
 
   const handleDeleteRepository = async (repository: Repository, event: React.MouseEvent) => {
     event.stopPropagation() // Prevent repository selection
@@ -94,11 +95,11 @@ export function ProjectSidebar({ selectedRepository, onRepositorySelect, classNa
     // First sort by updatedAt (most recent first)
     const dateA = new Date(a.updatedAt).getTime()
     const dateB = new Date(b.updatedAt).getTime()
-    
+
     if (dateB !== dateA) {
       return dateB - dateA // Most recent first
     }
-    
+
     // If dates are equal, sort by name (alphabetical)
     return a.name.localeCompare(b.name)
   })

@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react'
 import { MCPClient } from '@/lib/mcp-client'
 import { useRepository } from '@/contexts/RepositoryContext'
 import { invalidateRepositoriesCache } from '@/hooks/useRepositories'
-import type { Message, ProjectInfo, MCPLogEntry } from '@/types'
+import type { Message, ProjectInfo, MCPLogEntry, Repository } from '@/types'
 
 export function useChat() {
   const [messages, setMessages] = useState<Message[]>([])
@@ -12,6 +12,7 @@ export function useChat() {
   const { selectedRepository, setNewlyCreatedRepository, refreshRepositories } = useRepository()
 
   // Clear currentProject when selectedRepository changes (user navigates to different repo)
+  // We'll handle repository modifications differently from project modifications
   React.useEffect(() => {
     setCurrentProject(null)
   }, [selectedRepository])
@@ -54,21 +55,65 @@ export function useChat() {
     addMessage('user', content)
 
     try {
-      // Determine if this is a new project request or a modification to existing project
-      const isModificationRequest = currentProject && await isProjectModificationRequest(content)
-      
-      if (isModificationRequest && currentProject) {
-        // Handle modification to existing project
-        await handleProjectModification(content, currentProject)
+      // Check if we're in repository mode (user is on a repository page)
+      if (selectedRepository) {
+        // Check if this is a modification request for the selected repository
+        const isModificationRequest = await isProjectModificationRequest(content)
+
+        if (isModificationRequest) {
+          // Handle repository modification
+          await handleRepositoryModification(content, selectedRepository)
+        } else {
+          // Even on repository page, user might want to create a new project
+          await handleNewProjectCreation(content)
+        }
       } else {
-        // Handle new project creation
-        await handleNewProjectCreation(content)
+        // We're on the home page - check if it's a project modification or new creation
+        const isModificationRequest = currentProject && await isProjectModificationRequest(content)
+
+        if (isModificationRequest && currentProject) {
+          // Handle modification to existing project
+          await handleProjectModification(content, currentProject)
+        } else {
+          // Handle new project creation
+          await handleNewProjectCreation(content)
+        }
       }
     } catch (error) {
       console.error('Request failed:', error)
       addMessage('assistant', `❌ Sorry, I encountered an error: ${error instanceof Error ? error.message : 'Unknown error'}`)
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const handleRepositoryModification = async (content: string, repository: Repository) => {
+    try {
+      // For repository modifications, we need to work with the repository's local path
+      // First, check if we have a local path for this repository
+      const projectPath = `/tmp/repositories/${repository.fullName.replace('/', '-')}`
+
+      // Create a project info object from the repository
+      const projectInfo: ProjectInfo = {
+        name: repository.name,
+        path: projectPath,
+        template: 'repository', // Indicate this is a repository modification
+        status: 'completed',
+        repositoryUrl: repository.url || `https://github.com/${repository.fullName}`
+      }
+
+      // Use the existing project modification logic
+      await handleProjectModification(content, projectInfo)
+
+      // After successful modification, refresh the repositories list
+      setTimeout(() => {
+        invalidateRepositoriesCache()
+        refreshRepositories()
+      }, 1000)
+
+    } catch (error) {
+      console.error('Repository modification error:', error)
+      addMessage('assistant', `❌ Failed to modify repository: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
 
@@ -164,7 +209,7 @@ export function useChat() {
           // Extract repository name from URL or use project name
           const repoName = project.repositoryUrl.split('/').pop() || project.name
           setNewlyCreatedRepository(repoName)
-          
+
           // Invalidate SWR cache and refresh repositories
           setTimeout(() => {
             invalidateRepositoriesCache()
@@ -252,7 +297,7 @@ export function useChat() {
       }
 
       const plan = planResult.analysis.modificationPlan
-      
+
       // Show the plan to the user
       const planMessage = [
         `🔄 **Modifying Existing Project: ${project.name}**`,
@@ -358,9 +403,9 @@ export function useChat() {
     ]
 
     const lowerContent = content.toLowerCase()
-    
+
     // If content starts with clear modification intent
-    const hasModificationIntent = modificationKeywords.some(keyword => 
+    const hasModificationIntent = modificationKeywords.some(keyword =>
       lowerContent.includes(keyword)
     )
 
@@ -373,7 +418,7 @@ export function useChat() {
     // It's a modification if:
     // 1. Has modification keywords AND no new project keywords
     // 2. OR is a short command-like request (likely modification)
-    return hasModificationIntent && !hasNewProjectIntent || 
+    return hasModificationIntent && !hasNewProjectIntent ||
            (content.split(' ').length <= 3 && hasModificationIntent)
   }
 
