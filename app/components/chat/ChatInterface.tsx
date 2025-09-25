@@ -79,45 +79,70 @@ export function ChatInterface() {
               limit: 10 
             })
             
-            if (result.success && result.commits && result.commits.length > 0) {
-              console.log(`✅ [ChatInterface] Found ${result.commits.length} commits from GitHub API`)
-              // Sort commits chronologically (oldest first for chat display)
-              const sortedCommits = [...result.commits].reverse()
-              setCommits(sortedCommits)
-              return // Success, exit early
+            if (result.success) {
+              if (result.commits && result.commits.length > 0) {
+                console.log(`✅ [ChatInterface] Found ${result.commits.length} commits from GitHub API`)
+                // Sort commits chronologically (oldest first for chat display)
+                const sortedCommits = [...result.commits].reverse()
+                setCommits(sortedCommits)
+                return // Success, exit early
+              } else {
+                // GitHub API succeeded but repository is empty - no need to check local paths
+                console.log(`ℹ️ [ChatInterface] GitHub API succeeded but repository is empty`)
+                const githubCommit = {
+                  hash: 'github-empty-' + Date.now(),
+                  author: 'GitHub Repository',
+                  email: 'github@repository',
+                  date: new Date().toISOString(),
+                  timestamp: Date.now(),
+                  message: `GitHub Repository: ${selectedRepository.fullName}
+
+This repository exists on GitHub but appears to be empty.
+
+Repository: ${selectedRepository.fullName}
+Description: ${selectedRepository.description || 'No description available'}
+URL: ${selectedRepository.url || 'Not available'}
+
+This is a valid GitHub repository with no commits yet.`,
+                  subject: `docs: empty GitHub repository ${selectedRepository.fullName}`,
+                  body: `Repository exists but has no commits yet.`
+                }
+                setCommits([githubCommit])
+                return // Don't check local paths for empty GitHub repos
+              }
             } else {
-              console.log(`⚠️ [ChatInterface] No commits found via GitHub API: ${result.message || 'Unknown error'}`)
+              console.log(`⚠️ [ChatInterface] GitHub API failed: ${result.message || 'Unknown error'} - will try local paths`)
             }
           } catch (error) {
             console.log(`❌ [ChatInterface] GitHub API commit fetch failed:`, error)
           }
         }
         
-        // Fallback to local file system search
+        // Fallback to local file system search (only if GitHub API failed)
         const sanitizedName = selectedRepository.name.replace(/[^a-zA-Z0-9_-]/g, '_')
+        const isGitHubRepoForPaths = selectedRepository.fullName && selectedRepository.fullName.includes('/')
         
-        // Build static paths first
-        const staticPaths = [
-          // For newly scaffolded projects
+        // For GitHub repos, only check the most likely local clone locations
+        // For non-GitHub repos, check all possible paths
+        const possiblePaths = isGitHubRepoForPaths ? [
+          // Only check common clone locations for GitHub repos
+          `/tmp/repositories/${selectedRepository.name}`, // Standard repository clone path
+          `/tmp/repositories/${sanitizedName}`, // Sanitized repository clone path
+          `./projects/${selectedRepository.name}`, // Local development clone
+          `./${selectedRepository.name}` // Current directory clone
+        ] : [
+          // For non-GitHub repos, check all scaffolded project paths
           `/tmp/projects/${sanitizedName}`, // Vercel/production temp directory for new projects
           `${process.cwd()}/.temp/projects/${sanitizedName}`, // Local development temp directory for new projects
-          
-          // For cloned/existing repositories (most likely location)
-          `/tmp/repositories/${selectedRepository.name}`, // Standard repository path without timestamp
+          `/tmp/repositories/${selectedRepository.name}`, // Repository path
           `/tmp/repositories/${sanitizedName}`, // Sanitized repository path
-        ]
-        
-        // Simple static paths only (no client-side file system access)
-        const possiblePaths = [
-          ...staticPaths,
-          // Fallback paths
           `./projects/${sanitizedName}`, // Relative projects directory
           `./${selectedRepository.name}`, // Current directory with original name
           selectedRepository.name // Just the repository name
         ]
         
-        console.log(`🔍 [ChatInterface] Trying to find local git repository for: ${selectedRepository.name}`)
-        console.log(`🔍 [ChatInterface] Checking ${possiblePaths.length} possible paths:`, possiblePaths)
+        console.log(`🔍 [ChatInterface] GitHub API failed, trying local paths for: ${selectedRepository.name}`)
+        console.log(`🔍 [ChatInterface] Checking ${possiblePaths.length} ${isGitHubRepoForPaths ? 'clone' : 'project'} paths:`, possiblePaths)
         
         for (const projectPath of possiblePaths) {
           try {
@@ -141,43 +166,86 @@ export function ChatInterface() {
         }
         // If all methods failed, create synthetic commit as last resort
         console.log(`❌ [ChatInterface] No git repository found for ${selectedRepository.name} via GitHub API or local paths`)
-        console.log(`ℹ️ [ChatInterface] Creating synthetic commit as fallback`)
         
         // Create a synthetic commit for display with context about the repository type
         const isGitHubRepo = selectedRepository.fullName && selectedRepository.fullName.includes('/')
-        const isScaffoldedProject = selectedRepository.name.includes('-') && /\d{13}/.test(selectedRepository.name)
+        const isScaffoldedProject = selectedRepository.name.includes('-') && /\d{13}/.test(selectedRepository.name) && !isGitHubRepo
         
-        const scaffoldingCommit = {
-          hash: 'synthetic-' + Date.now(),
-          author: isGitHubRepo ? 'GitHub Repository' : 'Project Scaffolder',
-          email: isGitHubRepo ? 'github@repository' : 'scaffolder@system',
-          date: new Date().toISOString(),
-          timestamp: Date.now(),
-          message: isGitHubRepo 
-            ? `GitHub Repository: ${selectedRepository.fullName}`
-            : 'Project created via Project Scaffolder',
-          subject: isGitHubRepo 
-            ? `docs: GitHub repository ${selectedRepository.fullName}` 
-            : 'feat: project scaffolding',
-          body: isGitHubRepo 
-            ? `This is a GitHub repository: ${selectedRepository.fullName}
+        if (isGitHubRepo) {
+          console.log(`ℹ️ [ChatInterface] This is a GitHub repository but no commits were found - repository might be empty`)
+          
+          const githubCommit = {
+            hash: 'github-empty-' + Date.now(),
+            author: 'GitHub Repository',
+            email: 'github@repository',
+            date: new Date().toISOString(),
+            timestamp: Date.now(),
+            message: `GitHub Repository: ${selectedRepository.fullName}
 
-${selectedRepository.description || 'No description available'}
+This repository exists on GitHub but appears to be empty or you may not have access to view its commits.
 
-Repository URL: ${selectedRepository.url || 'Not available'}
-Created: ${new Date().toLocaleString()}
+Repository: ${selectedRepository.fullName}
+Description: ${selectedRepository.description || 'No description available'}
+URL: ${selectedRepository.url || 'Not available'}
 
-Note: Git history should be available via GitHub API. If you're not seeing commits, the repository might be empty or you may need to check your GitHub token permissions.`
-            : `This project was created using the Project Scaffolder tool.
+Possible reasons for no commits:
+- Repository is newly created and empty
+- Repository is private and requires different permissions
+- GitHub token lacks necessary permissions
+- Network connectivity issues`,
+            subject: `docs: empty GitHub repository ${selectedRepository.fullName}`,
+            body: `Repository exists but no commit history available.
+
+Check GitHub token permissions or repository status.`
+          }
+          
+          setCommits([githubCommit])
+        } else if (isScaffoldedProject) {
+          console.log(`ℹ️ [ChatInterface] This appears to be a scaffolded project - showing scaffolding info`)
+          
+          const scaffoldingCommit = {
+            hash: 'scaffold-' + Date.now(),
+            author: 'Project Scaffolder',
+            email: 'scaffolder@system',
+            date: new Date().toISOString(),
+            timestamp: Date.now(),
+            message: `This project was created using the Project Scaffolder tool.
 
 Repository: ${selectedRepository.name}
 Created: ${new Date().toLocaleString()}
-Type: ${isScaffoldedProject ? 'Scaffolded Project' : 'Local Project'}
+Type: Scaffolded Project
 
-The actual git history will be available once the repository is cloned locally or after manual git operations.`
+The actual git history will be available once the repository is cloned locally or after manual git operations.`,
+            subject: 'feat: initial project scaffolding',
+            body: `Project scaffolded using MCP tools.
+
+Once you start modifying this project, real git commits will appear here.`
+          }
+          
+          setCommits([scaffoldingCommit])
+        } else {
+          console.log(`ℹ️ [ChatInterface] Creating generic synthetic commit for local project`)
+          
+          const localCommit = {
+            hash: 'local-' + Date.now(),
+            author: 'Local Project',
+            email: 'local@project',
+            date: new Date().toISOString(),
+            timestamp: Date.now(),
+            message: `Local project: ${selectedRepository.name}
+
+This appears to be a local project without git history available through the current methods.
+
+Project: ${selectedRepository.name}
+Type: Local Project
+
+Git history will appear here once commits are made to this project.`,
+            subject: 'docs: local project',
+            body: `Local project without accessible git history.`
+          }
+          
+          setCommits([localCommit])
         }
-        
-        setCommits([scaffoldingCommit])
       }
       
       tryPath().finally(() => {

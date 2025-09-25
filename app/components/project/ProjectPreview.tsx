@@ -153,19 +153,32 @@ export function ProjectPreview({ project }: ProjectPreviewProps) {
                 limit: 1 
               })
               
-              if (result.success && result.commits && result.commits.length > 0) {
-                console.log(`✅ [ProjectPreview] Found latest commit from GitHub API`)
-                const latest = result.commits[0]
-                setLatestCommit({
-                  hash: latest.hash,
-                  author: latest.author,
-                  date: latest.date,
-                  subject: latest.subject,
-                  timestamp: latest.timestamp
-                })
-                return // Success, exit early
+              if (result.success) {
+                if (result.commits && result.commits.length > 0) {
+                  console.log(`✅ [ProjectPreview] Found latest commit from GitHub API`)
+                  const latest = result.commits[0]
+                  setLatestCommit({
+                    hash: latest.hash,
+                    author: latest.author,
+                    date: latest.date,
+                    subject: latest.subject,
+                    timestamp: latest.timestamp
+                  })
+                  return // Success, exit early
+                } else {
+                  // GitHub API succeeded but repository is empty - no need to check local paths
+                  console.log(`ℹ️ [ProjectPreview] GitHub API succeeded but repository is empty`)
+                  setLatestCommit({
+                    hash: 'github-empty-' + Date.now(),
+                    author: 'GitHub Repository',
+                    date: new Date().toISOString(),
+                    subject: 'docs: empty GitHub repository',
+                    timestamp: Date.now()
+                  })
+                  return // Don't check local paths for empty GitHub repos
+                }
               } else {
-                console.log(`⚠️ [ProjectPreview] No commits found via GitHub API: ${result.message || 'Unknown error'}`)
+                console.log(`⚠️ [ProjectPreview] GitHub API failed: ${result.message || 'Unknown error'} - will try local paths`)
               }
             } catch (error) {
               console.log(`❌ [ProjectPreview] GitHub API commit fetch failed:`, error)
@@ -173,33 +186,32 @@ export function ProjectPreview({ project }: ProjectPreviewProps) {
           }
         }
         
-        // Fallback to local file system search
+        // Fallback to local file system search (only if GitHub API failed)
         const sanitizedName = project.name.replace(/[^a-zA-Z0-9_-]/g, '_')
+        const isGitHubRepoForPaths = project.repositoryUrl && project.repositoryUrl.includes('github.com')
         
-        // Build static paths first
-        const staticPaths = [
+        // For GitHub repos, only check the most likely local clone locations
+        // For non-GitHub repos, check all possible paths including scaffolded project paths
+        const possiblePaths = isGitHubRepoForPaths ? [
+          // Only check common clone locations for GitHub repos
+          `/tmp/repositories/${project.name}`, // Standard repository clone path
+          `/tmp/repositories/${sanitizedName}`, // Sanitized repository clone path
+          `./projects/${project.name}`, // Local development clone
+          `./${project.name}` // Current directory clone
+        ] : [
+          // For non-GitHub repos, check all scaffolded project paths
           project.path, // Original path if available
-          
-          // For newly scaffolded projects
           `/tmp/projects/${sanitizedName}`, // Vercel/production temp directory for new projects
           `${process.cwd()}/.temp/projects/${sanitizedName}`, // Local development temp directory for new projects
-          
-          // For cloned/existing repositories (most likely location)
-          `/tmp/repositories/${project.name}`, // Standard repository path without timestamp
+          `/tmp/repositories/${project.name}`, // Repository path
           `/tmp/repositories/${sanitizedName}`, // Sanitized repository path
+          `./projects/${sanitizedName}`, // Relative projects directory
+          `./${project.name}`, // Current directory with original name
+          project.name // Just the project name
         ].filter(Boolean) // Remove any undefined/null values
-        
-      // Simple static paths only (no client-side file system access)
-      const possiblePaths = [
-        ...staticPaths,
-        // Fallback paths
-        `./projects/${sanitizedName}`, // Relative projects directory
-        `./${project.name}`, // Current directory with original name
-        project.name // Just the project name
-      ]
 
-        console.log(`🔍 [ProjectPreview] Trying to find local git repository for: ${project.name}`)
-        console.log(`🔍 [ProjectPreview] Checking ${possiblePaths.length} possible paths:`, possiblePaths)
+        console.log(`🔍 [ProjectPreview] GitHub API failed, trying local paths for: ${project.name}`)
+        console.log(`🔍 [ProjectPreview] Checking ${possiblePaths.length} ${isGitHubRepoForPaths ? 'clone' : 'project'} paths:`, possiblePaths)
         
         for (const projectPath of possiblePaths) {
           try {
@@ -228,20 +240,42 @@ export function ProjectPreview({ project }: ProjectPreviewProps) {
         }
         // If all methods failed, create synthetic commit as last resort
         console.log(`❌ [ProjectPreview] No git repository found for project ${project.name} via GitHub API or local paths`)
-        console.log(`ℹ️ [ProjectPreview] Creating synthetic commit as fallback`)
         
         // Create a synthetic commit for display with context about the repository type
         const isGitHubRepo = project.repositoryUrl && project.repositoryUrl.includes('github.com')
+        const isScaffoldedProject = project.name.includes('-') && /\d{13}/.test(project.name) && !isGitHubRepo
         
-        setLatestCommit({
-          hash: 'synthetic-' + Date.now(),
-          author: isGitHubRepo ? 'GitHub Repository' : 'Project Scaffolder',
-          date: new Date().toISOString(),
-          subject: isGitHubRepo 
-            ? `docs: GitHub repository project` 
-            : 'feat: project scaffolding',
-          timestamp: Date.now()
-        })
+        if (isGitHubRepo) {
+          console.log(`ℹ️ [ProjectPreview] This is a GitHub repository but no commits were found - repository might be empty`)
+          
+          setLatestCommit({
+            hash: 'github-empty-' + Date.now(),
+            author: 'GitHub Repository',
+            date: new Date().toISOString(),
+            subject: 'docs: empty GitHub repository',
+            timestamp: Date.now()
+          })
+        } else if (isScaffoldedProject) {
+          console.log(`ℹ️ [ProjectPreview] This appears to be a scaffolded project - showing scaffolding info`)
+          
+          setLatestCommit({
+            hash: 'scaffold-' + Date.now(),
+            author: 'Project Scaffolder',
+            date: new Date().toISOString(),
+            subject: 'feat: initial project scaffolding',
+            timestamp: Date.now()
+          })
+        } else {
+          console.log(`ℹ️ [ProjectPreview] Creating generic synthetic commit for local project`)
+          
+          setLatestCommit({
+            hash: 'local-' + Date.now(),
+            author: 'Local Project',
+            date: new Date().toISOString(),
+            subject: 'docs: local project',
+            timestamp: Date.now()
+          })
+        }
       }
 
       tryPath().finally(() => {

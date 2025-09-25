@@ -29,6 +29,44 @@ When you select an existing repository in the sidebar and make a modification re
 User selects repository → Chat classified as "repository_modification" → ModifyRepositoryCommand executed
 ```
 
+### **1.5. Commit History Display** ⭐ **NEW!**
+The system now intelligently displays git commit history:
+
+#### **GitHub API Integration (Primary)**
+- For repositories with `owner/repo` format (e.g., `mcp-integration/test-test-test`)
+- Direct GitHub API calls to fetch commit history
+- Works for both scaffolded and existing repositories
+- Proper error handling for permissions and empty repositories
+
+#### **Local Git Fallback (Secondary)**
+- Searches local file paths when GitHub API unavailable
+- Multiple path scanning strategies for different project types
+- Falls back to synthetic commits if no history found
+
+#### **Smart Repository Detection**
+```typescript
+// GitHub Repository URLs (ProjectPreview)
+project.repositoryUrl = "https://github.com/user/repo"
+→ Extracts owner/repo → Fetches via GitHub API
+
+// Owner/Repo Format (ChatInterface)
+selectedRepository.fullName = "mcp-integration/test-test-test"
+→ Direct GitHub API call → Real commit history
+
+// Repository Type Classification:
+const isGitHubRepo = selectedRepository.fullName?.includes('/')
+const isScaffoldedProject = name.includes('-') && /\d{13}/.test(name) && !isGitHubRepo
+
+// GitHub Repository: mcp-integration/test-test-test
+→ GitHub API → Real commits (or empty repository message)
+
+// Scaffolded Project: my-project-1234567890123
+→ Synthetic scaffolding commit
+
+// Local Project: my-local-project  
+→ Local file system search → MCP git_log tool
+```
+
 ### **2. Repository Cloning**
 The system attempts to clone the repository using multiple methods:
 
@@ -96,6 +134,13 @@ Your GitHub Personal Access Token must have:
 - ✅ **`repo`** - Full repository access
 - ✅ **`contents:write`** - Write access to repository contents
 - ✅ **`metadata:read`** - Read repository metadata
+
+### **Commit History Access** ⭐ **NEW!**
+The same PAT is used for fetching commit history:
+
+- ✅ **Public repositories**: Read access works with basic PAT
+- ✅ **Private repositories**: Requires `repo` scope for full access
+- ✅ **Organization repositories**: May require additional organization permissions
 
 ### **Environment Setup**
 ```bash
@@ -168,12 +213,24 @@ if (!repoInfo.success) {
 ### **Console Logging**
 The system provides detailed logging for troubleshooting:
 
+#### **Repository Modification Logs**
 ```
 [Git Clone] Attempting real clone of https://github.com/user/repo
 [AI Planning] Generating modification plan with AI...
 [AI Planning] Successfully generated AI plan with 3 steps
 [Git Push] Attempting real push to GitHub for user/repo
 [Git Push] Successfully pushed changes to user/repo
+```
+
+#### **Commit History Logs** ⭐ **NEW!**
+```
+🔍 [ChatInterface] Attempting to fetch commits from GitHub API for: mcp-integration/test-test-test
+[GitHub API] Fetching commits for mcp-integration/test-test-test (limit: 10)
+[GitHub API] Successfully fetched 5 commits for mcp-integration/test-test-test
+✅ [ChatInterface] Found 5 commits from GitHub API
+
+🔍 [ProjectPreview] Attempting to fetch latest commit from GitHub API for: user/repo
+✅ [ProjectPreview] Found latest commit from GitHub API
 ```
 
 ### **Fallback Indicators**
@@ -218,6 +275,11 @@ Real operations show clear success messages:
 - **Cause**: Insufficient write permissions or repository conflicts
 - **Solution**: Verify PAT permissions and repository status
 - **Fallback**: Changes preserved locally with simulation message
+
+#### **"GitHub repository showing scaffolding message"** ⭐ **NEW!**
+- **Cause**: Repository type detection misclassifying GitHub repos as scaffolded projects
+- **Solution**: Check that `selectedRepository.fullName` contains `/` (e.g., `owner/repo`)
+- **Fixed**: System now properly distinguishes GitHub repos from scaffolded projects
 
 ### **Debugging Steps**
 
