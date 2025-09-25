@@ -71,10 +71,10 @@ export function ProjectSidebar({ selectedRepository, onRepositorySelect, classNa
     try {
       const [owner, repo] = repository.fullName.split('/')
       const mcpClient = new TypedMCPClient()
-      
+
       // First validate permissions
-      const permissionCheck = await mcpClient.call('validate_repository_permissions', { 
-        owner 
+      const permissionCheck = await mcpClient.call('validate_repository_permissions', {
+        owner
       })
 
       if (!permissionCheck.canDelete) {

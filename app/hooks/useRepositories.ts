@@ -14,18 +14,7 @@ interface RepositoriesResponse {
 
 const mcpClient = new TypedMCPClient()
 
-const fetcher = async (key: string): Promise<RepositoriesResponse> => {
-  // Parse the key to extract any query parameters
-  const url = new URL(key, 'http://localhost')
-  
-  const params: ListRepositoriesParams = {
-    owner: url.searchParams.get('owner') || undefined,
-    nameFilter: url.searchParams.get('nameFilter') || undefined,
-    type: (url.searchParams.get('type') as 'all' | 'public' | 'private') || undefined,
-    sort: (url.searchParams.get('sort') as 'created' | 'updated' | 'pushed' | 'full_name') || undefined,
-    direction: (url.searchParams.get('direction') as 'asc' | 'desc') || undefined
-  }
-
+const fetcher = async (params: ListRepositoriesParams): Promise<RepositoriesResponse> => {
   const result = await mcpClient.call('list_repositories', params)
   
   if (!result.success) {
@@ -41,10 +30,13 @@ const fetcher = async (key: string): Promise<RepositoriesResponse> => {
   }
 }
 
-export function useRepositories() {
+export function useRepositories(params: ListRepositoriesParams = {}) {
+  // Create a stable cache key that includes the parameters
+  const cacheKey = ['/mcp/repositories', params]
+  
   const { data, error, isLoading, mutate: mutateFn } = useSWR<RepositoriesResponse>(
-    '/mcp/repositories',
-    fetcher,
+    cacheKey,
+    () => fetcher(params),
     {
       // Cache for 5 minutes
       dedupingInterval: 5 * 60 * 1000,
@@ -64,37 +56,38 @@ export function useRepositories() {
     error: error?.message || null,
     refresh: mutateFn,
     // Global mutate function for cache invalidation
-    invalidateCache: () => mutate('/mcp/repositories'),
+    invalidateCache: () => mutate(cacheKey),
   }
 }
 
 // Helper function to invalidate repositories cache globally
 export const invalidateRepositoriesCache = () => {
-  return mutate('/mcp/repositories')
+  // Invalidate all repository caches by matching the key pattern
+  return mutate(key => Array.isArray(key) && key[0] === '/mcp/repositories')
 }
 
 // Helper function to find a specific repository by owner and name
 export function useRepository(owner: string, repo: string) {
   const { repositories, isLoading: isLoadingList, error: listError, refresh } = useRepositories()
-  
+
   const repository = repositories.find((repository: Repository) => {
     const [repoOwner] = repository.fullName.split('/')
-    return repoOwner.toLowerCase() === owner.toLowerCase() && 
+    return repoOwner.toLowerCase() === owner.toLowerCase() &&
            repository.name.toLowerCase() === repo.toLowerCase()
   })
 
   // If repository not found in list and list loading is complete, try direct API
   const shouldTryDirect = !isLoadingList && !repository && repositories.length >= 0
-  const { 
-    repository: directRepository, 
-    isLoading: isLoadingDirect, 
-    error: directError 
+  const {
+    repository: directRepository,
+    isLoading: isLoadingDirect,
+    error: directError
   } = useRepositoryDirect(owner, repo, shouldTryDirect)
 
   // Use repository from list if found, otherwise use direct repository
   const finalRepository = repository || directRepository
   const isLoading = isLoadingList || (shouldTryDirect && isLoadingDirect)
-  
+
   // Only show error if both methods have completed and no repository found
   const finalError = listError || (shouldTryDirect && !isLoadingDirect && !directRepository ? directError : null)
 

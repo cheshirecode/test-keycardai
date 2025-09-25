@@ -17,18 +17,18 @@ export function useRepositorySync() {
 
   useEffect(() => {
     const controller = new AbortController()
-    
+
     const syncRepositoryFromUrl = async () => {
       // Check if we're on a repository route
       const projectMatch = pathname.match(/^\/project\/([^\/]+)\/([^\/]+)$/)
-      
+
       if (projectMatch) {
         const [, owner, repo] = projectMatch
-        
+
         // Check if we already have the correct repository selected
         if (selectedRepository) {
           const [currentOwner] = selectedRepository.fullName.split('/')
-          if (currentOwner.toLowerCase() === owner.toLowerCase() && 
+          if (currentOwner.toLowerCase() === owner.toLowerCase() &&
               selectedRepository.name.toLowerCase() === repo.toLowerCase()) {
             // Already have the correct repository selected
             return
@@ -39,9 +39,9 @@ export function useRepositorySync() {
         try {
           const mcpClient = new TypedMCPClient()
           const params: ListRepositoriesParams = {}
-          
+
           const result = await mcpClient.call('list_repositories', params)
-          
+
           // Check if request was aborted
           if (controller.signal.aborted) {
             return
@@ -50,7 +50,7 @@ export function useRepositorySync() {
           if (result.success && result.repositories) {
             const repository = result.repositories.find((repository: Repository) => {
               const [repoOwner] = repository.fullName.split('/')
-              return repoOwner.toLowerCase() === owner.toLowerCase() && 
+              return repoOwner.toLowerCase() === owner.toLowerCase() &&
                      repository.name.toLowerCase() === repo.toLowerCase()
             })
 
@@ -75,7 +75,7 @@ export function useRepositorySync() {
     }
 
     syncRepositoryFromUrl()
-    
+
     // Cleanup function to abort the request if dependencies change
     return () => {
       controller.abort()
