@@ -4,7 +4,6 @@ import React, { useEffect, useRef, useCallback, useState } from 'react'
 import { ProjectSidebar } from '@/components/project'
 import { useRepositoryState } from '@/hooks/useRepositoryAtoms'
 import { useRepositorySync } from '@/hooks/useRepositorySync'
-import { XMarkIcon } from '@heroicons/react/24/outline'
 
 interface MainLayoutProps {
   children: React.ReactNode
@@ -57,14 +56,8 @@ export function MainLayout({ children }: MainLayoutProps) {
                 className="flex-shrink-0"
                 newlyCreatedRepository={newlyCreatedRepository}
                 onRefresh={handleSidebarRefresh}
+                onMobileClose={() => setIsSidebarOpen(false)}
               />
-              <button
-                onClick={() => setIsSidebarOpen(false)}
-                className="absolute top-4 right-4 p-2 bg-white shadow-lg rounded-lg"
-                aria-label="Close sidebar"
-              >
-                <XMarkIcon className="h-5 w-5 text-gray-600" />
-              </button>
             </div>
           </div>
         </div>

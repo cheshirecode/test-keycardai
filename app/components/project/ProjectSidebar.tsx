@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, useMemo } from 'react'
 import type { Repository } from '@/types'
-import { ChevronDownIcon, ChevronRightIcon, TrashIcon, FunnelIcon, ArrowUpIcon, ArrowDownIcon } from '@heroicons/react/24/outline'
+import { ChevronDownIcon, ChevronRightIcon, TrashIcon, FunnelIcon, ArrowUpIcon, ArrowDownIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { FolderIcon, GlobeAltIcon, LockClosedIcon } from '@heroicons/react/24/solid'
 import { useRepositories } from '@/hooks/useRepositories'
 import { useRepositoryNavigation } from '@/lib/navigation'
@@ -18,9 +18,10 @@ interface ProjectSidebarProps {
   className?: string
   onRefresh?: (refreshFn: () => void) => void
   newlyCreatedRepository?: string | null
+  onMobileClose?: () => void
 }
 
-export function ProjectSidebar({ selectedRepository, onRepositorySelect, className = '', onRefresh, newlyCreatedRepository }: ProjectSidebarProps) {
+export function ProjectSidebar({ selectedRepository, onRepositorySelect, className = '', onRefresh, newlyCreatedRepository, onMobileClose }: ProjectSidebarProps) {
   const { navigateToHome } = useRepositoryNavigation()
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [filter, setFilter] = useState('')
@@ -207,11 +208,27 @@ export function ProjectSidebar({ selectedRepository, onRepositorySelect, classNa
           <h2 className="text-lg font-semibold text-gray-900">Projects</h2>
           <div className="flex items-center space-x-1">
             <button
-              onClick={() => setIsCollapsed(true)}
-              className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
-              title="Collapse sidebar"
+              onClick={() => {
+                if (onMobileClose) {
+                  // Mobile: close the overlay
+                  onMobileClose()
+                } else {
+                  // Desktop: collapse the sidebar
+                  setIsCollapsed(true)
+                }
+              }}
+              className={`text-gray-400 hover:text-gray-600 transition-colors ${
+                onMobileClose ? 'p-2 lg:p-1' : 'p-1'
+              }`}
+              title={onMobileClose ? "Close sidebar" : "Collapse sidebar"}
             >
-              <ChevronDownIcon className="w-4 h-4 transform rotate-90" />
+              {onMobileClose ? (
+                // Mobile: X icon, larger size
+                <XMarkIcon className="w-5 h-5 lg:w-4 lg:h-4" />
+              ) : (
+                // Desktop: < arrow icon
+                <ChevronDownIcon className="w-4 h-4 transform rotate-90" />
+              )}
             </button>
           </div>
         </div>
