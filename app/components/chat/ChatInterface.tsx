@@ -96,7 +96,7 @@ export function ChatInterface() {
   }
 
   return (
-    <div className="h-full bg-gray-50 flex flex-col">
+    <div className="h-full w-full bg-gray-50 flex flex-col overflow-hidden">
       {/* Header - Sticky */}
       <header className="sticky top-0 z-10 bg-white shadow-sm border-b px-4 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -184,7 +184,7 @@ export function ChatInterface() {
       <div className="flex-1 flex flex-col min-h-0">
         <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-0 min-h-0 h-full">
           {/* Chat Panel */}
-          <div className="flex flex-col bg-white border-r border-gray-200 min-h-0">
+          <div className="flex flex-col bg-white border-r border-gray-200 min-h-0 overflow-hidden">
             <div className="p-4 flex-1 overflow-y-auto min-h-0">
               {messages.length === 0 && commits.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-center space-y-6">
@@ -527,7 +527,7 @@ Analysis:
           </div>
 
           {/* Project Preview Panel */}
-          <div className="bg-white flex flex-col min-h-0 h-full">
+          <div className="bg-white flex flex-col min-h-0 h-full overflow-hidden">
             <div className="p-4 border-b border-gray-200 flex-shrink-0">
               <h2 className="text-lg font-semibold text-gray-900">
                 {isRepositoryMode ? 'Repository Details' : 'Project Preview'}
