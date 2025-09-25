@@ -669,9 +669,9 @@ Analysis:
         {/* Mobile: Accordion layout */}
         <div className="flex flex-col flex-1 min-h-0 lg:hidden">
           {/* Chat Section */}
-          <div className={`bg-white border-b border-gray-200 transition-all duration-300 ${
-            mobileExpandedPanel === 'chat' 
-              ? 'flex-1' 
+          <div className={`bg-white border-b border-gray-200 transition-all duration-300 flex flex-col ${
+            mobileExpandedPanel === 'chat'
+              ? 'flex-1 min-h-0'
               : 'flex-none'
           }`}>
             {/* Chat Header */}
@@ -688,12 +688,12 @@ Analysis:
                     {messages.length}
                   </span>
                 )}
-                <svg 
+                <svg
                   className={`w-5 h-5 transition-transform duration-200 ${
                     mobileExpandedPanel === 'chat' ? 'rotate-180' : ''
-                  }`} 
-                  fill="none" 
-                  stroke="currentColor" 
+                  }`}
+                  fill="none"
+                  stroke="currentColor"
                   viewBox="0 0 24 24"
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -854,9 +854,9 @@ Analysis:
           </div>
 
           {/* Preview Section */}
-          <div className={`bg-white transition-all duration-300 ${
-            mobileExpandedPanel === 'preview' 
-              ? 'flex-1' 
+          <div className={`bg-white transition-all duration-300 flex flex-col ${
+            mobileExpandedPanel === 'preview'
+              ? 'flex-1 min-h-0'
               : 'flex-none'
           }`}>
             {/* Preview Header */}
@@ -875,12 +875,12 @@ Analysis:
                     {isRepositoryMode ? 'Repository' : 'Project'}
                   </span>
                 )}
-                <svg 
+                <svg
                   className={`w-5 h-5 transition-transform duration-200 ${
                     mobileExpandedPanel === 'preview' ? 'rotate-180' : ''
-                  }`} 
-                  fill="none" 
-                  stroke="currentColor" 
+                  }`}
+                  fill="none"
+                  stroke="currentColor"
                   viewBox="0 0 24 24"
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
