@@ -1,154 +1,109 @@
 # 🎯 Workflow Guide
 
-This guide shows you how to use the Project Scaffolder effectively for both creating new projects and modifying existing ones.
+How to use the Project Scaffolder effectively.
 
-## 🆕 Creating New Projects
+## 🆕 Creating Projects
 
-### Basic Project Creation
+**Basic Creation:**
 ```
 👤 "Create a React TypeScript app"
-🤖 Creates: React app with TypeScript, modern tooling, GitHub repo
+🤖 ✨ Creates complete React app with GitHub repo
 ```
 
-### Specific Requirements
+**Specific Requirements:**
 ```
 👤 "Build a Next.js dashboard with authentication"
-🤖 Creates: Next.js app with auth setup, dashboard layout, TypeScript
+🤖 ✨ Creates Next.js app with auth setup
 ```
 
-### Full-Stack Projects
+**Full-Stack:**
 ```
 👤 "Create a todo app with React frontend and Node.js API"
-🤖 Creates: Monorepo with React frontend + Express API + database setup
+🤖 ✨ Creates monorepo with frontend + API
 ```
 
-## 🔄 Modifying Existing Projects
+## 🔄 Modifying Projects
 
-### Adding Packages
+**Add Packages:**
 ```
 👤 "add jotai"
-🤖 📦 Installs jotai state management library
-   💾 Updates package.json and commits changes
+🤖 📦 Installs jotai + commits changes
 ```
 
-### Creating Components
+**Create Components:**
 ```
 👤 "create UserProfile component"
-🤖 📝 Generates React TypeScript component
-   📁 Places in src/components/UserProfile.tsx
-   💾 Commits to repository
+🤖 📝 Generates component + commits
 ```
 
-### Adding Features
+**Add Features:**
 ```
 👤 "add routing"
-🤖 📦 Installs react-router-dom
-   📝 Sets up routing configuration
-   📁 Creates pages directory structure
-   💾 Commits all changes
+🤖 📦 Installs router + sets up routes + commits
 ```
 
-## 🧠 How the AI Understands Your Requests
+## 🧠 AI Understanding
 
-### New Project Keywords
-- "Create", "Build", "Generate", "New project"
-- "Make a", "Set up", "Initialize"
+**New Project Keywords:**
+- "Create", "Build", "Generate", "Make"
 
-### Modification Keywords  
-- "Add", "Install", "Include", "Integrate"
-- "Create component", "Add feature", "Update"
-- "Remove", "Configure", "Setup"
+**Modification Keywords:**
+- "Add", "Install", "Create component", "Update"
 
-### Smart Package Recognition
-- **State Management:** "jotai", "zustand", "redux"
-- **Styling:** "tailwind", "styled-components", "emotion"
-- **UI Libraries:** "material-ui", "chakra", "headless-ui"
-- **Forms:** "react-hook-form", "formik"
-- **Testing:** "jest", "cypress", "testing-library"
-
-## 📊 Visual Indicators
-
-### Project Status
-When you have an active project, you'll see:
-```
-🟢 my-react-app (React TypeScript)
-```
-
-### Context-Aware Input
-- **No active project:** "Describe your project (e.g., 'Create a React app')"
-- **Active project:** "Modify my-react-app (e.g., 'add jotai', 'create component')"
+**Smart Packages:**
+- **State:** jotai, zustand, redux
+- **Styling:** tailwind, styled-components
+- **UI:** material-ui, chakra-ui
+- **Forms:** react-hook-form, formik
 
 ## ✅ Best Practices
 
-### 1. Be Specific About Requirements
+**Be Specific:**
 - ❌ "Create an app"
 - ✅ "Create a React TypeScript app with authentication"
 
-### 2. Use Clear Modification Requests  
+**One Change at a Time:**
+- ❌ "add jotai and tailwind and create header"
+- ✅ "add jotai" → wait → "add tailwind" → "create header"
+
+**Use Clear Language:**
 - ❌ "I want state management"
 - ✅ "add jotai for state management"
 
-### 3. One Change at a Time
-- ❌ "add jotai and tailwind and create a header component"
-- ✅ "add jotai" → wait for completion → "add tailwind" → "create header component"
+## 🚀 Complete Example
 
-### 4. Check Your Repository
-After each modification, your GitHub repository is automatically updated with:
-- New files and changes
-- Descriptive commit messages
-- Proper project structure
-
-## 🚀 Example Complete Workflow
-
-### Step 1: Create Project
+**Step 1: Create**
 ```
-👤 "Create a React TypeScript app for a task manager"
-🤖 ✨ Creates "task-manager" project
-   🔗 Repository: https://github.com/user/task-manager
-   📁 Complete React TypeScript setup
+👤 "Create a React TypeScript task manager"
+🤖 ✨ Creates "task-manager" + GitHub repo
 ```
 
-### Step 2: Add State Management
+**Step 2: Add State**
 ```
 👤 "add jotai"
-🤖 🔄 Modifying task-manager
-   📦 Installing jotai package
-   ✅ State management ready!
+🤖 📦 Installs jotai + commits
 ```
 
-### Step 3: Create Components
+**Step 3: Create Component**
 ```
 👤 "create TaskCard component"
-🤖 📝 Generating TaskCard.tsx
-   🎨 TypeScript interface included
-   📁 Added to src/components/
-   ✅ Component ready!
+🤖 📝 Generates TaskCard.tsx + commits
 ```
 
-### Step 4: Add Styling
+**Step 4: Add Styling**
 ```
 👤 "add tailwind css"
-🤖 📦 Installing Tailwind CSS
-   ⚙️ Configuring tailwind.config.js
-   📝 Setting up globals.css
-   ✅ Styling framework ready!
+🤖 📦 Installs Tailwind + configures + commits
 ```
 
-### Result
-You now have a complete React TypeScript task manager with:
-- ✅ Jotai state management
-- ✅ TaskCard component
-- ✅ Tailwind CSS styling
-- ✅ All changes committed to GitHub
-- ✅ Ready for development
+**Result:** Complete task manager with jotai, TaskCard, and Tailwind!
 
-## 💡 Tips for Success
+## 💡 Tips
 
-1. **Wait for Completion:** Let each request finish before starting the next
-2. **Use Natural Language:** Speak naturally - the AI understands context
-3. **Check Visual Indicators:** Green project badge shows your active project
-4. **Review Repository:** All changes are committed with clear messages
-5. **Start Simple:** Begin with basic project, then add features incrementally
+1. **Wait for completion** before next request
+2. **Use natural language** - AI understands context
+3. **Check repository** - all changes are committed
+4. **Start simple** then add features incrementally
 
 ---
 
