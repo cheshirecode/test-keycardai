@@ -14,8 +14,9 @@ export function useRepositorySync() {
   const { selectedRepository, setSelectedRepositoryInternal } = useRepository()
 
   useEffect(() => {
+    const controller = new AbortController()
+    
     const syncRepositoryFromUrl = async () => {
-      
       // Check if we're on a repository route
       const projectMatch = pathname.match(/^\/project\/([^\/]+)\/([^\/]+)$/)
       
@@ -34,7 +35,15 @@ export function useRepositorySync() {
 
         // Need to load the repository from the API
         try {
-          const response = await fetch('/api/repositories')
+          const response = await fetch('/api/repositories', {
+            signal: controller.signal
+          })
+          
+          // Check if request was aborted
+          if (controller.signal.aborted) {
+            return
+          }
+          
           const data = await response.json()
 
           if (data.success && data.repositories) {
@@ -45,12 +54,18 @@ export function useRepositorySync() {
             })
 
             if (repository && (!selectedRepository || selectedRepository.id !== repository.id)) {
-              // Use the internal setter to avoid navigation loop
-              setSelectedRepositoryInternal(repository)
+              // Check again if not aborted before updating state
+              if (!controller.signal.aborted) {
+                // Use the internal setter to avoid navigation loop
+                setSelectedRepositoryInternal(repository)
+              }
             }
           }
         } catch (error) {
-          console.error('Failed to sync repository from URL:', error)
+          // Only log error if it's not an abort error
+          if (error instanceof Error && error.name !== 'AbortError') {
+            console.error('Failed to sync repository from URL:', error)
+          }
         }
       } else if (pathname === '/') {
         // On home page, don't interfere with repository selection
@@ -59,5 +74,10 @@ export function useRepositorySync() {
     }
 
     syncRepositoryFromUrl()
+    
+    // Cleanup function to abort the request if dependencies change
+    return () => {
+      controller.abort()
+    }
   }, [pathname, selectedRepository, setSelectedRepositoryInternal])
 }

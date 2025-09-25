@@ -16,6 +16,8 @@ interface RepositoryContextType {
   refreshRepositories: () => void
   onRepositoryRefresh: (() => void) | null
   setOnRepositoryRefresh: (callback: (() => void) | null) => void
+  isCreatingNewProject: boolean
+  setIsCreatingNewProject: (isCreating: boolean) => void
 }
 
 const RepositoryContext = createContext<RepositoryContextType | undefined>(undefined)
@@ -28,6 +30,7 @@ export function RepositoryProvider({ children }: RepositoryProviderProps) {
   const [selectedRepository, setSelectedRepository] = useState<Repository | null>(null)
   const [newlyCreatedRepository, setNewlyCreatedRepository] = useState<string | null>(null)
   const [onRepositoryRefresh, setOnRepositoryRefresh] = useState<(() => void) | null>(null)
+  const [isCreatingNewProject, setIsCreatingNewProject] = useState<boolean>(false)
   const router = useRouter()
   const pathname = usePathname()
 
@@ -110,7 +113,9 @@ export function RepositoryProvider({ children }: RepositoryProviderProps) {
       setNewlyCreatedRepository,
       refreshRepositories,
       onRepositoryRefresh,
-      setOnRepositoryRefresh
+      setOnRepositoryRefresh,
+      isCreatingNewProject,
+      setIsCreatingNewProject
     }}>
       {children}
     </RepositoryContext.Provider>

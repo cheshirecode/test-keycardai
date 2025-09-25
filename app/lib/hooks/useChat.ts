@@ -1,15 +1,34 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useRef, useEffect } from 'react'
 import { MCPClient } from '@/lib/mcp-client'
 import { useRepository } from '@/contexts/RepositoryContext'
 import { invalidateRepositoriesCache } from '@/hooks/useRepositories'
 import type { Message, ProjectInfo, MCPLogEntry, Repository } from '@/types'
+
+// Custom hook to track if component is mounted
+const useIsMounted = () => {
+  const isMounted = useRef(true)
+  useEffect(() => {
+    return () => {
+      isMounted.current = false
+    }
+  }, [])
+  return isMounted
+}
 
 export function useChat() {
   const [messages, setMessages] = useState<Message[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [currentProject, setCurrentProject] = useState<ProjectInfo | null>(null)
   const mcpClient = new MCPClient()
-  const { selectedRepository, setNewlyCreatedRepository, refreshRepositories } = useRepository()
+  const isMounted = useIsMounted()
+  const {
+    selectedRepository,
+    setNewlyCreatedRepository,
+    refreshRepositories,
+    isCreatingNewProject,
+    setIsCreatingNewProject,
+    navigateToRepository
+  } = useRepository()
 
   // Clear currentProject when selectedRepository changes (user navigates to different repo)
   // We'll handle repository modifications differently from project modifications
@@ -128,6 +147,9 @@ export function useChat() {
       if (result.success && result.project) {
         const { project } = result
 
+        // Check if component is still mounted before updating state
+        if (!isMounted.current) return
+
         // Convert execution steps to MCP logs
         const mcpLogs: MCPLogEntry[] = project.executionSteps?.map(step => ({
           timestamp: step.timestamp,
@@ -174,17 +196,22 @@ export function useChat() {
 
         // Refresh the repositories list after successful modification
         setTimeout(() => {
-          invalidateRepositoriesCache()
-          refreshRepositories()
+          if (isMounted.current) {
+            invalidateRepositoriesCache()
+            refreshRepositories()
+          }
         }, 1000)
 
       } else {
+        if (!isMounted.current) return
         addMessage('assistant', `❌ Failed to modify repository: ${result.message || 'Unknown error'}`)
       }
 
     } catch (error) {
       console.error('Repository modification error:', error)
-      addMessage('assistant', `❌ Failed to modify repository: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      if (isMounted.current) {
+        addMessage('assistant', `❌ Failed to modify repository: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      }
     }
   }
 
@@ -275,17 +302,61 @@ export function useChat() {
         // Add single comprehensive message with debugging info
         addMessage('assistant', responseContent, chainOfThought, mcpLogs)
 
-        // Notify the repository context about the new project
-        if (project.repositoryUrl) {
+        // Handle new project creation flow
+        if (project.repositoryUrl && isCreatingNewProject) {
+          // Clear the creating flag
+          setIsCreatingNewProject(false)
+
           // Extract repository name from URL or use project name
           const repoName = project.repositoryUrl.split('/').pop() || project.name
           setNewlyCreatedRepository(repoName)
 
-          // Invalidate SWR cache and refresh repositories
+          // Invalidate SWR cache first
+          invalidateRepositoriesCache()
+
+          // Wait for cache invalidation, then fetch and navigate directly
+          setTimeout(async () => {
+            if (!isMounted.current) return
+
+            try {
+              // Refresh repositories to get the new one
+              await refreshRepositories()
+
+              if (!isMounted.current) return
+
+              // Try to find the new repository and navigate to it
+              const response = await fetch('/api/repositories')
+              const data = await response.json()
+
+              if (!isMounted.current) return
+
+              if (data.success && data.repositories) {
+                const newRepo = data.repositories.find((repo: Repository) =>
+                  repo.name === repoName || repo.fullName.includes(repoName)
+                )
+
+                if (newRepo && isMounted.current) {
+                  // Navigate directly to the new repository
+                  navigateToRepository(newRepo)
+                }
+              }
+            } catch (error) {
+              console.error('Failed to navigate to new repository:', error)
+              // Fallback to the old refresh method
+              if (isMounted.current) {
+                refreshRepositories()
+              }
+            }
+          }, 2000) // Longer delay to ensure GitHub API is updated
+        } else if (project.repositoryUrl) {
+          // Fallback for non-new-project flows
+          const repoName = project.repositoryUrl.split('/').pop() || project.name
+          setNewlyCreatedRepository(repoName)
+
           setTimeout(() => {
             invalidateRepositoriesCache()
             refreshRepositories()
-          }, 1000) // Small delay to ensure GitHub API is updated
+          }, 1000)
         }
 
         // Final message is already included in the comprehensive response above

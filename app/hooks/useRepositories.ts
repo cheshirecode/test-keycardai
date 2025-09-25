@@ -26,9 +26,9 @@ export function useRepositories() {
     '/api/repositories',
     fetcher,
     {
-      // Cache for 5 minutes, but revalidate on focus
+      // Cache for 5 minutes
       dedupingInterval: 5 * 60 * 1000,
-      revalidateOnFocus: true,
+      revalidateOnFocus: false, // Disable to prevent unwanted side effects with auto-selection
       revalidateOnReconnect: true,
       // Retry on error
       errorRetryCount: 3,

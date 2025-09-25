@@ -11,7 +11,14 @@ import { useLocalStorage } from '@/hooks/useLocalStorage'
 export function ChatInterface() {
   const [input, setInput] = useState('')
   const { messages, isLoading, currentProject, sendMessage, clearChat } = useChat()
-  const { selectedRepository, isRepositoryMode, setSelectedRepository, navigateToHome, setNewlyCreatedRepository } = useRepository()
+  const { 
+    selectedRepository, 
+    isRepositoryMode, 
+    setSelectedRepository, 
+    navigateToHome, 
+    setNewlyCreatedRepository,
+    setIsCreatingNewProject
+  } = useRepository()
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   // User profile integration with localStorage
@@ -83,11 +90,15 @@ export function ChatInterface() {
             {/* New Project Button - Always visible */}
             <button
               onClick={() => {
-                // Navigate to home and clear chat for new project
-                navigateToHome()
+                // Clear all repository-related state
                 setSelectedRepository(null)
-                setNewlyCreatedRepository(null) // Clear the newly created repository flag
+                setNewlyCreatedRepository(null)
+                setIsCreatingNewProject(true) // Set flag to indicate new project creation
+                
+                // Navigate to home and clear chat
+                navigateToHome()
                 clearChat()
+                
                 // Focus on the input field after clearing
                 setTimeout(() => {
                   const input = document.querySelector('input[type="text"]') as HTMLInputElement

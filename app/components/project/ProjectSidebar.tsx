@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import type { Repository } from '@/types'
 import { ChevronDownIcon, ChevronRightIcon, TrashIcon, PlusIcon } from '@heroicons/react/24/outline'
 import { FolderIcon, GlobeAltIcon, LockClosedIcon } from '@heroicons/react/24/solid'
@@ -21,19 +21,23 @@ export function ProjectSidebar({ selectedRepository, onRepositorySelect, classNa
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [filter, setFilter] = useState('')
 
+  // Use ref to avoid dependency on refresh function
+  const refreshRef = useRef(refresh)
+  refreshRef.current = refresh
+
   useEffect(() => {
     // Register the refresh function with the parent
     if (onRefresh) {
-      onRefresh(refresh)
+      onRefresh(refreshRef.current)
     }
-  }, [onRefresh, refresh])
+  }, [onRefresh]) // Remove refresh from dependencies
 
   // Auto-refresh and select newly created repository
   useEffect(() => {
     if (newlyCreatedRepository) {
-      refresh()
+      refreshRef.current()
     }
-  }, [newlyCreatedRepository, refresh])
+  }, [newlyCreatedRepository]) // Remove refresh from dependencies
 
   // Select newly created repository when repositories list updates
   useEffect(() => {
