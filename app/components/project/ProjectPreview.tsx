@@ -1,11 +1,11 @@
 'use client'
 
-import React, { useState, useEffect, useMemo, useRef } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { templates } from '@/lib/templates'
 import type { ProjectInfo } from '@/types'
 import { MCPClient } from '@/lib/mcp-client'
 import { useHealth } from '@/hooks/useHealth'
-import { TypedMCPClient } from '@/lib/typed-mcp-client'
+import { useLatestCommit } from '@/hooks/useRepositoryCommits'
 
 interface ProjectPreviewProps {
   project: ProjectInfo
@@ -20,25 +20,17 @@ export function ProjectPreview({ project }: ProjectPreviewProps) {
     githubUser?: string
   } | null>(null)
   const [isLoadingGitInfo, setIsLoadingGitInfo] = useState(false)
-  const [latestCommit, setLatestCommit] = useState<{
-    hash: string
-    author: string
-    date: string
-    subject: string
-    timestamp: number
-  } | null>(null)
-  const [isLoadingCommit, setIsLoadingCommit] = useState(false)
   const { githubOwner } = useHealth()
   const mcpClient = useMemo(() => new MCPClient(), [])
-  const typedMcpClient = useMemo(() => new TypedMCPClient(), [])
-  const isLoadingCommitRef = useRef(false)
-  const latestCommitRef = useRef<typeof latestCommit>(null)
 
-  // Keep refs in sync
-  useEffect(() => {
-    isLoadingCommitRef.current = isLoadingCommit
-    latestCommitRef.current = latestCommit
-  }, [isLoadingCommit, latestCommit])
+  // Use shared hook for latest commit
+  const { latestCommit, isLoading: isLoadingCommit } = useLatestCommit(
+    project.name ? {
+      name: project.name,
+      repositoryUrl: project.repositoryUrl,
+    } : null,
+    !!project.name
+  )
   const template = templates[project.template]
 
   // Generate git info when project is completed
@@ -127,170 +119,6 @@ export function ProjectPreview({ project }: ProjectPreviewProps) {
     }
   }, [project, gitInfo, isLoadingGitInfo, githubOwner, mcpClient])
 
-  // Fetch latest commit when project is available
-  useEffect(() => {
-    if (project.name && !isLoadingCommitRef.current) {
-      // Reset commit when project changes
-      if (latestCommitRef.current) {
-        setLatestCommit(null)
-      }
-
-      setIsLoadingCommit(true)
-
-      // Try the first path that works
-      const tryPath = async (): Promise<void> => {
-        const hasGitHubUrl = project.repositoryUrl && project.repositoryUrl.includes('github.com')
-
-        // First, try to get latest commit from GitHub API if this project has a GitHub repository URL
-        if (hasGitHubUrl) {
-          // Extract owner/repo from GitHub URL
-          const githubMatch = project.repositoryUrl!.match(/github\.com[/:]([^/]+)\/([^/.]+)/i)
-          if (githubMatch) {
-            const [, owner, repo] = githubMatch
-            console.log(`🔍 [ProjectPreview] Attempting to fetch latest commit from GitHub API for: ${owner}/${repo}`)
-            try {
-              const result = await typedMcpClient.call('github_get_commits', {
-                owner,
-                repo,
-                limit: 1
-              })
-
-              if (result.success) {
-                if (result.commits && result.commits.length > 0) {
-                  console.log(`✅ [ProjectPreview] Found latest commit from GitHub API`)
-                  const latest = result.commits[0]
-                  setLatestCommit({
-                    hash: latest.hash,
-                    author: latest.author,
-                    date: latest.date,
-                    subject: latest.subject,
-                    timestamp: latest.timestamp
-                  })
-                  return // Success, exit early
-                } else {
-                  // GitHub API succeeded but repository is empty - no need to check local paths
-                  console.log(`ℹ️ [ProjectPreview] GitHub API succeeded but repository is empty`)
-                  setLatestCommit({
-                    hash: 'github-empty-' + Date.now(),
-                    author: 'GitHub Repository',
-                    date: new Date().toISOString(),
-                    subject: 'docs: empty GitHub repository',
-                    timestamp: Date.now()
-                  })
-                  return // Don't check local paths for empty GitHub repos
-                }
-              } else {
-                console.log(`⚠️ [ProjectPreview] GitHub API failed: ${result.message || 'Unknown error'} - will try local paths`)
-              }
-            } catch (error) {
-              console.log(`❌ [ProjectPreview] GitHub API commit fetch failed:`, error)
-            }
-          }
-        } else {
-          console.log(`🔍 [ProjectPreview] No GitHub URL found, checking local paths for: ${project.name}`)
-        }
-
-        // Fallback to local file system search (only if GitHub API failed)
-        const sanitizedName = project.name.replace(/[^a-zA-Z0-9_-]/g, '_')
-        console.log(`🔍 [ProjectPreview] Original name: "${project.name}", Sanitized: "${sanitizedName}"`)
-        const isGitHubRepoForPaths = project.repositoryUrl && project.repositoryUrl.includes('github.com')
-
-        // For GitHub repos, only check the most likely local clone locations
-        // For non-GitHub repos, check all possible paths including scaffolded project paths
-        const possiblePaths = isGitHubRepoForPaths ? [
-          // Only check common clone locations for GitHub repos
-          `/tmp/repositories/${project.name}`, // Standard repository clone path
-          `/tmp/repositories/${sanitizedName}`, // Sanitized repository clone path
-          `./projects/${project.name}`, // Local development clone
-          `./${project.name}` // Current directory clone
-        ] : [
-          // For non-GitHub repos, check all scaffolded project paths
-          project.path, // Original path if available
-          `/tmp/projects/${project.name}`, // Original name in temp directory
-          `/tmp/projects/${sanitizedName}`, // Sanitized name in temp directory
-          `${process.cwd()}/.temp/projects/${project.name}`, // Original name in local temp
-          `${process.cwd()}/.temp/projects/${sanitizedName}`, // Sanitized name in local temp
-          `/tmp/repositories/${project.name}`, // Repository path with original name
-          `/tmp/repositories/${sanitizedName}`, // Repository path with sanitized name
-          `./projects/${project.name}`, // Original name in relative projects
-          `./projects/${sanitizedName}`, // Sanitized name in relative projects
-          `./${project.name}`, // Current directory with original name
-          project.name // Just the project name
-        ].filter(Boolean) // Remove any undefined/null values
-
-        console.log(`🔍 [ProjectPreview] ${hasGitHubUrl ? 'GitHub API failed, trying' : 'Checking'} local paths for: ${project.name}`)
-        console.log(`🔍 [ProjectPreview] Checking ${possiblePaths.length} ${isGitHubRepoForPaths ? 'clone' : 'project'} paths:`, possiblePaths)
-
-        for (const projectPath of possiblePaths) {
-          try {
-            console.log(`🔍 [ProjectPreview] Trying path: ${projectPath}`)
-            const result = await typedMcpClient.call('git_log', { path: projectPath, limit: 1 })
-            console.log(`🔍 [ProjectPreview] Git log result for ${projectPath}:`, result)
-
-            if (result.success && result.commits && result.commits.length > 0) {
-              const commit = result.commits[0]
-              console.log(`✅ [ProjectPreview] Found latest commit in ${projectPath}:`, commit.subject)
-              setLatestCommit({
-                hash: commit.hash,
-                author: commit.author,
-                date: commit.date,
-                subject: commit.subject,
-                timestamp: commit.timestamp
-              })
-              return // Success, exit the loop
-            } else {
-              console.log(`⚠️ [ProjectPreview] No commits found in ${projectPath}`)
-            }
-          } catch (error) {
-            // Continue to next path
-            console.log(`❌ [ProjectPreview] Git log failed for path ${projectPath}:`, error)
-          }
-        }
-        // If all methods failed, create synthetic commit as last resort
-        console.log(`❌ [ProjectPreview] No git repository found for project ${project.name} via GitHub API or local paths`)
-
-        // Create a synthetic commit for display with context about the repository type
-        const isGitHubRepo = project.repositoryUrl && project.repositoryUrl.includes('github.com')
-        const isScaffoldedProject = project.name.includes('-') && /\d{13}/.test(project.name) && !isGitHubRepo
-
-        if (isGitHubRepo) {
-          console.log(`ℹ️ [ProjectPreview] This is a GitHub repository but no commits were found - repository might be empty`)
-
-          setLatestCommit({
-            hash: 'github-empty-' + Date.now(),
-            author: 'GitHub Repository',
-            date: new Date().toISOString(),
-            subject: 'docs: empty GitHub repository',
-            timestamp: Date.now()
-          })
-        } else if (isScaffoldedProject) {
-          console.log(`ℹ️ [ProjectPreview] This appears to be a scaffolded project - showing scaffolding info`)
-
-          setLatestCommit({
-            hash: 'scaffold-' + Date.now(),
-            author: 'Project Scaffolder',
-            date: new Date().toISOString(),
-            subject: 'feat: initial project scaffolding',
-            timestamp: Date.now()
-          })
-        } else {
-          console.log(`ℹ️ [ProjectPreview] Creating generic synthetic commit for local project`)
-
-          setLatestCommit({
-            hash: 'local-' + Date.now(),
-            author: 'Local Project',
-            date: new Date().toISOString(),
-            subject: 'docs: local project',
-            timestamp: Date.now()
-          })
-        }
-      }
-
-      tryPath().finally(() => {
-        setIsLoadingCommit(false)
-      })
-    }
-  }, [project.name, project.path]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleDownload = async () => {
     if (isDownloading) return

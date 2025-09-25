@@ -7,7 +7,7 @@ import { RepositoryPreview } from '@/components/repository'
 import { useRepository } from '@/contexts/RepositoryContext'
 import { UserProfile } from '@/components/user'
 import { useLocalStorage } from '@/hooks/useLocalStorage'
-import { TypedMCPClient } from '@/lib/typed-mcp-client'
+import { useRepositoryCommits } from '@/hooks/useRepositoryCommits'
 
 export function ChatInterface() {
   const [input, setInput] = useState('')
@@ -20,32 +20,24 @@ export function ChatInterface() {
     setIsCreatingNewProject
   } = useRepository()
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const [commits, setCommits] = useState<Array<{
-    hash: string
-    author: string
-    email: string
-    date: string
-    timestamp: number
-    message: string
-    subject: string
-    body: string
-  }>>([])
-  const [isLoadingCommits, setIsLoadingCommits] = useState(false)
-  const typedMcpClient = useMemo(() => new TypedMCPClient(), [])
-  const isLoadingCommitsRef = useRef(false)
-  const commitsRef = useRef<typeof commits>([])
-
-  // Keep refs in sync
-  useEffect(() => {
-    isLoadingCommitsRef.current = isLoadingCommits
-    commitsRef.current = commits
-  }, [isLoadingCommits, commits])
 
   // User profile integration with localStorage
   const [userProfile, , isProfileInitialized] = useLocalStorage('userProfile', {
     name: '',
     email: ''
   })
+
+  // Use shared hook for repository commits
+  const { commits: rawCommits } = useRepositoryCommits(
+    selectedRepository,
+    10,
+    isRepositoryMode && !!selectedRepository
+  )
+
+  // Sort commits chronologically (oldest first for chat display)
+  const commits = useMemo(() => {
+    return [...rawCommits].reverse()
+  }, [rawCommits])
 
 
   const scrollToBottom = () => {
@@ -55,209 +47,6 @@ export function ChatInterface() {
   useEffect(() => {
     scrollToBottom()
   }, [messages])
-
-  // Fetch commits when in repository mode - only for selected repository
-  useEffect(() => {
-    if (isRepositoryMode && selectedRepository && !isLoadingCommitsRef.current) {
-      // Reset commits when repository changes
-      if (commitsRef.current.length > 0) {
-        setCommits([])
-      }
-
-      setIsLoadingCommits(true)
-
-      // Try the first path that works
-      const tryPath = async (): Promise<void> => {
-        // First, try to get commits from GitHub API if this is a valid owner/repo format
-        if (selectedRepository.fullName && selectedRepository.fullName.includes('/')) {
-          console.log(`🔍 [ChatInterface] Attempting to fetch commits from GitHub API for: ${selectedRepository.fullName}`)
-          try {
-            const [owner, repo] = selectedRepository.fullName.split('/')
-            const result = await typedMcpClient.call('github_get_commits', {
-              owner,
-              repo,
-              limit: 10
-            })
-
-            if (result.success) {
-              if (result.commits && result.commits.length > 0) {
-                console.log(`✅ [ChatInterface] Found ${result.commits.length} commits from GitHub API`)
-                // Sort commits chronologically (oldest first for chat display)
-                const sortedCommits = [...result.commits].reverse()
-                setCommits(sortedCommits)
-                return // Success, exit early
-              } else {
-                // GitHub API succeeded but repository is empty - no need to check local paths
-                console.log(`ℹ️ [ChatInterface] GitHub API succeeded but repository is empty`)
-                const githubCommit = {
-                  hash: 'github-empty-' + Date.now(),
-                  author: 'GitHub Repository',
-                  email: 'github@repository',
-                  date: new Date().toISOString(),
-                  timestamp: Date.now(),
-                  message: `GitHub Repository: ${selectedRepository.fullName}
-
-This repository exists on GitHub but appears to be empty.
-
-Repository: ${selectedRepository.fullName}
-Description: ${selectedRepository.description || 'No description available'}
-URL: ${selectedRepository.url || 'Not available'}
-
-This is a valid GitHub repository with no commits yet.`,
-                  subject: `docs: empty GitHub repository ${selectedRepository.fullName}`,
-                  body: `Repository exists but has no commits yet.`
-                }
-                setCommits([githubCommit])
-                return // Don't check local paths for empty GitHub repos
-              }
-            } else {
-              console.log(`⚠️ [ChatInterface] GitHub API failed: ${result.message || 'Unknown error'} - will try local paths`)
-            }
-          } catch (error) {
-            console.log(`❌ [ChatInterface] GitHub API commit fetch failed:`, error)
-          }
-        }
-
-        // Fallback to local file system search (only if GitHub API failed)
-        const sanitizedName = selectedRepository.name.replace(/[^a-zA-Z0-9_-]/g, '_')
-        const isGitHubRepoForPaths = selectedRepository.fullName && selectedRepository.fullName.includes('/')
-
-        // For GitHub repos, only check the most likely local clone locations
-        // For non-GitHub repos, check all possible paths
-        const possiblePaths = isGitHubRepoForPaths ? [
-          // Only check common clone locations for GitHub repos
-          `/tmp/repositories/${selectedRepository.name}`, // Standard repository clone path
-          `/tmp/repositories/${sanitizedName}`, // Sanitized repository clone path
-          `./projects/${selectedRepository.name}`, // Local development clone
-          `./${selectedRepository.name}` // Current directory clone
-        ] : [
-          // For non-GitHub repos, check all scaffolded project paths
-          `/tmp/projects/${sanitizedName}`, // Vercel/production temp directory for new projects
-          `${process.cwd()}/.temp/projects/${sanitizedName}`, // Local development temp directory for new projects
-          `/tmp/repositories/${selectedRepository.name}`, // Repository path
-          `/tmp/repositories/${sanitizedName}`, // Sanitized repository path
-          `./projects/${sanitizedName}`, // Relative projects directory
-          `./${selectedRepository.name}`, // Current directory with original name
-          selectedRepository.name // Just the repository name
-        ]
-
-        console.log(`🔍 [ChatInterface] GitHub API failed, trying local paths for: ${selectedRepository.name}`)
-        console.log(`🔍 [ChatInterface] Checking ${possiblePaths.length} ${isGitHubRepoForPaths ? 'clone' : 'project'} paths:`, possiblePaths)
-
-        for (const projectPath of possiblePaths) {
-          try {
-            console.log(`🔍 [ChatInterface] Trying path: ${projectPath}`)
-            const result = await typedMcpClient.call('git_log', { path: projectPath, limit: 10 })
-            console.log(`🔍 [ChatInterface] Git log result for ${projectPath}:`, result)
-
-            if (result.success && result.commits && result.commits.length > 0) {
-              console.log(`✅ [ChatInterface] Found ${result.commits.length} commits in ${projectPath}`)
-              // Sort commits chronologically (oldest first for chat display)
-              const sortedCommits = [...result.commits].reverse()
-              setCommits(sortedCommits)
-              return // Success, exit the loop
-            } else {
-              console.log(`⚠️ [ChatInterface] No commits found in ${projectPath}`)
-            }
-          } catch (error) {
-            // Continue to next path
-            console.log(`❌ [ChatInterface] Git log failed for path ${projectPath}:`, error)
-          }
-        }
-        // If all methods failed, create synthetic commit as last resort
-        console.log(`❌ [ChatInterface] No git repository found for ${selectedRepository.name} via GitHub API or local paths`)
-
-        // Create a synthetic commit for display with context about the repository type
-        const isGitHubRepo = selectedRepository.fullName && selectedRepository.fullName.includes('/')
-        const isScaffoldedProject = selectedRepository.name.includes('-') && /\d{13}/.test(selectedRepository.name) && !isGitHubRepo
-
-        if (isGitHubRepo) {
-          console.log(`ℹ️ [ChatInterface] This is a GitHub repository but no commits were found - repository might be empty`)
-
-          const githubCommit = {
-            hash: 'github-empty-' + Date.now(),
-            author: 'GitHub Repository',
-            email: 'github@repository',
-            date: new Date().toISOString(),
-            timestamp: Date.now(),
-            message: `GitHub Repository: ${selectedRepository.fullName}
-
-This repository exists on GitHub but appears to be empty or you may not have access to view its commits.
-
-Repository: ${selectedRepository.fullName}
-Description: ${selectedRepository.description || 'No description available'}
-URL: ${selectedRepository.url || 'Not available'}
-
-Possible reasons for no commits:
-- Repository is newly created and empty
-- Repository is private and requires different permissions
-- GitHub token lacks necessary permissions
-- Network connectivity issues`,
-            subject: `docs: empty GitHub repository ${selectedRepository.fullName}`,
-            body: `Repository exists but no commit history available.
-
-Check GitHub token permissions or repository status.`
-          }
-
-          setCommits([githubCommit])
-        } else if (isScaffoldedProject) {
-          console.log(`ℹ️ [ChatInterface] This appears to be a scaffolded project - showing scaffolding info`)
-
-          const scaffoldingCommit = {
-            hash: 'scaffold-' + Date.now(),
-            author: 'Project Scaffolder',
-            email: 'scaffolder@system',
-            date: new Date().toISOString(),
-            timestamp: Date.now(),
-            message: `This project was created using the Project Scaffolder tool.
-
-Repository: ${selectedRepository.name}
-Created: ${new Date().toLocaleString()}
-Type: Scaffolded Project
-
-The actual git history will be available once the repository is cloned locally or after manual git operations.`,
-            subject: 'feat: initial project scaffolding',
-            body: `Project scaffolded using MCP tools.
-
-Once you start modifying this project, real git commits will appear here.`
-          }
-
-          setCommits([scaffoldingCommit])
-        } else {
-          console.log(`ℹ️ [ChatInterface] Creating generic synthetic commit for local project`)
-
-          const localCommit = {
-            hash: 'local-' + Date.now(),
-            author: 'Local Project',
-            email: 'local@project',
-            date: new Date().toISOString(),
-            timestamp: Date.now(),
-            message: `Local project: ${selectedRepository.name}
-
-This appears to be a local project without git history available through the current methods.
-
-Project: ${selectedRepository.name}
-Type: Local Project
-
-Git history will appear here once commits are made to this project.`,
-            subject: 'docs: local project',
-            body: `Local project without accessible git history.`
-          }
-
-          setCommits([localCommit])
-        }
-      }
-
-      tryPath().finally(() => {
-        setIsLoadingCommits(false)
-      })
-    }
-
-    // Clear commits when leaving repository mode
-    if (!isRepositoryMode && commitsRef.current.length > 0) {
-      setCommits([])
-    }
-  }, [isRepositoryMode, selectedRepository?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -453,8 +242,8 @@ Git history will appear here once commits are made to this project.`,
                                 <div className="space-y-2">
                                   {/* Chain of Thought for scaffolding */}
                                   <details className="group" open>
-                                    <summary className="cursor-pointer text-xs opacity-75 hover:opacity-100 flex items-center gap-2 p-2 rounded hover:bg-blue-50 transition-colors border border-blue-200">
-                                      🤔 <span className="text-blue-700 font-medium">AI Reasoning</span>
+                                    <summary className="cursor-pointer text-xs opacity-75 hover:opacity-100 flex items-center gap-2 p-2 rounded hover:bg-blue-50 transition-colors border border-blue-200 min-w-0">
+                                      🤔 <span className="text-blue-700 font-medium min-w-[120px] inline-block">AI Reasoning</span>
                                       <span className="text-gray-500 text-xs">Project Scaffolding</span>
                                     </summary>
                                     <div className="mt-2 p-3 bg-blue-50 rounded-md text-xs text-blue-900 border-l-4 border-blue-400">
@@ -475,8 +264,8 @@ Analysis:
 
                                   {/* MCP Logs for scaffolding */}
                                   <details className="group">
-                                    <summary className="cursor-pointer text-xs opacity-75 hover:opacity-100 flex items-center gap-2 p-2 rounded hover:bg-green-50 transition-colors border border-green-200">
-                                      🛠️ <span className="text-green-700 font-medium">MCP Tool Logs</span>
+                                    <summary className="cursor-pointer text-xs opacity-75 hover:opacity-100 flex items-center gap-2 p-2 rounded hover:bg-green-50 transition-colors border border-green-200 min-w-0">
+                                      🛠️ <span className="text-green-700 font-medium min-w-[120px] inline-block">MCP Tool Logs</span>
                                       <span className="text-gray-500 text-xs">Scaffolding Operations</span>
                                     </summary>
                                     <div className="mt-2 p-3 bg-green-50 rounded-md text-xs border-l-4 border-green-400">
@@ -548,8 +337,8 @@ Analysis:
                             {/* Chain of Thought Section */}
                             {message.chainOfThought && (
                               <details className="group" open>
-                                <summary className="cursor-pointer text-xs opacity-75 hover:opacity-100 flex items-center gap-2 p-2 rounded hover:bg-blue-50 transition-colors border border-blue-200">
-                                  🤔 <span className="text-blue-700 font-medium">AI Reasoning</span>
+                                <summary className="cursor-pointer text-xs opacity-75 hover:opacity-100 flex items-center gap-2 p-2 rounded hover:bg-blue-50 transition-colors border border-blue-200 min-w-0">
+                                  🤔 <span className="text-blue-700 font-medium min-w-[120px] inline-block">AI Reasoning</span>
                                   <span className="text-gray-500 text-xs">Chain of Thought</span>
                                 </summary>
                                 <div className="mt-2 p-3 bg-blue-50 rounded-md text-xs text-blue-900 border-l-4 border-blue-400">
@@ -566,8 +355,8 @@ Analysis:
                             {/* MCP Logs Section */}
                             {message.mcpLogs && message.mcpLogs.length > 0 && (
                               <details className="group" open>
-                                <summary className="cursor-pointer text-xs opacity-75 hover:opacity-100 flex items-center gap-2 p-2 rounded hover:bg-green-50 transition-colors border border-green-200">
-                                  🔧 <span className="text-green-700 font-medium">MCP Server Logs</span>
+                                <summary className="cursor-pointer text-xs opacity-75 hover:opacity-100 flex items-center gap-2 p-2 rounded hover:bg-green-50 transition-colors border border-green-200 min-w-0">
+                                  🔧 <span className="text-green-700 font-medium min-w-[120px] inline-block">MCP Server Logs</span>
                                   <span className="text-gray-500 text-xs">({message.mcpLogs.length} entries)</span>
                                 </summary>
                                 <div className="mt-2 p-3 bg-green-50 rounded-md text-xs border-l-4 border-green-400">

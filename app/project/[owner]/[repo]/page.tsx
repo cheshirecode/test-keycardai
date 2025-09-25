@@ -4,15 +4,17 @@ import { ChatInterface } from '@/components/chat'
 import { RepositoryPageWrapper } from './RepositoryPageWrapper'
 
 interface ProjectPageProps {
-  params: {
+  params: Promise<{
     owner: string
     repo: string
-  }
+  }>
 }
 
-export default function ProjectPage({ params }: ProjectPageProps) {
+export default async function ProjectPage({ params }: ProjectPageProps) {
+  const { owner, repo } = await params
+  
   return (
-    <RepositoryPageWrapper owner={params.owner} repo={params.repo}>
+    <RepositoryPageWrapper owner={owner} repo={repo}>
       <MainLayout>
         <ChatInterface />
       </MainLayout>
