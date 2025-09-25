@@ -17,7 +17,8 @@ export function ChatInterface() {
     isRepositoryMode,
     navigateToHome,
     clearAllRepositoryData,
-    setIsCreatingNewProject
+    setIsCreatingNewProject,
+    isCreatingNewProject
   } = useRepository()
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
@@ -160,14 +161,30 @@ export function ChatInterface() {
                 <div className="h-full flex flex-col items-center justify-center text-center space-y-6">
                   <div className="space-y-2">
                     <h2 className="text-xl font-semibold text-gray-900">
-                      {isRepositoryMode ? '🔧 Project Modification Mode' : '👋 Welcome to Project Scaffolder'}
+                      {isRepositoryMode 
+                        ? '🔧 Project Modification Mode' 
+                        : isCreatingNewProject 
+                          ? '✨ New Project Creation Mode' 
+                          : '👋 Welcome to Project Scaffolder'
+                      }
                     </h2>
                     <p className="text-gray-600">
                       {isRepositoryMode
                         ? `I can help you modify and improve "${selectedRepository?.name}". Tell me what changes you'd like to make!`
-                        : 'I can help you create new projects quickly. Just describe what you want to build!'
+                        : isCreatingNewProject
+                          ? '🚀 Ready to create your new project! Describe what you want to build and I\'ll scaffold it for you.'
+                          : 'I can help you create new projects quickly. Just describe what you want to build!'
                       }
                     </p>
+
+                    {/* New Project Mode Indicator */}
+                    {isCreatingNewProject && !isRepositoryMode && (
+                      <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <p className="text-sm text-green-800">
+                          🎯 <strong>New Project Mode Active!</strong> Type your project description below to get started.
+                        </p>
+                      </div>
+                    )}
 
                     {/* Chat log coming soon note for repository mode */}
                     {isRepositoryMode && (
@@ -454,7 +471,9 @@ Analysis:
                   onChange={(e) => setInput(e.target.value)}
                   placeholder={isRepositoryMode
                     ? `Describe changes for ${selectedRepository?.name} (e.g., 'Add user authentication')`
-                    : "Describe your project (e.g., 'Create a React app with authentication')"
+                    : isCreatingNewProject
+                      ? "Describe your new project (e.g., 'Create a React todo app with TypeScript')"
+                      : "Describe your project (e.g., 'Create a React app with authentication')"
                   }
                   className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   disabled={isLoading}
@@ -470,7 +489,9 @@ Analysis:
               <p className="text-xs text-gray-500 mt-2">
                 💡 Try: {isRepositoryMode
                   ? `"Add authentication" or "Improve the UI design"`
-                  : `"Create a Next.js app with TypeScript" or "Build a Node.js API"`
+                  : isCreatingNewProject
+                    ? `"Create a Next.js todo app" or "Build a Node.js API with MongoDB"`
+                    : `"Create a Next.js app with TypeScript" or "Build a Node.js API"`
                 }
               </p>
             </div>

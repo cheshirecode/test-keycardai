@@ -450,8 +450,9 @@ function RepositoryItem({ repository, isSelected, isNewlyCreated = false, onClic
   }
 
   // Check if this project has pending AI requests
-  const projectId = generateProjectId(repository.name, repository.fullName)
-  const isPending = useAtomValue(isProjectPendingAtom(projectId))
+  const projectId = useMemo(() => generateProjectId(repository.name, repository.fullName), [repository.name, repository.fullName])
+  const pendingAtom = useMemo(() => isProjectPendingAtom(projectId), [projectId])
+  const isPending = useAtomValue(pendingAtom)
 
   return (
     <div

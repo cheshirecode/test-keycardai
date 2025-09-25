@@ -66,7 +66,7 @@ export function RepositoryProvider({ children }: RepositoryProviderProps) {
     setNewlyCreatedRepository(null)
     setIsCreatingNewProject(false)
     // Clear any cached repository data
-    if (onRepositoryRefresh) {
+    if (onRepositoryRefresh && typeof onRepositoryRefresh === 'function') {
       onRepositoryRefresh()
     }
   }, [onRepositoryRefresh])

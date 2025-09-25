@@ -55,7 +55,7 @@ export function PerformanceMonitor({
     }
     
     renderStartTime.current = performance.now()
-  })
+  }, [componentName, componentLogger, threshold])
 
   return <>{children}</>
 }
