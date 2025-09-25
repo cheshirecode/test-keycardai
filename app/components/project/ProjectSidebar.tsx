@@ -26,6 +26,7 @@ export function ProjectSidebar({ selectedRepository, onRepositorySelect, classNa
   const [filter, setFilter] = useState('')
   const [debouncedFilter, setDebouncedFilter] = useState('')
   const [showFilters, setShowFilters] = useState(false)
+  const [deletingRepositoryId, setDeletingRepositoryId] = useState<string | null>(null)
   const [repositoryParams, setRepositoryParams] = useState<ListRepositoriesParams>({
     sort: 'updated',
     direction: 'desc',
@@ -101,6 +102,9 @@ export function ProjectSidebar({ selectedRepository, onRepositorySelect, classNa
       return
     }
 
+    // Start the fade-out animation
+    setDeletingRepositoryId(repository.id)
+
     try {
       const [owner, repo] = repository.fullName.split('/')
       const mcpClient = new TypedMCPClient()
@@ -112,6 +116,7 @@ export function ProjectSidebar({ selectedRepository, onRepositorySelect, classNa
 
       if (!permissionCheck.canDelete) {
         alert(`Failed to delete repository: ${permissionCheck.message}`)
+        setDeletingRepositoryId(null) // Reset animation state on error
         return
       }
 
@@ -123,35 +128,43 @@ export function ProjectSidebar({ selectedRepository, onRepositorySelect, classNa
         // Check if we're deleting the currently selected repository
         const isDeletingCurrentRepo = selectedRepository?.id === repository.id
 
-        // Invalidate the cache to refetch repositories
-        refresh()
-
-        // Wait for refresh, then handle routing
+        // Wait for 1 second (animation duration) before refreshing
         setTimeout(() => {
-          if (isDeletingCurrentRepo) {
-            // If deleting current repo, navigate to first available project
-            if (repositories.length > 1) {
-              // Find first repository that's not the one being deleted
-              const firstRepo = repositories.find(repo => repo.id !== repository.id)
-              if (firstRepo) {
-                onRepositorySelect(firstRepo)
+          // Reset the deleting state
+          setDeletingRepositoryId(null)
+          
+          // Invalidate the cache to refetch repositories
+          refresh()
+
+          // Wait for refresh, then handle routing
+          setTimeout(() => {
+            if (isDeletingCurrentRepo) {
+              // If deleting current repo, navigate to first available project
+              if (repositories.length > 1) {
+                // Find first repository that's not the one being deleted
+                const firstRepo = repositories.find(repo => repo.id !== repository.id)
+                if (firstRepo) {
+                  onRepositorySelect(firstRepo)
+                } else {
+                  // No other repositories, go to home
+                  navigateToHome()
+                }
               } else {
                 // No other repositories, go to home
                 navigateToHome()
               }
-            } else {
-              // No other repositories, go to home
-              navigateToHome()
             }
-          }
-        }, 500) // Small delay to ensure refresh completes
+          }, 300) // Small delay to ensure refresh completes
+        }, 1000) // 1 second delay for animation
 
       } else {
         alert(`Failed to delete repository: ${result.message}`)
+        setDeletingRepositoryId(null) // Reset animation state on error
       }
     } catch (error) {
       console.error('Delete error:', error)
       alert('Failed to delete repository. Please try again.')
+      setDeletingRepositoryId(null) // Reset animation state on error
     }
   }
 
@@ -377,6 +390,7 @@ export function ProjectSidebar({ selectedRepository, onRepositorySelect, classNa
                       isNewlyCreated={newlyCreatedRepository ?
                         (repo.name === newlyCreatedRepository || repo.fullName.includes(newlyCreatedRepository)) :
                         false}
+                      isDeleting={deletingRepositoryId === repo.id}
                       onClick={() => handleRepositoryClick(repo)}
                       onDelete={(e) => handleDeleteRepository(repo, e)}
                     />
@@ -400,6 +414,7 @@ export function ProjectSidebar({ selectedRepository, onRepositorySelect, classNa
                       isNewlyCreated={newlyCreatedRepository ?
                         (repo.name === newlyCreatedRepository || repo.fullName.includes(newlyCreatedRepository)) :
                         false}
+                      isDeleting={deletingRepositoryId === repo.id}
                       onClick={() => handleRepositoryClick(repo)}
                       onDelete={(e) => handleDeleteRepository(repo, e)}
                     />
@@ -455,11 +470,12 @@ interface RepositoryItemProps {
   repository: Repository
   isSelected: boolean
   isNewlyCreated?: boolean
+  isDeleting?: boolean
   onClick: () => void
   onDelete: (event: React.MouseEvent) => void
 }
 
-function RepositoryItem({ repository, isSelected, isNewlyCreated = false, onClick, onDelete }: RepositoryItemProps) {
+function RepositoryItem({ repository, isSelected, isNewlyCreated = false, isDeleting = false, onClick, onDelete }: RepositoryItemProps) {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'short',
@@ -475,14 +491,16 @@ function RepositoryItem({ repository, isSelected, isNewlyCreated = false, onClic
   return (
     <div
       data-testid="repository-item"
-      className={`w-full p-3 rounded-md transition-colors group relative ${
-        isPending
-          ? 'bg-orange-50 border-l-4 border-orange-400 opacity-75'
+      className={`w-full p-3 rounded-md group relative transition-all duration-1000 ${
+        isDeleting
+          ? 'opacity-0 transform scale-95 pointer-events-none bg-red-50 border-l-4 border-red-400'
+          : isPending
+          ? 'bg-orange-50 border-l-4 border-orange-400 opacity-75 transition-colors'
           : isSelected
-          ? 'bg-blue-100 border-l-4 border-blue-500'
+          ? 'bg-blue-100 border-l-4 border-blue-500 transition-colors'
           : isNewlyCreated
-          ? 'bg-green-50 border-l-4 border-green-400 hover:bg-green-100'
-          : 'hover:bg-gray-100 border-l-4 border-transparent'
+          ? 'bg-green-50 border-l-4 border-green-400 hover:bg-green-100 transition-colors'
+          : 'hover:bg-gray-100 border-l-4 border-transparent transition-colors'
       }`}
     >
       <div className="flex items-start justify-between">
