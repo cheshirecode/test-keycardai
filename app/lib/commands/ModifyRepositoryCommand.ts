@@ -162,7 +162,10 @@ export class ModifyRepositoryCommand extends BaseCommand {
           // Then push to remote repository
           await this.mcpClient.call('git_push', {
             path: projectPath,
-            repository: params.repository
+            repository: {
+              url: params.repository.url,
+              name: params.repository.fullName  // Use fullName (owner/repo) instead of just name
+            }
           })
 
           mcpLogs.push({

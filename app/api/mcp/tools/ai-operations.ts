@@ -741,7 +741,7 @@ function getProjectStructure(projectPath: string, maxDepth = CONFIG.PROJECT.MAX_
 }
 
 /**
- * Generate a contextual modification plan
+ * Generate a contextual modification plan using AI when available, with intelligent fallbacks
  */
 async function generateContextualPlan(
   requestDescription: string,
@@ -751,9 +751,130 @@ async function generateContextualPlan(
   step: number
   action: string
   tool: string
-    params: unknown
+  params: unknown
   description: string
 }>> {
+  console.log('[AI Planning] Generating modification plan with AI...')
+  
+  // First try AI-powered planning if OpenAI API is available
+  if (process.env.OPENAI_API_KEY) {
+    try {
+      const aiPlan = await generateAIPoweredPlan(requestDescription, analysisData, projectPath)
+      if (aiPlan.length > 0) {
+        console.log(`[AI Planning] Successfully generated AI plan with ${aiPlan.length} steps`)
+        return aiPlan
+      }
+    } catch (error) {
+      console.log(`[AI Planning] AI planning failed, falling back to rule-based: ${error}`)
+    }
+  } else {
+    console.log('[AI Planning] OpenAI API key not available, using rule-based planning')
+  }
+
+  // Fall back to rule-based planning
+  console.log('[AI Planning] Using rule-based modification planning')
+  return generateRuleBasedPlan(requestDescription, analysisData, projectPath)
+}
+
+/**
+ * Generate AI-powered modification plan using OpenAI
+ */
+async function generateAIPoweredPlan(
+  requestDescription: string,
+  analysisData: Record<string, unknown>,
+  projectPath: string
+): Promise<Array<{
+  step: number
+  action: string
+  tool: string
+  params: unknown
+  description: string
+}>> {
+  const prompt = `You are an expert software architect and developer. Based on the following project analysis and user request, generate a detailed step-by-step modification plan.
+
+PROJECT ANALYSIS:
+- Type: ${analysisData.projectType || 'unknown'}
+- Framework: ${analysisData.framework || 'unknown'}
+- Structure: ${JSON.stringify(analysisData.structure || [])}
+- Dependencies: ${JSON.stringify(analysisData.dependencies || {})}
+- Recommendations: ${JSON.stringify(analysisData.recommendations || [])}
+
+USER REQUEST:
+${requestDescription}
+
+PROJECT PATH: ${projectPath}
+
+Available MCP tools:
+- generate_code: Create new files/components
+- add_packages: Install npm packages  
+- write_file: Create/update specific files
+- create_directory: Create new directories
+- run_script: Execute npm scripts or commands
+
+Generate a JSON array of modification steps. Each step should have:
+{
+  "step": number,
+  "action": "brief action name",
+  "tool": "mcp_tool_name", 
+  "params": { tool_specific_parameters },
+  "description": "detailed description of what this step does"
+}
+
+Focus on:
+1. Installing any required dependencies first
+2. Creating necessary directory structure
+3. Generating/modifying code files
+4. Running any build/setup commands
+5. Ensuring compatibility with existing project structure
+
+Respond with ONLY the JSON array, no other text.`
+
+  try {
+    // Use the ai library directly for this specific use case
+    const { generateText } = await import('ai')
+    const { openai } = await import('@ai-sdk/openai')
+    
+    const result = await generateText({
+      model: openai('gpt-3.5-turbo'),
+      prompt
+    })
+
+    // Parse the AI response
+    const cleanedResponse = result.text.trim().replace(/^```(?:json)?\s*/, '').replace(/\s*```$/, '')
+    const aiPlan = JSON.parse(cleanedResponse)
+
+    // Validate the plan structure
+    if (Array.isArray(aiPlan) && aiPlan.every(step => 
+      typeof step.step === 'number' &&
+      typeof step.action === 'string' &&
+      typeof step.tool === 'string' &&
+      typeof step.params === 'object' &&
+      typeof step.description === 'string'
+    )) {
+      return aiPlan
+    } else {
+      throw new Error('Invalid AI plan structure')
+    }
+  } catch (error) {
+    console.log(`[AI Planning] Failed to parse AI response: ${error}`)
+    throw error
+  }
+}
+
+/**
+ * Generate rule-based modification plan as fallback
+ */
+function generateRuleBasedPlan(
+  requestDescription: string,
+  analysisData: Record<string, unknown>,
+  projectPath: string
+): Array<{
+  step: number
+  action: string
+  tool: string
+  params: unknown
+  description: string
+}> {
   // Create a basic modification plan based on common patterns
   const plan: Array<{
     step: number
@@ -763,9 +884,12 @@ async function generateContextualPlan(
     description: string
   }> = []
 
-  // This is a simplified version - in a real implementation,
-  // this would use AI to generate a more sophisticated plan
-  if (requestDescription.includes('add') && requestDescription.includes('component')) {
+  // Enhanced rule-based planning with more sophisticated pattern matching
+  const lowerRequest = requestDescription.toLowerCase()
+
+  // Component creation patterns
+  if ((lowerRequest.includes('add') || lowerRequest.includes('create')) && 
+      (lowerRequest.includes('component') || lowerRequest.includes('page'))) {
     plan.push({
       step: 1,
       action: 'Generate React component',
@@ -774,7 +898,7 @@ async function generateContextualPlan(
         projectPath,
         type: 'component',
         name: extractComponentName(requestDescription),
-        framework: analysisData.framework
+        framework: analysisData.framework || 'react'
       },
       description: 'Create new React component based on request'
     })
@@ -800,14 +924,84 @@ async function generateContextualPlan(
     }
   }
 
-  // Add default steps if no specific plan generated
+  // Style/CSS patterns
+  if (lowerRequest.includes('style') || lowerRequest.includes('css') || lowerRequest.includes('design')) {
+    plan.push({
+      step: plan.length + 1,
+      action: 'Update styles',
+      tool: 'write_file',
+      params: {
+        projectPath,
+        fileName: 'src/styles/custom.css',
+        content: `/* Custom styles for: ${requestDescription} */\n.custom-styles {\n  /* Add your styles here */\n}\n`
+      },
+      description: 'Add custom styles based on request'
+    })
+  }
+
+  // API/service patterns
+  if (lowerRequest.includes('api') || lowerRequest.includes('service') || lowerRequest.includes('endpoint')) {
+    plan.push({
+      step: plan.length + 1,
+      action: 'Create API service',
+      tool: 'generate_code',
+      params: {
+        projectPath,
+        type: 'service',
+        name: extractServiceName(requestDescription),
+        framework: analysisData.framework || 'javascript'
+      },
+      description: 'Create API service for data handling'
+    })
+  }
+
+  // Configuration/setup patterns
+  if (lowerRequest.includes('config') || lowerRequest.includes('setup') || lowerRequest.includes('environment')) {
+    plan.push({
+      step: plan.length + 1,
+      action: 'Update configuration',
+      tool: 'write_file',
+      params: {
+        projectPath,
+        fileName: 'config.json',
+        content: JSON.stringify({
+          name: 'Modified Configuration',
+          description: requestDescription,
+          timestamp: new Date().toISOString()
+        }, null, 2)
+      },
+      description: 'Update application configuration'
+    })
+  }
+
+  // Add default documentation step if no specific plan generated
   if (plan.length === 0) {
     plan.push({
       step: 1,
-      action: 'Analyze request',
-      tool: 'analyze_project_structure',
-      params: { projectPath },
-      description: 'Analyze current project structure for modification'
+      action: 'Document modification request',
+      tool: 'write_file',
+      params: {
+        projectPath,
+        fileName: 'MODIFICATION_LOG.md',
+        content: `# Modification Request
+
+## User Request
+${requestDescription}
+
+## Project Analysis
+- Type: ${analysisData.projectType || 'unknown'}
+- Framework: ${analysisData.framework || 'unknown'}
+- Dependencies: ${Object.keys((analysisData.dependencies as Record<string, string>) || {}).length} packages
+
+## Timestamp
+${new Date().toISOString()}
+
+## Next Steps
+This request requires manual analysis to determine the appropriate modifications.
+Consider breaking down the request into more specific actions.
+`
+      },
+      description: 'Document the modification request for manual review'
     })
   }
 
@@ -846,6 +1040,26 @@ function extractPackageName(description: string): string | null {
   }
 
   return null
+}
+
+/**
+ * Extract service name from request description
+ */
+function extractServiceName(description: string): string {
+  const patterns = [
+    /(?:api|service|endpoint)\s+(?:for\s+)?([a-zA-Z]+)/i,
+    /create\s+([a-zA-Z]+)\s+(?:api|service)/i,
+    /([a-zA-Z]+)\s+service/i
+  ]
+  
+  for (const pattern of patterns) {
+    const match = description.match(pattern)
+    if (match) {
+      return match[1]
+    }
+  }
+  
+  return 'ApiService'
 }
 
 /**

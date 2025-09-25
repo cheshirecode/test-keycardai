@@ -323,19 +323,74 @@ logs
         }
       }
 
-      // For now, we'll simulate pushing by returning success
-      // In a real implementation, this would use git commands or GitHub API
-      console.log(`[Git Push] Simulating push to remote for ${repository?.name || 'repository'}`)
+      // First try to push via GitHub API if repository info is available
+      if (repository && repository.url && repository.name.includes('/')) {
+        const githubService = new GitHubService()
+        
+        if (githubService.isGitHubAvailable()) {
+          try {
+            console.log(`[Git Push] Attempting real push to GitHub for ${repository.name}`)
+            
+            // Extract owner and repo from repository name (format: owner/repo)
+            const [owner, repo] = repository.name.split('/')
+            
+            // Collect all files from the project directory
+            const files = GitHubService.collectFilesFromDirectory(projectPath)
+            
+            if (files.length === 0) {
+              return {
+                success: false,
+                message: 'No files to push - directory is empty'
+              }
+            }
 
-      return {
-        success: true,
-        message: `Changes pushed to ${repository?.name || 'remote repository'} successfully`
+            // Create a commit message for the push
+            const commitMessage = `feat: automated modifications via Project Scaffolder
+
+Updated ${files.length} files via MCP repository modification workflow.
+Timestamp: ${new Date().toISOString()}`
+
+            // Push changes using GitHub API
+            const pushResult = await githubService.commitFiles(
+              { owner, repo },
+              files,
+              commitMessage
+            )
+
+            if (pushResult.success) {
+              console.log(`[Git Push] Successfully pushed changes to ${repository.name}`)
+              return {
+                success: true,
+                message: `✅ Changes successfully pushed to ${repository.name}! Updated ${files.length} files.`
+              }
+            } else {
+              console.log(`[Git Push] GitHub API push failed: ${pushResult.message}`)
+              // Fall back to simulation if GitHub API fails
+              return this.simulatePush(repository)
+            }
+          } catch (error) {
+            console.log(`[Git Push] GitHub API error: ${error}`)
+            // Fall back to simulation if there's an error
+            return this.simulatePush(repository)
+          }
+        }
       }
+
+      // Fall back to simulation if GitHub API is not available or repository info is incomplete
+      return this.simulatePush(repository)
     } catch (error) {
       return {
         success: false,
         message: `Failed to push to remote: ${error instanceof Error ? error.message : 'Unknown error'}`
       }
+    }
+  }
+
+  private static simulatePush(repository?: { url: string; name: string }): { success: boolean; message: string } {
+    console.log(`[Git Push] Falling back to simulated push for ${repository?.name || 'repository'}`)
+    return {
+      success: true,
+      message: `⚠️ Simulated push to ${repository?.name || 'remote repository'} (GitHub API not available or insufficient permissions)`
     }
   }
 
@@ -346,15 +401,106 @@ logs
         fs.mkdirSync(targetPath, { recursive: true })
       }
 
-      // For now, we'll simulate cloning by creating a basic project structure
-      // In a real implementation, this would use git clone or GitHub API
-      console.log(`[Git Clone] Simulating clone of ${url} to ${targetPath}`)
+      // First try real git clone if git is available and it's a valid GitHub URL
+      if (this.isGitHubUrl(url)) {
+        const githubService = new GitHubService()
+        
+        if (githubService.isGitHubAvailable()) {
+          try {
+            console.log(`[Git Clone] Attempting real clone of ${url} to ${targetPath}`)
+            
+            // Extract owner and repo from GitHub URL
+            const repoMatch = url.match(/github\.com[/:]([^/]+)\/([^/.]+)/i)
+            if (repoMatch) {
+              const [, owner, repo] = repoMatch
+              
+              // Get repository info first to validate access
+              const repoInfo = await githubService.getRepositoryInfo({ owner, repo })
+              if (!repoInfo.success || !repoInfo.info) {
+                console.log(`[Git Clone] Repository access failed: ${repoInfo.message}`)
+                return this.simulateClone(url, targetPath)
+              }
+
+              // Download repository as zip and extract
+              const downloadUrl = `https://api.github.com/repos/${owner}/${repo}/zipball/${repoInfo.info.defaultBranch || 'main'}`
+              
+              const response = await fetch(downloadUrl, {
+                headers: {
+                  'Authorization': `token ${process.env.GITHUB_TOKEN}`,
+                  'Accept': 'application/vnd.github.v3+json',
+                  'User-Agent': 'Project-Scaffolder'
+                }
+              })
+
+              if (!response.ok) {
+                throw new Error(`GitHub API error: ${response.status} ${response.statusText}`)
+              }
+
+              // Extract the zip file
+              const buffer = await response.arrayBuffer()
+              const AdmZip = await import('adm-zip')
+              const zip = new AdmZip.default(Buffer.from(buffer))
+              
+              // Extract to temporary location first
+              const tempExtractPath = `${targetPath}-temp`
+              zip.extractAllTo(tempExtractPath, true)
+              
+              // Find the extracted folder (GitHub creates a folder with commit hash)
+              const extractedFolders = fs.readdirSync(tempExtractPath)
+              if (extractedFolders.length === 0) {
+                throw new Error('No content extracted from repository')
+              }
+              
+              // Move contents from the extracted folder to our target path
+              const extractedFolder = path.join(tempExtractPath, extractedFolders[0])
+              const items = fs.readdirSync(extractedFolder)
+              
+              for (const item of items) {
+                const sourcePath = path.join(extractedFolder, item)
+                const destPath = path.join(targetPath, item)
+                fs.renameSync(sourcePath, destPath)
+              }
+              
+              // Clean up temp directory
+              fs.rmSync(tempExtractPath, { recursive: true, force: true })
+
+              console.log(`[Git Clone] Successfully cloned ${url} to ${targetPath}`)
+              return {
+                success: true,
+                message: `✅ Successfully cloned ${owner}/${repo} to ${targetPath}`
+              }
+            }
+          } catch (error) {
+            console.log(`[Git Clone] Real clone failed: ${error}`)
+            // Fall back to simulation
+            return this.simulateClone(url, targetPath)
+          }
+        }
+      }
+
+      // Fall back to simulation if not a GitHub URL or GitHub API not available
+      return this.simulateClone(url, targetPath)
+    } catch (error) {
+      return {
+        success: false,
+        message: `Failed to clone repository: ${error instanceof Error ? error.message : 'Unknown error'}`
+      }
+    }
+  }
+
+  private static isGitHubUrl(url: string): boolean {
+    return /github\.com/i.test(url)
+  }
+
+  private static simulateClone(url: string, targetPath: string): { success: boolean; message: string } {
+    try {
+      console.log(`[Git Clone] Falling back to simulated clone of ${url} to ${targetPath}`)
 
       // Create a basic package.json to simulate cloned repository
       const packageJson = {
         name: path.basename(targetPath),
         version: '1.0.0',
-        description: 'Cloned repository',
+        description: 'Cloned repository (simulated)',
         main: 'index.js',
         scripts: {
           start: 'node index.js'
@@ -366,14 +512,31 @@ logs
         JSON.stringify(packageJson, null, 2)
       )
 
+      // Create a basic README
+      const readme = `# ${path.basename(targetPath)}
+
+This is a simulated clone of ${url}.
+The actual repository content was not available.
+
+To enable real cloning, ensure:
+- GITHUB_TOKEN environment variable is set
+- The repository is accessible with the provided token
+- The URL is a valid GitHub repository URL
+`
+
+      fs.writeFileSync(
+        path.join(targetPath, 'README.md'),
+        readme
+      )
+
       return {
         success: true,
-        message: `Repository cloned successfully to ${targetPath}`
+        message: `⚠️ Simulated clone of ${url} to ${targetPath} (GitHub API not available or repository inaccessible)`
       }
     } catch (error) {
       return {
         success: false,
-        message: `Failed to clone repository: ${error instanceof Error ? error.message : 'Unknown error'}`
+        message: `Clone simulation failed: ${error instanceof Error ? error.message : 'Unknown error'}`
       }
     }
   }
