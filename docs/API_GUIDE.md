@@ -4,7 +4,7 @@ Complete reference for the Project Scaffolder API and MCP tools.
 
 ## 🔌 MCP Server API
 
-The core API follows the Model Context Protocol (MCP) specification.
+The core API follows the Model Context Protocol (MCP) specification for AI-powered project operations.
 
 ### Base Endpoint
 ```
@@ -69,14 +69,14 @@ Fallback project creation without AI.
 ### 2. Project Analysis
 
 #### `analyze_existing_project`
-Analyzes existing project structure.
+Analyzes existing project structure and dependencies.
 
 **Parameters:**
 - `projectPath` (string): Path to project
 - `requestDescription` (string): What you want to analyze
 
 #### `generate_modification_plan`
-Creates modification plan for existing projects.
+Creates step-by-step modification plan for existing projects.
 
 **Parameters:**
 - `projectPath` (string): Path to project
@@ -154,7 +154,7 @@ Creates GitHub repository.
 
 ### React Hook: `useChat`
 
-The main hook for chat interface integration.
+The main hook for chat interface integration. Handles both project creation and repository modification.
 
 ```typescript
 import { useChat } from '@/lib/hooks/useChat'
@@ -182,6 +182,11 @@ export function MyComponent() {
   )
 }
 ```
+
+**Key Features:**
+- Context-aware: Distinguishes between new projects and modifications
+- Repository integration: Works with selected repositories
+- Error handling: Defensive callback execution to prevent runtime errors
 
 ### MCP Client
 
@@ -338,8 +343,16 @@ DEBUG=mcp:* npm run dev
 
 1. **AI Analysis Failing**: Check OpenAI API key and usage limits
 2. **GitHub Integration Issues**: Verify token permissions
-3. **Type Errors**: Ensure TypeScript configuration is correct
-4. **File Operations Failing**: Check path permissions and existence
+3. **Repository Refresh Errors**: Fixed in recent updates with defensive callback handling
+4. **Type Errors**: Ensure TypeScript configuration is correct
+5. **File Operations Failing**: Check path permissions and existence
+
+### Recent Fixes
+
+- **Fixed**: `onRepositoryRefresh` TypeError ("c is not a function")
+- **Fixed**: Missing `handleRepositoryModification` function
+- **Improved**: Auto-navigation logic to prevent unwanted redirects
+- **Enhanced**: Repository context management and callback handling
 
 ---
 

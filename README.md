@@ -1,113 +1,105 @@
 # 🚀 Project Scaffolder
 
-An AI-powered project scaffolding tool that creates ready-to-use development projects through natural language conversation.
+AI-powered project creation and modification through natural language conversation.
 
 ## ✨ Quick Start
 
-1. **Try the live demo:** [https://test-keycardai-hmmx4tn4f-dac4158s-projects.vercel.app](https://test-keycardai-hmmx4tn4f-dac4158s-projects.vercel.app)
-2. **Type your request:** "Create a React TypeScript app with authentication"
-3. **Get your project:** Complete project with GitHub repository
+1. **Try it live:** [https://test-keycardai.vercel.app](https://test-keycardai.vercel.app)
+2. **Create:** "Build a React TypeScript app with authentication"
+3. **Modify:** "Add jotai state management" or "Create UserCard component"
+4. **Get results:** Complete projects with GitHub repositories
 
 ## 🎯 What It Does
 
-### Create Projects
-- **React/Next.js** apps with TypeScript
-- **Node.js APIs** with Express
-- **Vue/Nuxt** applications
-- **Python/FastAPI** backends
-- **Full-stack** combinations
+**Create Projects**
+- React/Next.js with TypeScript
+- Node.js APIs with Express  
+- Vue/Nuxt applications
+- Python/FastAPI backends
+- Full-stack combinations
 
-### Ongoing Development
-- **Add packages:** "add jotai" → installs state management
-- **Create components:** "create UserCard component" → generates React component
-- **Modify configs:** "add tailwind" → configures styling
-- **Auto-commit:** All changes committed to your repository
+**Modify Existing Projects**
+- Add packages: "add jotai" → installs state management
+- Create components: "create UserCard component" → generates files
+- Update configs: "add tailwind" → configures styling
+- Auto-commit: All changes saved to GitHub
 
 ## 🏗️ How It Works
 
 ```
-Natural Language → AI Analysis → Project Generation → GitHub Repository
+Natural Language → AI Analysis → Code Generation → GitHub Repository
 ```
 
-1. **AI Analysis:** OpenAI GPT-3.5 analyzes your request
-2. **Smart Planning:** Generates step-by-step project plan
-3. **Auto-Generation:** Creates files, installs dependencies, sets up configs
-4. **GitHub Integration:** Creates repository with all your code
-5. **Ongoing Support:** Continue modifying the same project
+1. **AI Analysis:** GPT analyzes your request and creates execution plan
+2. **Code Generation:** Creates files, installs packages, configures tools
+3. **GitHub Integration:** Commits everything to a new or existing repository
+4. **Ongoing Support:** Continue modifying projects through conversation
 
-## 🛠️ Technology Stack
+## 🛠️ Tech Stack
 
-- **Frontend:** Next.js 14, React, TypeScript, Tailwind CSS
+- **Frontend:** Next.js 15, React, TypeScript, Tailwind CSS
 - **Backend:** Next.js API routes, MCP protocol
 - **AI:** OpenAI GPT-3.5-turbo
-- **Repository:** GitHub API integration
+- **GitHub:** API integration for repository management
 - **Deployment:** Vercel
 
-## 🔧 Setup for Development
+## 🔧 Development Setup
 
-### Prerequisites
-- Node.js 18+
-- GitHub account
-- OpenAI API key
+**Prerequisites:** Node.js 18+, GitHub account, OpenAI API key
 
-### Environment Variables
+**Environment Variables:**
 ```bash
 OPENAI_API_KEY=your_openai_key
 GITHUB_TOKEN=your_github_token
-GITHUB_OWNER=your_username  # Optional: defaults to authenticated user
+GITHUB_OWNER=your_username  # Optional
 ```
 
-### Installation
+**Installation:**
 ```bash
-# Clone and install
 git clone https://github.com/cheshirecode/test-keycardai.git
 cd test-keycardai
 npm install
-
-# Start development
 npm run dev
 ```
 
-## 📋 Example Conversations
+## 📋 Examples
 
-### Create New Project
+**Create New Project:**
 ```
 👤 "Create a React TypeScript app for a todo list"
-🤖 ✨ Analyzing request... 95% confidence
-   📁 Creating todo-list-app
-   ⚡ Installing dependencies
+🤖 ✨ Creating todo-list-app...
+   📦 Installing dependencies
    🔗 Repository: https://github.com/user/todo-list-app
    ✅ Project ready!
 ```
 
-### Modify Existing Project
+**Modify Existing Project:**
 ```
 👤 "add jotai for state management"
-🤖 🔄 Modifying todo-list-app
+🤖 🔄 Modifying todo-list-app...
    📦 Installing jotai
-   📝 Updating package.json
    💾 Committing changes
    ✅ State management added!
 ```
 
 ## 🏆 Key Features
 
-### ✅ Context-Aware Development
+**✅ Context-Aware**
 - Remembers your active project
 - Distinguishes between new projects vs modifications
-- Maintains project state throughout conversation
+- Maintains conversation context
 
-### ✅ Smart Package Detection
-- Recognizes popular libraries: jotai, zustand, tailwind
+**✅ Smart Package Detection**
+- Recognizes popular libraries (jotai, zustand, tailwind)
 - Installs correct dependencies automatically
 - Handles dev vs production packages
 
-### ✅ GitHub Integration
+**✅ GitHub Integration**
 - Creates repositories automatically
-- Commits all changes with descriptive messages
-- Supports both personal and organization accounts
+- Commits changes with descriptive messages
+- Supports personal and organization accounts
 
-### ✅ Visual Feedback
+**✅ Visual Feedback**
 - Project status indicators
 - Real-time progress updates
 - Context-aware input suggestions
@@ -115,17 +107,10 @@ npm run dev
 ## 🧪 Testing
 
 ```bash
-# Run tests
-npm test
-
-# Type checking
-npm run type-check
-
-# Linting
-npm run lint
-
-# Full CI check
-npm run ci
+npm test          # Run tests
+npm run type-check # TypeScript validation
+npm run lint      # Code linting
+npm run ci        # Full CI check
 ```
 
 ## 📁 Project Structure
@@ -133,28 +118,19 @@ npm run ci
 ```
 ├── app/                 # Next.js App Router
 │   ├── api/mcp/        # MCP protocol server
-│   ├── components/     # Server-side components
-│   └── contexts/       # React contexts
-├── src/                # Frontend source
 │   ├── components/     # React components
-│   └── hooks/          # Custom React hooks
-├── lib/                # Shared utilities and services
-│   ├── ai-service.ts   # AI integration
-│   ├── github-service.ts # GitHub API client
-│   ├── mcp-client.ts   # MCP protocol client
-│   ├── hooks/          # Shared hooks
-│   └── templates/      # Project templates
-├── types/              # Centralized type definitions
-└── docs/              # Additional documentation
+│   ├── contexts/       # React contexts
+│   └── lib/            # Utilities and services
+├── types/              # TypeScript definitions
+└── docs/              # Documentation
 ```
 
 ## 🚀 Deployment
 
-Deploy to Vercel with one click:
-
+**Vercel (Recommended):**
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/cheshirecode/test-keycardai)
 
-Or manually:
+**Manual:**
 ```bash
 npm run build
 npm start
@@ -163,14 +139,13 @@ npm start
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Commit changes: `git commit -m 'feat: add amazing feature'`
-4. Push to branch: `git push origin feature/amazing-feature`
-5. Open a Pull Request
+2. Create feature branch: `git checkout -b feature/name`
+3. Commit changes: `git commit -m 'feat: description'`
+4. Push and open Pull Request
 
 ## 📄 License
 
-MIT License - see [LICENSE](LICENSE) file for details.
+MIT License - see [LICENSE](LICENSE) file.
 
 ---
 
