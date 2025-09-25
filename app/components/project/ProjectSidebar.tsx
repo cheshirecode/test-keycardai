@@ -5,7 +5,7 @@ import type { Repository } from '@/types'
 import { ChevronDownIcon, ChevronRightIcon, TrashIcon, FunnelIcon, ArrowUpIcon, ArrowDownIcon } from '@heroicons/react/24/outline'
 import { FolderIcon, GlobeAltIcon, LockClosedIcon } from '@heroicons/react/24/solid'
 import { useRepositories } from '@/hooks/useRepositories'
-import { useRepository } from '@/contexts/RepositoryContext'
+import { useRepositoryNavigation } from '@/lib/navigation'
 import { CONFIG } from '@/lib/config'
 import { TypedMCPClient } from '@/lib/typed-mcp-client'
 import type { DeleteRepositoryParams, ListRepositoriesParams } from '@/types/mcp-tools'
@@ -21,7 +21,7 @@ interface ProjectSidebarProps {
 }
 
 export function ProjectSidebar({ selectedRepository, onRepositorySelect, className = '', onRefresh, newlyCreatedRepository }: ProjectSidebarProps) {
-  const { navigateToHome } = useRepository()
+  const { navigateToHome } = useRepositoryNavigation()
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [filter, setFilter] = useState('')
   const [debouncedFilter, setDebouncedFilter] = useState('')

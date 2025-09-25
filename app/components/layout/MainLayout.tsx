@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useCallback } from 'react'
 import { ProjectSidebar } from '@/components/project'
-import { useRepository } from '@/contexts/RepositoryContext'
+import { useRepositoryState } from '@/hooks/useRepositoryAtoms'
 import { useRepositorySync } from '@/hooks/useRepositorySync'
 
 interface MainLayoutProps {
@@ -15,7 +15,7 @@ export function MainLayout({ children }: MainLayoutProps) {
     setSelectedRepository,
     newlyCreatedRepository,
     setOnRepositoryRefresh
-  } = useRepository()
+  } = useRepositoryState()
 
   const sidebarRefreshRef = useRef<(() => void) | null>(null)
 

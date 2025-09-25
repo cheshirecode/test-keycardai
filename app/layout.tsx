@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { RepositoryProvider } from "@/contexts/RepositoryContext";
 import { SWRProvider, JotaiProvider } from "@/components/providers";
 import ErrorBoundary from "@/components/monitoring/ErrorBoundary";
 import { WebVitalsMonitor } from "@/components/monitoring/PerformanceMonitor";
@@ -35,9 +34,7 @@ export default function RootLayout({
           <WebVitalsMonitor />
           <JotaiProvider>
             <SWRProvider>
-              <RepositoryProvider>
-                {children}
-              </RepositoryProvider>
+              {children}
             </SWRProvider>
           </JotaiProvider>
         </ErrorBoundary>

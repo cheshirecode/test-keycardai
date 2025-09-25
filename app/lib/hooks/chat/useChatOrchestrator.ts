@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
-import { useRepository } from '@/contexts/RepositoryContext'
+import { useRepositoryState, useRepositoryCreation } from '@/hooks/useRepositoryAtoms'
+import { useRepositoryNavigation } from '@/lib/navigation'
 import { invalidateRepositoriesCache } from '@/hooks/useRepositories'
 import type { ProjectInfo } from '@/types'
 
@@ -32,12 +33,16 @@ export function useChatOrchestrator(fastMode: boolean = false) {
 
   const {
     selectedRepository,
-    setNewlyCreatedRepository,
-    refreshRepositories,
+    refreshRepositories
+  } = useRepositoryState()
+  
+  const {
     isCreatingNewProject,
     setIsCreatingNewProject,
-    navigateToRepository
-  } = useRepository()
+    setNewlyCreatedRepository
+  } = useRepositoryCreation()
+  
+  const { navigateToRepository } = useRepositoryNavigation()
 
   const { messages, addMessage, clearMessages } = useMessageManager()
   const { classifyRequest } = useRequestClassifier()
@@ -117,7 +122,7 @@ export function useChatOrchestrator(fastMode: boolean = false) {
               invalidateRepositoriesCache,
               isCreatingNewProject,
               setIsCreatingNewProject,
-              fastMode
+              ...(fastMode !== undefined && { fastMode })
             })
           }
           break
@@ -139,7 +144,7 @@ export function useChatOrchestrator(fastMode: boolean = false) {
               invalidateRepositoriesCache,
               isCreatingNewProject,
               setIsCreatingNewProject,
-              fastMode
+              ...(fastMode !== undefined && { fastMode })
             })
           }
           break

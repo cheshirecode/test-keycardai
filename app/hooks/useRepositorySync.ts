@@ -2,7 +2,8 @@
 
 import { useEffect } from 'react'
 import { usePathname } from 'next/navigation'
-import { useRepository } from '@/contexts/RepositoryContext'
+import { useAtom, useSetAtom } from 'jotai'
+import { selectedRepositoryAtom } from '@/store/repositoryStore'
 import type { Repository } from '@/types'
 import { TypedMCPClient } from '@/lib/typed-mcp-client'
 import type { ListRepositoriesParams } from '@/types/mcp-tools'
@@ -13,7 +14,8 @@ import type { ListRepositoriesParams } from '@/types/mcp-tools'
  */
 export function useRepositorySync() {
   const pathname = usePathname()
-  const { selectedRepository, setSelectedRepositoryInternal } = useRepository()
+  const [selectedRepository] = useAtom(selectedRepositoryAtom)
+  const setSelectedRepository = useSetAtom(selectedRepositoryAtom)
 
   useEffect(() => {
     const controller = new AbortController()
@@ -59,8 +61,8 @@ export function useRepositorySync() {
               // Check again if not aborted before updating state
               if (!controller.signal.aborted) {
                 console.log('🔄 useRepositorySync: Setting repository from URL:', repository.name)
-                // Use the internal setter to avoid navigation loop
-                setSelectedRepositoryInternal(repository)
+                // Use the direct setter to avoid navigation loop
+                setSelectedRepository(repository)
               }
             }
           }
@@ -80,7 +82,7 @@ export function useRepositorySync() {
         // If we have a selectedRepository but we're on home page, it might be from
         // clicking "New Project" - let's check if we should clear it
         if (selectedRepository) {
-          setSelectedRepositoryInternal(null)
+          setSelectedRepository(null)
 
           // If we have a selectedRepository but we're on home page, it might be from
           // clicking "New Project" - let's check if we should clear it
@@ -96,5 +98,5 @@ export function useRepositorySync() {
     return () => {
       controller.abort()
     }
-  }, [pathname, selectedRepository, setSelectedRepositoryInternal])
+  }, [pathname, selectedRepository, setSelectedRepository])
 }
