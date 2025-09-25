@@ -89,8 +89,22 @@ export function ProjectSidebar({ selectedRepository, onRepositorySelect, classNa
     (repo.description && repo.description.toLowerCase().includes(filter.toLowerCase()))
   )
 
-  const scaffoldedProjects = filteredRepositories.filter(repo => repo.isScaffoldedProject)
-  const otherRepositories = filteredRepositories.filter(repo => !repo.isScaffoldedProject)
+  // Sort repositories by updatedAt (most recent first), then by name (alphabetical)
+  const sortedRepositories = [...filteredRepositories].sort((a, b) => {
+    // First sort by updatedAt (most recent first)
+    const dateA = new Date(a.updatedAt).getTime()
+    const dateB = new Date(b.updatedAt).getTime()
+    
+    if (dateB !== dateA) {
+      return dateB - dateA // Most recent first
+    }
+    
+    // If dates are equal, sort by name (alphabetical)
+    return a.name.localeCompare(b.name)
+  })
+
+  const scaffoldedProjects = sortedRepositories.filter(repo => repo.isScaffoldedProject)
+  const otherRepositories = sortedRepositories.filter(repo => !repo.isScaffoldedProject)
 
 
   const handleRepositoryClick = (repository: Repository) => {

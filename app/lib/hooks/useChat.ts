@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import React, { useState, useCallback } from 'react'
 import { MCPClient } from '@/lib/mcp-client'
 import { useRepository } from '@/contexts/RepositoryContext'
 import { invalidateRepositoriesCache } from '@/hooks/useRepositories'
@@ -9,7 +9,12 @@ export function useChat() {
   const [isLoading, setIsLoading] = useState(false)
   const [currentProject, setCurrentProject] = useState<ProjectInfo | null>(null)
   const mcpClient = new MCPClient()
-  const { setNewlyCreatedRepository, refreshRepositories } = useRepository()
+  const { selectedRepository, setNewlyCreatedRepository, refreshRepositories } = useRepository()
+
+  // Clear currentProject when selectedRepository changes (user navigates to different repo)
+  React.useEffect(() => {
+    setCurrentProject(null)
+  }, [selectedRepository])
 
   const addMessage = useCallback((role: 'user' | 'assistant', content: string, chainOfThought?: string, mcpLogs?: MCPLogEntry[]) => {
     const message: Message = {
