@@ -10,15 +10,15 @@ interface MainLayoutProps {
 }
 
 export function MainLayout({ children }: MainLayoutProps) {
-  const { 
-    selectedRepository, 
-    setSelectedRepository, 
+  const {
+    selectedRepository,
+    setSelectedRepository,
     newlyCreatedRepository,
-    setOnRepositoryRefresh 
+    setOnRepositoryRefresh
   } = useRepository()
-  
+
   const sidebarRefreshRef = useRef<(() => void) | null>(null)
-  
+
   // Sync repository selection with URL changes
   useRepositorySync()
 

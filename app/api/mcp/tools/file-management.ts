@@ -1,5 +1,6 @@
 import * as fs from 'fs'
 import * as path from 'path'
+import { CONFIG } from '@/lib/config'
 
 export interface ReadFileParams {
   projectPath: string
@@ -67,10 +68,10 @@ export const fileManagement = {
       }
 
       // Check file size (limit to reasonable size for editing)
-      if (stats.size > 1024 * 1024) { // 1MB limit
+      if (stats.size > CONFIG.LIMITS.MAX_FILE_SIZE) {
         return {
           success: false,
-          message: `File too large to read (${Math.round(stats.size / 1024)}KB). Maximum size is 1MB.`
+          message: `File too large to read (${Math.round(stats.size / CONFIG.LIMITS.FILE_SIZE_DISPLAY_UNIT)}KB). Maximum size is ${CONFIG.LIMITS.MAX_FILE_SIZE / CONFIG.LIMITS.FILE_SIZE_DISPLAY_UNIT}KB.`
         }
       }
 
@@ -214,7 +215,7 @@ export const fileManagement = {
               try {
                 const stats = fs.statSync(itemPath)
                 // Only search text files under 1MB
-                if (stats.size < 1024 * 1024 && isTextFile(item.name)) {
+                if (stats.size < CONFIG.LIMITS.MAX_FILE_SIZE && isTextFile(item.name)) {
                   const content = fs.readFileSync(itemPath, 'utf8')
                   const lines = content.split('\n')
                   const regex = new RegExp(params.pattern, 'gi')

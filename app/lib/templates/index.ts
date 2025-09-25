@@ -1,4 +1,5 @@
 import type { ProjectTemplate } from '@/types'
+import { CONFIG } from '../config'
 
 export const templates: Record<string, ProjectTemplate> = {
   'react-ts': {
@@ -399,7 +400,7 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 const app = express()
-const PORT = process.env.PORT || 3000
+const PORT = process.env.PORT || ${CONFIG.PORTS.DEFAULT_DEV}
 
 // Middleware
 app.use(helmet())
@@ -421,7 +422,7 @@ app.listen(PORT, () => {
 })
 
 export default app`,
-      '.env.example': `PORT=3000
+      '.env.example': `PORT=${CONFIG.PORTS.DEFAULT_DEV}
 NODE_ENV=development`,
       'README.md': `# Node.js API
 

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { ConfigHelpers } from '@/lib/config'
 
 export async function GET() {
   try {
@@ -16,9 +17,9 @@ export async function GET() {
       },
       uptime: process.uptime(),
       memory: {
-        used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
-        total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024),
-        limit: Math.round(process.memoryUsage().rss / 1024 / 1024)
+        used: ConfigHelpers.bytesToMB(process.memoryUsage().heapUsed),
+        total: ConfigHelpers.bytesToMB(process.memoryUsage().heapTotal),
+        limit: ConfigHelpers.bytesToMB(process.memoryUsage().rss)
       }
     }
 

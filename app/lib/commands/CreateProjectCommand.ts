@@ -1,5 +1,5 @@
 import { BaseCommand, CommandResult } from './BaseCommand'
-import { MCPClient } from '@/lib/mcp-client'
+import { TypedMCPClient } from '@/lib/typed-mcp-client'
 import type { MCPLogEntry, ProjectInfo, Repository } from '@/types'
 
 export interface CreateProjectParams {
@@ -18,7 +18,7 @@ export interface CreateProjectParams {
  * Single responsibility: New project creation workflow
  */
 export class CreateProjectCommand extends BaseCommand {
-  private mcpClient = new MCPClient()
+  private mcpClient = new TypedMCPClient()
 
   async execute(params: CreateProjectParams): Promise<CommandResult> {
     try {

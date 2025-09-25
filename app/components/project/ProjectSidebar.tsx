@@ -49,7 +49,7 @@ export function ProjectSidebar({ selectedRepository, onRepositorySelect, classNa
         repo.name === newlyCreatedRepository ||
         repo.fullName.includes(newlyCreatedRepository)
       )
-      
+
       // Clear the newly created flag after highlighting
       if (newRepo) {
         setTimeout(() => {
@@ -81,10 +81,10 @@ export function ProjectSidebar({ selectedRepository, onRepositorySelect, classNa
       if (result.success) {
         // Check if we're deleting the currently selected repository
         const isDeletingCurrentRepo = selectedRepository?.id === repository.id
-        
+
         // Invalidate the cache to refetch repositories
         refresh()
-        
+
         // Wait for refresh, then handle routing
         setTimeout(() => {
           if (isDeletingCurrentRepo) {
@@ -104,7 +104,7 @@ export function ProjectSidebar({ selectedRepository, onRepositorySelect, classNa
             }
           }
         }, 500) // Small delay to ensure refresh completes
-        
+
       } else {
         alert(`Failed to delete repository: ${result.message}`)
       }
@@ -237,8 +237,8 @@ export function ProjectSidebar({ selectedRepository, onRepositorySelect, classNa
                       key={repo.id}
                       repository={repo}
                       isSelected={selectedRepository?.id === repo.id}
-                      isNewlyCreated={newlyCreatedRepository ? 
-                        (repo.name === newlyCreatedRepository || repo.fullName.includes(newlyCreatedRepository)) : 
+                      isNewlyCreated={newlyCreatedRepository ?
+                        (repo.name === newlyCreatedRepository || repo.fullName.includes(newlyCreatedRepository)) :
                         false}
                       onClick={() => handleRepositoryClick(repo)}
                       onDelete={(e) => handleDeleteRepository(repo, e)}
@@ -260,8 +260,8 @@ export function ProjectSidebar({ selectedRepository, onRepositorySelect, classNa
                       key={repo.id}
                       repository={repo}
                       isSelected={selectedRepository?.id === repo.id}
-                      isNewlyCreated={newlyCreatedRepository ? 
-                        (repo.name === newlyCreatedRepository || repo.fullName.includes(newlyCreatedRepository)) : 
+                      isNewlyCreated={newlyCreatedRepository ?
+                        (repo.name === newlyCreatedRepository || repo.fullName.includes(newlyCreatedRepository)) :
                         false}
                       onClick={() => handleRepositoryClick(repo)}
                       onDelete={(e) => handleDeleteRepository(repo, e)}

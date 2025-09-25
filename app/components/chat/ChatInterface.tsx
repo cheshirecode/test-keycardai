@@ -11,10 +11,10 @@ import { useLocalStorage } from '@/hooks/useLocalStorage'
 export function ChatInterface() {
   const [input, setInput] = useState('')
   const { messages, isLoading, currentProject, sendMessage, clearChat } = useChat()
-  const { 
-    selectedRepository, 
-    isRepositoryMode, 
-    navigateToHome, 
+  const {
+    selectedRepository,
+    isRepositoryMode,
+    navigateToHome,
     clearAllRepositoryData,
     setIsCreatingNewProject
   } = useRepository()
@@ -91,16 +91,16 @@ export function ChatInterface() {
               onClick={() => {
                 // Clear all repository-related state comprehensively
                 clearAllRepositoryData()
-                
+
                 // Clear chat and current project
                 clearChat()
-                
+
                 // Navigate to home
                 navigateToHome()
-                
+
                 // Set flag to indicate new project creation
                 setIsCreatingNewProject(true)
-                
+
                 // Focus on the input field after clearing
                 setTimeout(() => {
                   const input = document.querySelector('input[type="text"]') as HTMLInputElement

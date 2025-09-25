@@ -2,6 +2,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 import { AIService } from '@/lib/ai-service'
 import { RepositoryTools } from '@/lib/repository-tools'
+import { CONFIG } from '@/lib/config'
 
 export interface AnalyzeProjectParams {
   description: string
@@ -305,7 +306,7 @@ export const aiOperations = {
         plannedActions: actions.map(a => a.description),
         executionResults: params.autoExecute ? executionResults : null,
         aiPowered: true,
-        llmUsed: 'OpenAI GPT-3.5-turbo'
+        llmUsed: CONFIG.AI.DEFAULT_MODEL
       }
     } catch (error) {
       return {
@@ -361,7 +362,7 @@ This is a modification to an existing repository, NOT a new project creation. Pl
       const sanitizedName = (projectName || 'my-project').toLowerCase().replace(/[^a-z0-9-]/g, '-')
 
       // Ensure Vercel compatibility by using proper tmp directory
-      const tmpProjectsDir = '/tmp/projects'
+      const tmpProjectsDir = CONFIG.PROJECT.TEMP_DIR
       if (!fs.existsSync(tmpProjectsDir)) {
         fs.mkdirSync(tmpProjectsDir, { recursive: true })
       }
@@ -453,7 +454,7 @@ This is a modification to an existing repository, NOT a new project creation. Pl
         repositoryUrl ? `🔗 Repository: ${repositoryUrl}` : '',
         `📂 Project Path: ${projectPath}`,
         `✅ Total Steps: ${actions.length}`,
-        `🤖 AI Model: OpenAI GPT-3.5-turbo`
+        `🤖 AI Model: ${CONFIG.AI.DEFAULT_MODEL}`
       ].filter(Boolean).join('\n')
 
       return {
@@ -472,7 +473,7 @@ This is a modification to an existing repository, NOT a new project creation. Pl
           executionSteps: executionResults,
           createdAt: new Date().toISOString(),
           aiPowered: true,
-          llmUsed: 'OpenAI GPT-3.5-turbo'
+          llmUsed: CONFIG.AI.DEFAULT_MODEL
         },
         chainOfThought: chainOfThought
       }
@@ -540,7 +541,7 @@ This is a modification to an existing repository, NOT a new project creation. Pl
           optimization: params.includeOptimization ? optimization : null,
           aiPowered: true,
           processingTime: Date.now(),
-          modelUsed: 'OpenAI GPT-3.5-turbo'
+          modelUsed: CONFIG.AI.DEFAULT_MODEL
         }
       }
     } catch (error) {
@@ -631,7 +632,7 @@ This is a modification to an existing repository, NOT a new project creation. Pl
         analysis: {
           projectType,
           framework,
-          structure: structure.slice(0, 20), // Limit for response size
+          structure: structure.slice(0, CONFIG.PROJECT.MAX_STRUCTURE_ITEMS), // Limit for response size
           dependencies: (projectInfo.dependencies as Record<string, string>) || {},
           recommendations
         }
@@ -707,7 +708,7 @@ This is a modification to an existing repository, NOT a new project creation. Pl
 /**
  * Helper function to get project structure
  */
-function getProjectStructure(projectPath: string, maxDepth = 2): string[] {
+function getProjectStructure(projectPath: string, maxDepth = CONFIG.PROJECT.MAX_STRUCTURE_DEPTH): string[] {
   const structure: string[] = []
 
   function traverse(dirPath: string, currentDepth = 0, relativePath = '') {
@@ -717,11 +718,7 @@ function getProjectStructure(projectPath: string, maxDepth = 2): string[] {
       const items = fs.readdirSync(dirPath, { withFileTypes: true })
 
       for (const item of items) {
-        if (item.name.startsWith('.') ||
-            item.name === 'node_modules' ||
-            item.name === 'dist' ||
-            item.name === 'build' ||
-            item.name === '.next') {
+        if (item.name.startsWith('.') || (CONFIG.PROJECT.IGNORED_DIRS as readonly string[]).includes(item.name)) {
           continue
         }
 

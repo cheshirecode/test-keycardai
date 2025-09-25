@@ -1,6 +1,7 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import { execSync } from 'child_process'
+import { CONFIG } from '@/lib/config'
 
 export interface PackageParams {
   projectPath: string
@@ -74,7 +75,7 @@ export const packageManagement = {
         execSync(command, {
           cwd: params.projectPath,
           stdio: 'pipe',
-          timeout: 60000 // 60 second timeout
+          timeout: CONFIG.TIMEOUTS.SCRIPT_EXECUTION
         })
 
         return {
@@ -211,7 +212,7 @@ export const packageManagement = {
         execSync(command, {
           cwd: params.projectPath,
           stdio: 'pipe',
-          timeout: 120000 // 2 minute timeout for updates
+          timeout: CONFIG.TIMEOUTS.PACKAGE_INSTALL
         })
 
         const updateTarget = params.packages?.length ? params.packages.join(', ') : 'all packages'

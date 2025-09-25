@@ -1,6 +1,7 @@
 import { execSync } from 'child_process'
 import * as fs from 'fs'
 import * as path from 'path'
+import { CONFIG } from './config'
 
 /**
  * Process Cleanup Utilities
@@ -48,7 +49,7 @@ export async function killProcessByPort(port: number): Promise<ProcessCleanupRes
               } catch {
                 // Process already dead
               }
-            }, 2000)
+            }, CONFIG.TIMEOUTS.PROCESS_KILL)
           } catch {
             // Process might already be dead or inaccessible
           }
@@ -209,7 +210,7 @@ export async function fullProcessCleanup(options: {
     const results: ProcessCleanupResult[] = []
     
     // Default ports to clean (Next.js dev server, common ports)
-    const portsToClean = options.ports || [3000, 3001, 8000, 8080]
+    const portsToClean = options.ports || [...CONFIG.PORTS.DEV_SERVERS]
     
     // Kill processes on specified ports
     for (const port of portsToClean) {
@@ -256,7 +257,7 @@ export async function fullProcessCleanup(options: {
 export async function safeProcessCleanup(projectPath?: string): Promise<ProcessCleanupResult> {
   return fullProcessCleanup({
     projectPath,
-    ports: [3000, 3001, 8000, 8080],
+    ports: [...CONFIG.PORTS.DEV_SERVERS],
     killNodeProcesses: false, // Safer to not kill all Node processes
     cleanBuildArtifacts: !!projectPath
   })

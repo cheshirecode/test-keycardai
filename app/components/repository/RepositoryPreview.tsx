@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import type { Repository, RepositoryDetails } from '@/types'
 import { GlobeAltIcon, LockClosedIcon, ClockIcon, UserIcon, CodeBracketIcon } from '@heroicons/react/24/outline'
+import { CONFIG } from '@/lib/config'
 
 interface RepositoryPreviewProps {
   repository: Repository
@@ -87,7 +88,7 @@ This project is licensed under the MIT License.
 
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return '0 Bytes'
-    const k = 1024
+    const k = CONFIG.LIMITS.FILE_SIZE_DISPLAY_UNIT
     const sizes = ['Bytes', 'KB', 'MB', 'GB']
     const i = Math.floor(Math.log(bytes) / Math.log(k))
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
@@ -168,7 +169,7 @@ This project is licensed under the MIT License.
               {details?.size && (
                 <div className="flex items-center space-x-1">
                   <CodeBracketIcon className="w-4 h-4" />
-                  <span>{formatFileSize(details.size * 1024)}</span>
+                  <span>{formatFileSize(details.size * CONFIG.LIMITS.FILE_SIZE_DISPLAY_UNIT)}</span>
                 </div>
               )}
             </div>

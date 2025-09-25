@@ -2,6 +2,7 @@ import * as fs from 'fs'
 import * as path from 'path'
 import { execSync } from 'child_process'
 import { fullProcessCleanup, safeProcessCleanup, ProcessCleanupResult } from '../../../lib/process-cleanup'
+import { CONFIG } from '@/lib/config'
 // import { AIService } from '@/lib/ai-service' // Currently unused
 
 export interface RunScriptParams {
@@ -46,7 +47,7 @@ export const developmentTools = {
     try {
       return await fullProcessCleanup({
         projectPath: params.projectPath,
-        ports: params.ports || [3000, 3001, 8000, 8080],
+        ports: params.ports || [...CONFIG.PORTS.DEV_SERVERS],
         killNodeProcesses: params.killNodeProcesses || false,
         cleanBuildArtifacts: params.cleanBuildArtifacts !== false // Default to true
       })
@@ -127,8 +128,8 @@ export const developmentTools = {
         const output = execSync(command, {
           cwd: params.projectPath,
           encoding: 'utf8',
-          timeout: 60000, // 60 second timeout
-          maxBuffer: 1024 * 1024 // 1MB output limit
+          timeout: CONFIG.TIMEOUTS.SCRIPT_EXECUTION,
+          maxBuffer: CONFIG.LIMITS.MAX_OUTPUT_BUFFER
         })
 
         return {
@@ -274,7 +275,7 @@ export const developmentTools = {
           const result = execSync(command, {
             cwd: params.projectPath,
             encoding: 'utf8',
-            timeout: 60000
+            timeout: CONFIG.TIMEOUTS.SCRIPT_EXECUTION
           })
 
           output += `${script}: ${result}\n`
