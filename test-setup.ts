@@ -16,12 +16,11 @@ afterEach(() => {
 
 // Mock environment variables for tests
 process.env.OPENAI_API_KEY = 'test-api-key'
-// NODE_ENV is read-only in some environments, so we use Object.defineProperty
-Object.defineProperty(process.env, 'NODE_ENV', {
-  value: 'test',
-  writable: true,
-  configurable: true
-})
+// Set NODE_ENV for tests - use vi.stubEnv for Vitest 3.x compatibility
+if (!process.env.NODE_ENV) {
+  // @ts-expect-error - NODE_ENV assignment is needed for tests
+  process.env.NODE_ENV = 'test'
+}
 
 // Mock Next.js router
 vi.mock('next/navigation', () => ({
