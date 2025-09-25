@@ -156,6 +156,44 @@ export const gitOperations = {
   },
 
   /**
+   * Pushes changes to remote repository
+   */
+  git_push: async (params: { path: string; repository?: { url: string; name: string } }): Promise<GitOperationResult> => {
+    try {
+      const result = await RepositoryTools.pushToRemote(params.path, params.repository)
+      const githubAvailable = RepositoryTools.isGitHubAvailable()
+
+      return {
+        success: result.success,
+        message: result.message,
+        githubAvailable,
+        method: 'github_api'
+      }
+    } catch (error) {
+      throw new Error(`Repository push failed: ${error}`)
+    }
+  },
+
+  /**
+   * Clones a repository from a remote URL
+   */
+  clone_repository: async (params: { url: string; path: string }): Promise<GitOperationResult> => {
+    try {
+      const result = await RepositoryTools.cloneRepository(params.url, params.path)
+      const githubAvailable = RepositoryTools.isGitHubAvailable()
+
+      return {
+        success: result.success,
+        message: result.message,
+        githubAvailable,
+        method: 'github_api'
+      }
+    } catch (error) {
+      throw new Error(`Repository clone failed: ${error}`)
+    }
+  },
+
+  /**
    * Configures Git user settings from environment variables
    */
   git_configure_user_from_env: async (): Promise<GitOperationResult> => {

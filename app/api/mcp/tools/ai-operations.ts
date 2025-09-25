@@ -23,6 +23,12 @@ export interface CreateProjectWithAIParams {
   description: string
   projectPath?: string
   projectName?: string
+  existingRepository?: {
+    name: string
+    fullName: string
+    url: string
+    description?: string
+  }
 }
 
 export interface AnalyzeAndOptimizeParams {
@@ -333,7 +339,22 @@ export const aiOperations = {
       }
 
       // Step 1: AI Analysis with enhanced decision making
-      const analysis = await AIService.analyzeProjectRequest(params.description)
+      // Check if this is a repository modification request
+      const isRepositoryModification = !!params.existingRepository
+      let analysisPrompt = params.description
+      
+      if (isRepositoryModification && params.existingRepository) {
+        analysisPrompt = `REPOSITORY MODIFICATION REQUEST:
+Repository: ${params.existingRepository.name}
+URL: ${params.existingRepository.url}
+Description: ${params.existingRepository.description || 'No description'}
+
+User Request: ${params.description}
+
+This is a modification to an existing repository, NOT a new project creation. Please analyze what changes need to be made to the existing codebase.`
+      }
+      
+      const analysis = await AIService.analyzeProjectRequest(analysisPrompt)
 
       // Step 2: Generate project path if not provided
       const projectName = params.projectName || analysis.projectName || 'my-project'
@@ -349,9 +370,10 @@ export const aiOperations = {
 
       // Step 3: Generate comprehensive action plan
       const { actions } = await AIService.generateMCPActions(
-        params.description,
+        isRepositoryModification ? analysisPrompt : params.description,
         analysis,
-        projectPath
+        projectPath,
+        isRepositoryModification ? params.existingRepository : undefined
       )
 
       // Step 4: Execute all actions with detailed progress tracking

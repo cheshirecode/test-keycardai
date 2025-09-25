@@ -70,32 +70,58 @@ Return the most appropriate template with confidence score and reasoning.
     }
   }
 
-  static async generateMCPActions(userMessage: string, analysis: { projectType: string, projectName?: string, confidence: number }, projectPath: string) {
+  static async generateMCPActions(userMessage: string, analysis: { projectType: string, projectName?: string, confidence: number }, projectPath: string, existingRepository?: { name: string, fullName: string, url: string, description?: string }) {
     try {
       const result = await generateObject({
         model: openai('gpt-3.5-turbo'),
         schema: MCPActionSchema,
         prompt: `
-Create MCP tool actions for this project request:
+Create MCP tool actions for this ${existingRepository ? 'REPOSITORY MODIFICATION' : 'PROJECT CREATION'} request:
 
 User: "${userMessage}"
 Analyzed as: ${analysis.projectType} (confidence: ${analysis.confidence})
 Project path: ${projectPath}
 Project name: ${analysis.projectName || 'my-project'}
+${existingRepository ? `
+EXISTING REPOSITORY CONTEXT:
+- Repository: ${existingRepository.name}
+- URL: ${existingRepository.url}
+- Description: ${existingRepository.description || 'No description'}
+
+This is a MODIFICATION request for an existing repository, NOT new project creation.
+` : ''}
 
 Available MCP tools:
+${existingRepository ? `
+FOR REPOSITORY MODIFICATIONS:
+- clone_repository(url, path): Clone existing repository
+- add_packages(projectPath, packages): Add npm packages
+- generate_code(projectPath, type, name): Generate components/files
+- update_file(projectPath, filePath, content): Update existing files
+- git_add_commit(path, message): Commit changes
+- git_push(path, repository): Push changes to remote
+` : `
+FOR NEW PROJECT CREATION:
 - setup_project_from_template(projectPath, templateId, projectName): Create project from template
 - git_init(path): Initialize git repo
 - install_dependencies(path): Install npm packages
 - git_add_commit(path, message): Commit changes
+`}
 
 Generate a sequence of actions to:
+${existingRepository ? `
+1. Clone the existing repository
+2. Make the requested modifications (add packages, generate code, etc.)
+3. Commit the changes
+4. Push changes back to the repository
+` : `
 1. Create project from template
 2. Initialize git repository
 3. Install dependencies
 4. Make initial commit
+`}
 
-Keep the response message minimal and action-focused (like "✓ Creating project..." then "✓ Project ready!").
+Keep the response message minimal and action-focused.
         `.trim()
       })
 

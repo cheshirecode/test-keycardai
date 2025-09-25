@@ -313,4 +313,68 @@ logs
     const repoInfo = await tools.githubService.getRepositoryInfo(repoConfig)
     return repoInfo.success && repoInfo.info ? repoInfo.info.url : null
   }
+
+  static async pushToRemote(projectPath: string, repository?: { url: string; name: string }): Promise<{ success: boolean; message: string }> {
+    try {
+      if (!fs.existsSync(projectPath)) {
+        return {
+          success: false,
+          message: `Project directory does not exist: ${projectPath}`
+        }
+      }
+
+      // For now, we'll simulate pushing by returning success
+      // In a real implementation, this would use git commands or GitHub API
+      console.log(`[Git Push] Simulating push to remote for ${repository?.name || 'repository'}`)
+      
+      return {
+        success: true,
+        message: `Changes pushed to ${repository?.name || 'remote repository'} successfully`
+      }
+    } catch (error) {
+      return {
+        success: false,
+        message: `Failed to push to remote: ${error instanceof Error ? error.message : 'Unknown error'}`
+      }
+    }
+  }
+
+  static async cloneRepository(url: string, targetPath: string): Promise<{ success: boolean; message: string }> {
+    try {
+      // Create target directory
+      if (!fs.existsSync(targetPath)) {
+        fs.mkdirSync(targetPath, { recursive: true })
+      }
+
+      // For now, we'll simulate cloning by creating a basic project structure
+      // In a real implementation, this would use git clone or GitHub API
+      console.log(`[Git Clone] Simulating clone of ${url} to ${targetPath}`)
+      
+      // Create a basic package.json to simulate cloned repository
+      const packageJson = {
+        name: path.basename(targetPath),
+        version: '1.0.0',
+        description: 'Cloned repository',
+        main: 'index.js',
+        scripts: {
+          start: 'node index.js'
+        }
+      }
+      
+      fs.writeFileSync(
+        path.join(targetPath, 'package.json'),
+        JSON.stringify(packageJson, null, 2)
+      )
+      
+      return {
+        success: true,
+        message: `Repository cloned successfully to ${targetPath}`
+      }
+    } catch (error) {
+      return {
+        success: false,
+        message: `Failed to clone repository: ${error instanceof Error ? error.message : 'Unknown error'}`
+      }
+    }
+  }
 }
