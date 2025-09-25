@@ -169,7 +169,10 @@ $RECYCLE.BIN/
 .turbo
 .next
 .takehome.md
-.cursor
+# Cursor IDE configuration
+.cursor/
+.cursorrules
 
 # Git hooks (managed by lefthook)
 .git/hooks/coverage/
+.git-backup-*
