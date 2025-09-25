@@ -313,7 +313,7 @@ export const repositoryManagement = {
       }
 
       const githubService = new GitHubService()
-      
+
       // Get the repository directly from GitHub API
       const result = await githubService.getRepository(params.owner, params.repo)
 

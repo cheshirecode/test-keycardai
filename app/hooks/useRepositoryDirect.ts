@@ -16,18 +16,18 @@ const fetcher = async (key: string): Promise<RepositoryResponse> => {
   const url = new URL(key, 'http://localhost')
   const owner = url.searchParams.get('owner')
   const repo = url.searchParams.get('repo')
-  
+
   if (!owner || !repo) {
     throw new Error('Owner and repository name are required')
   }
 
   const params: GetRepositoryParams = { owner, repo }
   const result = await mcpClient.call('get_repository', params)
-  
+
   if (!result.success) {
     throw new Error(result.message || 'Failed to load repository')
   }
-  
+
   return result
 }
 

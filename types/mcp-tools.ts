@@ -320,7 +320,7 @@ export interface MCPTools {
   delete_file: (params: DeleteFileParams) => Promise<FileOperationResult>
   search_files: (params: SearchFileParams) => Promise<FileOperationResult>
 
-  // Package Management  
+  // Package Management
   add_packages: (params: PackageParams) => Promise<PackageResult>
   remove_packages: (params: PackageParams) => Promise<PackageResult>
   update_packages: (params: UpdatePackagesParams) => Promise<PackageResult>
@@ -367,7 +367,7 @@ export type MCPToolName = keyof MCPTools
 export function isValidMCPTool(tool: string): tool is Extract<MCPToolName, string> {
   const validTools: string[] = [
     'analyze_project_request',
-    'generate_project_plan', 
+    'generate_project_plan',
     'intelligent_project_setup',
     'create_project_with_ai',
     'analyze_and_optimize',
@@ -388,7 +388,7 @@ export function isValidMCPTool(tool: string): tool is Extract<MCPToolName, strin
     'get_repository',
     'validate_repository_permissions'
   ]
-  
+
   return validTools.includes(tool)
 }
 
@@ -410,7 +410,7 @@ export interface TypedMCPRequest<K extends MCPToolName = MCPToolName> {
 }
 
 /**
- * Enhanced MCP Response with type safety  
+ * Enhanced MCP Response with type safety
  */
 export interface TypedMCPResponse<K extends MCPToolName = MCPToolName> {
   result?: MCPToolResult<K>
