@@ -331,8 +331,26 @@ export function ProjectSidebar({ selectedRepository, onRepositorySelect, classNa
       {/* Content */}
       <div className="flex-1 overflow-y-auto min-h-0">
         {loading && (
-          <div className="p-4 text-center text-gray-500">
-            Loading repositories...
+          <div className="p-4">
+            <div className="flex items-center justify-center space-y-3 flex-col">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+              <p className="text-gray-600 text-sm">Loading repositories...</p>
+            </div>
+            
+            {/* Loading skeleton */}
+            <div className="mt-4 space-y-2">
+              {[1, 2, 3].map((index) => (
+                <div key={index} className="animate-pulse">
+                  <div className="flex items-start space-x-3 p-3 rounded-md bg-gray-100">
+                    <div className="w-8 h-8 bg-gray-200 rounded-md"></div>
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                      <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
