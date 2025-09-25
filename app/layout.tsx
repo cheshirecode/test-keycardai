@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { RepositoryProvider } from "@/contexts/RepositoryContext";
 import { SWRProvider, JotaiProvider } from "@/components/providers";
+import ErrorBoundary from "@/components/monitoring/ErrorBoundary";
+import { WebVitalsMonitor } from "@/components/monitoring/PerformanceMonitor";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,13 +31,16 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <JotaiProvider>
-          <SWRProvider>
-            <RepositoryProvider>
-              {children}
-            </RepositoryProvider>
-          </SWRProvider>
-        </JotaiProvider>
+        <ErrorBoundary>
+          <WebVitalsMonitor />
+          <JotaiProvider>
+            <SWRProvider>
+              <RepositoryProvider>
+                {children}
+              </RepositoryProvider>
+            </SWRProvider>
+          </JotaiProvider>
+        </ErrorBoundary>
       </body>
     </html>
   );

@@ -45,6 +45,7 @@
     "swr": "^2.3.6",
     "tailwindcss": "^3.4.17",
     "uuid": "^13.0.0",
+    "web-vitals": "^5.1.0",
     "zod": "^4.1.11"
   },
   "devDependencies": {
