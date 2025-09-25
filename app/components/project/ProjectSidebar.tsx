@@ -1,14 +1,14 @@
 'use client'
 
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import type { Repository } from '@/types'
-import { ChevronDownIcon, ChevronRightIcon, TrashIcon, PlusIcon } from '@heroicons/react/24/outline'
+import { ChevronDownIcon, ChevronRightIcon, TrashIcon, PlusIcon, FunnelIcon, ArrowUpIcon, ArrowDownIcon } from '@heroicons/react/24/outline'
 import { FolderIcon, GlobeAltIcon, LockClosedIcon } from '@heroicons/react/24/solid'
 import { useRepositories } from '@/hooks/useRepositories'
 import { useRepository } from '@/contexts/RepositoryContext'
 import { CONFIG } from '@/lib/config'
 import { TypedMCPClient } from '@/lib/typed-mcp-client'
-import type { DeleteRepositoryParams } from '@/types/mcp-tools'
+import type { DeleteRepositoryParams, ListRepositoriesParams } from '@/types/mcp-tools'
 
 interface ProjectSidebarProps {
   selectedRepository?: Repository | null
@@ -19,10 +19,41 @@ interface ProjectSidebarProps {
 }
 
 export function ProjectSidebar({ selectedRepository, onRepositorySelect, className = '', onRefresh, newlyCreatedRepository }: ProjectSidebarProps) {
-  const { repositories, isLoading: loading, error, refresh } = useRepositories()
   const { navigateToHome } = useRepository()
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [filter, setFilter] = useState('')
+  const [debouncedFilter, setDebouncedFilter] = useState('')
+  const [showFilters, setShowFilters] = useState(false)
+  const [repositoryParams, setRepositoryParams] = useState<ListRepositoriesParams>({
+    sort: 'updated',
+    direction: 'desc',
+    type: 'all'
+  })
+
+  // Debounce the filter input to avoid too many API calls
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedFilter(filter)
+    }, 300)
+
+    return () => clearTimeout(timer)
+  }, [filter])
+
+  // Use the repositories hook with filtering parameters
+  const { repositories, isLoading: loading, error, refresh } = useRepositories({
+    ...repositoryParams,
+    nameFilter: debouncedFilter || undefined
+  })
+
+  // Check if we have active filters
+  const hasActiveFilters = useCallback(() => {
+    return (
+      debouncedFilter.length > 0 ||
+      repositoryParams.type !== 'all' ||
+      repositoryParams.sort !== 'updated' ||
+      repositoryParams.direction !== 'desc'
+    )
+  }, [debouncedFilter, repositoryParams])
 
   // Use ref to avoid dependency on refresh function
   const refreshRef = useRef(refresh)
@@ -122,24 +153,8 @@ export function ProjectSidebar({ selectedRepository, onRepositorySelect, classNa
     }
   }
 
-  const filteredRepositories = repositories.filter(repo =>
-    repo.name.toLowerCase().includes(filter.toLowerCase()) ||
-    (repo.description && repo.description.toLowerCase().includes(filter.toLowerCase()))
-  )
-
-  // Sort repositories by updatedAt (most recent first), then by name (alphabetical)
-  const sortedRepositories = [...filteredRepositories].sort((a, b) => {
-    // First sort by updatedAt (most recent first)
-    const dateA = new Date(a.updatedAt).getTime()
-    const dateB = new Date(b.updatedAt).getTime()
-
-    if (dateB !== dateA) {
-      return dateB - dateA // Most recent first
-    }
-
-    // If dates are equal, sort by name (alphabetical)
-    return a.name.localeCompare(b.name)
-  })
+  // Since filtering and sorting are now handled server-side, we just use the repositories as-is
+  const sortedRepositories = repositories
 
   const scaffoldedProjects = sortedRepositories.filter(repo => repo.isScaffoldedProject)
   const otherRepositories = sortedRepositories.filter(repo => !repo.isScaffoldedProject)
@@ -197,14 +212,108 @@ export function ProjectSidebar({ selectedRepository, onRepositorySelect, classNa
         </div>
 
         {/* Search/Filter */}
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="Search projects..."
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
+        <div className="space-y-2">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search projects..."
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+
+          {/* Filter Controls */}
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className={`relative flex items-center space-x-1 px-2 py-1 text-xs rounded transition-colors ${
+                showFilters
+                  ? 'bg-blue-100 text-blue-700'
+                  : hasActiveFilters()
+                    ? 'bg-orange-100 text-orange-700'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+              title="Toggle filters"
+            >
+              <FunnelIcon className="w-3 h-3" />
+              <span>Filters</span>
+              {hasActiveFilters() && (
+                <span className="absolute -top-1 -right-1 w-2 h-2 bg-orange-500 rounded-full"></span>
+              )}
+            </button>
+
+            {/* Quick Sort Toggle */}
+            <button
+              onClick={() => setRepositoryParams(prev => ({
+                ...prev,
+                direction: prev.direction === 'asc' ? 'desc' : 'asc'
+              }))}
+              className="flex items-center space-x-1 px-2 py-1 text-xs bg-gray-100 text-gray-600 hover:bg-gray-200 rounded transition-colors"
+              title={`Sort ${repositoryParams.direction === 'asc' ? 'descending' : 'ascending'}`}
+            >
+              {repositoryParams.direction === 'asc' ?
+                <ArrowUpIcon className="w-3 h-3" /> :
+                <ArrowDownIcon className="w-3 h-3" />
+              }
+              <span>{repositoryParams.sort}</span>
+            </button>
+          </div>
+
+          {/* Expanded Filters */}
+          {showFilters && (
+            <div className="space-y-2 p-3 bg-gray-50 rounded-md border">
+              {/* Repository Type */}
+              <div>
+                <label className="text-xs font-medium text-gray-700 block mb-1">Type</label>
+                <select
+                  value={repositoryParams.type || 'all'}
+                  onChange={(e) => setRepositoryParams(prev => ({
+                    ...prev,
+                    type: e.target.value as 'all' | 'public' | 'private'
+                  }))}
+                  className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                >
+                  <option value="all">All Repositories</option>
+                  <option value="public">Public Only</option>
+                  <option value="private">Private Only</option>
+                </select>
+              </div>
+
+              {/* Sort By */}
+              <div>
+                <label className="text-xs font-medium text-gray-700 block mb-1">Sort By</label>
+                <select
+                  value={repositoryParams.sort || 'updated'}
+                  onChange={(e) => setRepositoryParams(prev => ({
+                    ...prev,
+                    sort: e.target.value as 'created' | 'updated' | 'pushed' | 'full_name'
+                  }))}
+                  className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                >
+                  <option value="updated">Last Updated</option>
+                  <option value="created">Created Date</option>
+                  <option value="pushed">Last Push</option>
+                  <option value="full_name">Name</option>
+                </select>
+              </div>
+
+              {/* Quick Reset */}
+              <button
+                onClick={() => {
+                  setRepositoryParams({
+                    sort: 'updated',
+                    direction: 'desc',
+                    type: 'all'
+                  })
+                  setFilter('')
+                }}
+                className="w-full px-2 py-1 text-xs text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded transition-colors"
+              >
+                Reset Filters
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Refresh button */}
@@ -279,9 +388,40 @@ export function ProjectSidebar({ selectedRepository, onRepositorySelect, classNa
               </div>
             )}
 
-            {filteredRepositories.length === 0 && !loading && !error && (
+            {sortedRepositories.length === 0 && !loading && !error && (
               <div className="p-4 text-center text-gray-500 text-sm">
-                {filter ? 'No repositories match your search.' : 'No repositories found.'}
+                {hasActiveFilters() ? (
+                  <div>
+                    <p>No repositories match your current filters.</p>
+                    <button
+                      onClick={() => {
+                        setRepositoryParams({
+                          sort: 'updated',
+                          direction: 'desc',
+                          type: 'all'
+                        })
+                        setFilter('')
+                        setShowFilters(false)
+                      }}
+                      className="mt-2 text-xs text-blue-600 hover:text-blue-800 underline"
+                    >
+                      Clear all filters
+                    </button>
+                  </div>
+                ) : (
+                  'No repositories found.'
+                )}
+              </div>
+            )}
+
+            {/* Results count */}
+            {!loading && !error && sortedRepositories.length > 0 && (
+              <div className="px-4 py-2 text-xs text-gray-500 border-t border-gray-100">
+                {hasActiveFilters() ? (
+                  `${sortedRepositories.length} repositories match your filters`
+                ) : (
+                  `${sortedRepositories.length} repositories total`
+                )}
               </div>
             )}
           </div>
