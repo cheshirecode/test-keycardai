@@ -228,8 +228,8 @@ export function ProjectSidebar({ selectedRepository, onRepositorySelect, classNa
             <button
               onClick={() => setShowFilters(!showFilters)}
               className={`relative flex items-center space-x-1 px-2 py-1 text-xs rounded transition-colors ${
-                showFilters 
-                  ? 'bg-blue-100 text-blue-700' 
+                showFilters
+                  ? 'bg-blue-100 text-blue-700'
                   : hasActiveFilters
                     ? 'bg-orange-100 text-orange-700'
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useRef } from 'react'
 import { templates } from '@/lib/templates'
 import type { ProjectInfo } from '@/types'
 import { MCPClient } from '@/lib/mcp-client'
@@ -31,6 +31,14 @@ export function ProjectPreview({ project }: ProjectPreviewProps) {
   const { githubOwner } = useHealth()
   const mcpClient = useMemo(() => new MCPClient(), [])
   const typedMcpClient = useMemo(() => new TypedMCPClient(), [])
+  const isLoadingCommitRef = useRef(false)
+  const latestCommitRef = useRef<typeof latestCommit>(null)
+
+  // Keep refs in sync
+  useEffect(() => {
+    isLoadingCommitRef.current = isLoadingCommit
+    latestCommitRef.current = latestCommit
+  }, [isLoadingCommit, latestCommit])
   const template = templates[project.template]
 
   // Generate git info when project is completed
@@ -119,32 +127,57 @@ export function ProjectPreview({ project }: ProjectPreviewProps) {
     }
   }, [project, gitInfo, isLoadingGitInfo, githubOwner, mcpClient])
 
-  // Fetch latest commit when project path is available
+  // Fetch latest commit when project is available
   useEffect(() => {
-    if (project.path && !latestCommit && !isLoadingCommit) {
+    if (project.name && !isLoadingCommitRef.current) {
+      // Reset commit when project changes
+      if (latestCommitRef.current) {
+        setLatestCommit(null)
+      }
+      
       setIsLoadingCommit(true)
 
-      typedMcpClient.call('git_log', { path: project.path, limit: 1 })
-        .then((result) => {
-          if (result.success && result.commits && result.commits.length > 0) {
-            const commit = result.commits[0]
-            setLatestCommit({
-              hash: commit.hash,
-              author: commit.author,
-              date: commit.date,
-              subject: commit.subject,
-              timestamp: commit.timestamp
-            })
+      // Try multiple possible paths for the project based on project path utilities
+      const sanitizedName = project.name.replace(/[^a-zA-Z0-9_-]/g, '_')
+      const possiblePaths = [
+        project.path, // Original path if available
+        `/tmp/projects/${sanitizedName}`, // Vercel/production temp directory
+        `${process.cwd()}/.temp/projects/${sanitizedName}`, // Local development temp directory
+        `./projects/${sanitizedName}`, // Relative projects directory
+        `./${project.name}`, // Current directory with original name
+        project.name // Just the project name
+      ].filter(Boolean) // Remove any undefined/null values
+
+      // Try the first path that works
+      const tryPath = async (paths: string[]): Promise<void> => {
+        for (const projectPath of paths) {
+          try {
+            const result = await typedMcpClient.call('git_log', { path: projectPath, limit: 1 })
+            if (result.success && result.commits && result.commits.length > 0) {
+              const commit = result.commits[0]
+              setLatestCommit({
+                hash: commit.hash,
+                author: commit.author,
+                date: commit.date,
+                subject: commit.subject,
+                timestamp: commit.timestamp
+              })
+              return // Success, exit the loop
+            }
+          } catch (error) {
+            // Continue to next path
+            console.log(`Git log failed for path ${projectPath}:`, error)
           }
-        })
-        .catch((error) => {
-          console.error('Failed to fetch latest commit:', error)
-        })
-        .finally(() => {
-          setIsLoadingCommit(false)
-        })
+        }
+        // If all paths failed, no commit found
+        console.log('No git repository found for project', project.name)
+      }
+
+      tryPath(possiblePaths).finally(() => {
+        setIsLoadingCommit(false)
+      })
     }
-  }, [project.path, latestCommit, isLoadingCommit, typedMcpClient])
+  }, [project.name, project.path]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleDownload = async () => {
     if (isDownloading) return

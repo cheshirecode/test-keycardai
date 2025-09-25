@@ -32,6 +32,14 @@ export function ChatInterface() {
   }>>([])
   const [isLoadingCommits, setIsLoadingCommits] = useState(false)
   const typedMcpClient = useMemo(() => new TypedMCPClient(), [])
+  const isLoadingCommitsRef = useRef(false)
+  const commitsRef = useRef<typeof commits>([])
+
+  // Keep refs in sync
+  useEffect(() => {
+    isLoadingCommitsRef.current = isLoadingCommits
+    commitsRef.current = commits
+  }, [isLoadingCommits, commits])
 
   // User profile integration with localStorage
   const [userProfile, , isProfileInitialized] = useLocalStorage('userProfile', {
@@ -48,31 +56,56 @@ export function ChatInterface() {
     scrollToBottom()
   }, [messages])
 
-  // Fetch commits when in repository mode
+  // Fetch commits when in repository mode - only for selected repository
   useEffect(() => {
-    if (isRepositoryMode && selectedRepository && !isLoadingCommits && commits.length === 0) {
+    if (isRepositoryMode && selectedRepository && !isLoadingCommitsRef.current) {
+      // Reset commits when repository changes
+      if (commitsRef.current.length > 0) {
+        setCommits([])
+      }
+      
       setIsLoadingCommits(true)
-
-      // Try to determine project path from repository
-      // For now, use a placeholder path structure - this should be enhanced
-      const projectPath = `/tmp/projects/${selectedRepository.name}`
-
-      typedMcpClient.call('git_log', { path: projectPath, limit: 10 })
-        .then((result) => {
-          if (result.success && result.commits) {
-            // Sort commits chronologically (oldest first for chat display)
-            const sortedCommits = [...result.commits].reverse()
-            setCommits(sortedCommits)
+      
+      // Try multiple possible paths for the repository based on project path utilities
+      const sanitizedName = selectedRepository.name.replace(/[^a-zA-Z0-9_-]/g, '_')
+      const possiblePaths = [
+        `/tmp/projects/${sanitizedName}`, // Vercel/production temp directory
+        `${process.cwd()}/.temp/projects/${sanitizedName}`, // Local development temp directory
+        `./projects/${sanitizedName}`, // Relative projects directory
+        `./${selectedRepository.name}`, // Current directory with original name
+        selectedRepository.name // Just the repository name
+      ]
+      
+      // Try the first path that works
+      const tryPath = async (paths: string[]): Promise<void> => {
+        for (const projectPath of paths) {
+          try {
+            const result = await typedMcpClient.call('git_log', { path: projectPath, limit: 10 })
+            if (result.success && result.commits && result.commits.length > 0) {
+              // Sort commits chronologically (oldest first for chat display)
+              const sortedCommits = [...result.commits].reverse()
+              setCommits(sortedCommits)
+              return // Success, exit the loop
+            }
+          } catch (error) {
+            // Continue to next path
+            console.log(`Git log failed for path ${projectPath}:`, error)
           }
-        })
-        .catch((error) => {
-          console.error('Failed to fetch commits:', error)
-        })
-        .finally(() => {
-          setIsLoadingCommits(false)
-        })
+        }
+        // If all paths failed, log it
+        console.log('No git repository found for', selectedRepository.name)
+      }
+      
+      tryPath(possiblePaths).finally(() => {
+        setIsLoadingCommits(false)
+      })
     }
-  }, [isRepositoryMode, selectedRepository, commits, isLoadingCommits, typedMcpClient])
+    
+    // Clear commits when leaving repository mode
+    if (!isRepositoryMode && commitsRef.current.length > 0) {
+      setCommits([])
+    }
+  }, [isRepositoryMode, selectedRepository?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
