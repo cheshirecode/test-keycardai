@@ -1,5 +1,7 @@
 import useSWR from 'swr'
 import type { Repository } from '@/types'
+import { TypedMCPClient } from '@/lib/typed-mcp-client'
+import type { GetRepositoryParams } from '@/types/mcp-tools'
 
 interface RepositoryResponse {
   success: boolean
@@ -7,24 +9,35 @@ interface RepositoryResponse {
   message?: string
 }
 
-const fetcher = async (url: string): Promise<RepositoryResponse> => {
-  const response = await fetch(url)
-  const data = await response.json()
+const mcpClient = new TypedMCPClient()
+
+const fetcher = async (key: string): Promise<RepositoryResponse> => {
+  // Parse the key to extract owner and repo
+  const url = new URL(key, 'http://localhost')
+  const owner = url.searchParams.get('owner')
+  const repo = url.searchParams.get('repo')
   
-  if (!data.success) {
-    throw new Error(data.message || 'Failed to load repository')
+  if (!owner || !repo) {
+    throw new Error('Owner and repository name are required')
+  }
+
+  const params: GetRepositoryParams = { owner, repo }
+  const result = await mcpClient.call('get_repository', params)
+  
+  if (!result.success) {
+    throw new Error(result.message || 'Failed to load repository')
   }
   
-  return data
+  return result
 }
 
 /**
- * Hook to fetch a specific repository directly from GitHub API
+ * Hook to fetch a specific repository directly via MCP client
  * This is used when the repository is not found in the general repositories list
  */
 export function useRepositoryDirect(owner: string, repo: string, enabled: boolean = true) {
   const { data, error, isLoading, mutate: mutateFn } = useSWR<RepositoryResponse>(
-    enabled ? `/api/repositories/direct?owner=${owner}&repo=${repo}` : null,
+    enabled ? `/mcp/repositories/direct?owner=${owner}&repo=${repo}` : null,
     fetcher,
     {
       // Cache for 2 minutes since this is for specific repository access

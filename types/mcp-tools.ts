@@ -140,6 +140,11 @@ export interface DeleteRepositoryParams {
   repo: string
 }
 
+export interface GetRepositoryParams {
+  owner: string
+  repo: string
+}
+
 export interface RepositoryResult {
   success: boolean
   message: string
@@ -161,6 +166,22 @@ export interface RepositoryResult {
 export interface DeleteRepositoryResult {
   success: boolean
   message: string
+}
+
+export interface GetRepositoryResult {
+  success: boolean
+  message: string
+  repository?: {
+    id: string
+    name: string
+    fullName: string
+    url: string
+    description: string | null
+    private: boolean
+    createdAt: string
+    updatedAt: string
+    isScaffoldedProject: boolean
+  }
 }
 
 export interface ProcessCleanupResult {
@@ -312,6 +333,7 @@ export interface MCPTools {
   // Repository Management
   list_repositories: (params: ListRepositoriesParams) => Promise<RepositoryResult>
   delete_repository: (params: DeleteRepositoryParams) => Promise<DeleteRepositoryResult>
+  get_repository: (params: GetRepositoryParams) => Promise<GetRepositoryResult>
   validate_repository_permissions: (params: { owner: string }) => Promise<{
     success: boolean
     message: string
@@ -363,6 +385,7 @@ export function isValidMCPTool(tool: string): tool is Extract<MCPToolName, strin
     'safe_cleanup',
     'list_repositories',
     'delete_repository',
+    'get_repository',
     'validate_repository_permissions'
   ]
   

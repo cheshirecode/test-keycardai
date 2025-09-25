@@ -20,6 +20,11 @@ export interface DeleteRepositoryParams {
   repo: string
 }
 
+export interface GetRepositoryParams {
+  owner: string
+  repo: string
+}
+
 export interface RepositoryResult {
   success: boolean
   message: string
@@ -43,6 +48,22 @@ export interface DeleteRepositoryResult {
   message: string
 }
 
+export interface GetRepositoryResult {
+  success: boolean
+  message: string
+  repository?: {
+    id: string
+    name: string
+    fullName: string
+    url: string
+    description: string | null
+    private: boolean
+    createdAt: string
+    updatedAt: string
+    isScaffoldedProject: boolean
+  }
+}
+
 /**
  * Determines if a repository is likely a scaffolded project
  * Based on naming patterns and description content
@@ -61,10 +82,10 @@ function isScaffoldedProject(name: string, description: string | null): boolean 
   ]
 
   const nameMatches = projectPatterns.some(pattern => pattern.test(name))
-  
+
   // Check description for scaffolding indicators
-  const descriptionMatches = description ? 
-    /generated project|scaffolded|auto-generated|created by/i.test(description) : 
+  const descriptionMatches = description ?
+    /generated project|scaffolded|auto-generated|created by/i.test(description) :
     false
 
   return nameMatches || descriptionMatches
@@ -148,7 +169,7 @@ export const repositoryManagement = {
       let effectiveOwner: string | null = params.owner || null
       if (!effectiveOwner) {
         effectiveOwner = EnvConfig.get('GITHUB_OWNER') || null
-        
+
         // If no GITHUB_OWNER is set, fall back to authenticated user
         if (!effectiveOwner) {
           const userResult = await githubService.getAuthenticatedUser()
@@ -270,6 +291,68 @@ export const repositoryManagement = {
   },
 
   /**
+   * Get a single repository directly
+   */
+  get_repository: async (params: GetRepositoryParams): Promise<GetRepositoryResult> => {
+    try {
+      // Validate required parameters
+      if (!params.owner || !params.repo) {
+        return {
+          success: false,
+          message: 'Owner and repository name are required'
+        }
+      }
+
+      // Validate environment configuration
+      const envValidation = EnvConfig.validateRequired()
+      if (!envValidation.isValid) {
+        return {
+          success: false,
+          message: `Missing required environment variables: ${envValidation.missing.join(', ')}`
+        }
+      }
+
+      const githubService = new GitHubService()
+      
+      // Get the repository directly from GitHub API
+      const result = await githubService.getRepository(params.owner, params.repo)
+
+      if (!result.success || !result.repository) {
+        return {
+          success: false,
+          message: result.message || `Repository ${params.owner}/${params.repo} not found`
+        }
+      }
+
+      // Transform the GitHub repository data to our Repository type
+      const repository = {
+        id: result.repository.full_name as string,
+        name: result.repository.name as string,
+        fullName: result.repository.full_name as string,
+        url: result.repository.url as string,
+        description: result.repository.description as string | null,
+        private: result.repository.private as boolean,
+        createdAt: result.repository.created_at as string,
+        updatedAt: result.repository.updated_at as string,
+        isScaffoldedProject: isScaffoldedProject(result.repository.name as string, result.repository.description as string | null)
+      }
+
+      return {
+        success: true,
+        message: `Repository ${params.owner}/${params.repo} retrieved successfully`,
+        repository
+      }
+
+    } catch (error) {
+      console.error('Failed to get repository:', error)
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : 'Unknown error occurred while retrieving repository'
+      }
+    }
+  },
+
+  /**
    * Validate repository permissions without performing operations
    */
   validate_repository_permissions: async (params: { owner: string }): Promise<{
@@ -291,7 +374,7 @@ export const repositoryManagement = {
 
       const githubService = new GitHubService()
       const userResult = await githubService.getAuthenticatedUser()
-      
+
       if (!userResult.success || !userResult.user) {
         return {
           success: false,
@@ -305,7 +388,7 @@ export const repositoryManagement = {
 
       return {
         success: true,
-        message: canDelete 
+        message: canDelete
           ? `Repository deletion allowed for owner '${params.owner}'`
           : `Repository deletion not allowed for owner '${params.owner}'. Only repositories under '${githubOwner}' can be deleted.`,
         canDelete,
