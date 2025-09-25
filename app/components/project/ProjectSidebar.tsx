@@ -2,9 +2,10 @@
 
 import React, { useState, useEffect } from 'react'
 import type { Repository } from '@/types'
-import { ChevronDownIcon, ChevronRightIcon, TrashIcon } from '@heroicons/react/24/outline'
+import { ChevronDownIcon, ChevronRightIcon, TrashIcon, PlusIcon } from '@heroicons/react/24/outline'
 import { FolderIcon, GlobeAltIcon, LockClosedIcon } from '@heroicons/react/24/solid'
 import { useRepositories } from '@/hooks/useRepositories'
+import { useRepository } from '@/contexts/RepositoryContext'
 
 interface ProjectSidebarProps {
   selectedRepository?: Repository | null
@@ -16,6 +17,7 @@ interface ProjectSidebarProps {
 
 export function ProjectSidebar({ selectedRepository, onRepositorySelect, className = '', onRefresh, newlyCreatedRepository }: ProjectSidebarProps) {
   const { repositories, isLoading: loading, error, refresh } = useRepositories()
+  const { navigateToHome } = useRepository()
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [filter, setFilter] = useState('')
 
@@ -121,13 +123,25 @@ export function ProjectSidebar({ selectedRepository, onRepositorySelect, classNa
       <div className="p-4 border-b border-gray-200">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-semibold text-gray-900">Projects</h2>
-          <button
-            onClick={() => setIsCollapsed(true)}
-            className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
-            title="Collapse sidebar"
-          >
-            <ChevronDownIcon className="w-4 h-4 transform rotate-90" />
-          </button>
+          <div className="flex items-center space-x-1">
+            <button
+              onClick={() => {
+                navigateToHome()
+                onRepositorySelect(null)
+              }}
+              className="p-1 text-blue-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+              title="Create new project"
+            >
+              <PlusIcon className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setIsCollapsed(true)}
+              className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+              title="Collapse sidebar"
+            >
+              <ChevronDownIcon className="w-4 h-4 transform rotate-90" />
+            </button>
+          </div>
         </div>
 
         {/* Search/Filter */}

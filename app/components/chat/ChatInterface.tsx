@@ -11,7 +11,7 @@ import { useLocalStorage } from '@/hooks/useLocalStorage'
 export function ChatInterface() {
   const [input, setInput] = useState('')
   const { messages, isLoading, currentProject, sendMessage, clearChat } = useChat()
-  const { selectedRepository, isRepositoryMode } = useRepository()
+  const { selectedRepository, isRepositoryMode, setSelectedRepository, navigateToHome } = useRepository()
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   // User profile integration with localStorage
@@ -80,6 +80,26 @@ export function ChatInterface() {
               </div>
             )}
 
+            {/* New Project Button - Always visible */}
+            <button
+              onClick={() => {
+                // Navigate to home and clear chat for new project
+                navigateToHome()
+                setSelectedRepository(null)
+                clearChat()
+                // Focus on the input field after clearing
+                setTimeout(() => {
+                  const input = document.querySelector('input[type="text"]') as HTMLInputElement
+                  input?.focus()
+                }, 100)
+              }}
+              className="px-4 py-2 text-sm bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors font-medium"
+              disabled={isLoading}
+              title="Create a new project"
+            >
+              + New Project
+            </button>
+
             {/* User Profile */}
             <div className="hidden md:block">
               {isProfileInitialized && (
@@ -89,28 +109,12 @@ export function ChatInterface() {
                 />
               )}
             </div>
-
-            {!isRepositoryMode && (
-              <button
-                onClick={() => {
-                  clearChat()
-                  // Focus on the input field after clearing
-                  setTimeout(() => {
-                    const input = document.querySelector('input[type="text"]') as HTMLInputElement
-                    input?.focus()
-                  }, 100)
-                }}
-                className="px-4 py-2 text-sm bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors font-medium"
-                disabled={isLoading}
-              >
-                + New Project
-              </button>
-            )}
             {messages.length > 0 && (
               <button
                 onClick={clearChat}
-                className="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
+                className="px-3 py-2 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors"
                 disabled={isLoading}
+                title="Clear current conversation"
               >
                 Clear Chat
               </button>
