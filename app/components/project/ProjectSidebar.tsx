@@ -7,6 +7,8 @@ import { FolderIcon, GlobeAltIcon, LockClosedIcon } from '@heroicons/react/24/so
 import { useRepositories } from '@/hooks/useRepositories'
 import { useRepository } from '@/contexts/RepositoryContext'
 import { CONFIG } from '@/lib/config'
+import { TypedMCPClient } from '@/lib/typed-mcp-client'
+import type { DeleteRepositoryParams } from '@/types/mcp-tools'
 
 interface ProjectSidebarProps {
   selectedRepository?: Repository | null
@@ -68,15 +70,21 @@ export function ProjectSidebar({ selectedRepository, onRepositorySelect, classNa
 
     try {
       const [owner, repo] = repository.fullName.split('/')
-      const response = await fetch('/api/repositories', {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ owner, repo }),
+      const mcpClient = new TypedMCPClient()
+      
+      // First validate permissions
+      const permissionCheck = await mcpClient.call('validate_repository_permissions', { 
+        owner 
       })
 
-      const result = await response.json()
+      if (!permissionCheck.canDelete) {
+        alert(`Failed to delete repository: ${permissionCheck.message}`)
+        return
+      }
+
+      // Proceed with deletion if permissions are valid
+      const params: DeleteRepositoryParams = { owner, repo }
+      const result = await mcpClient.call('delete_repository', params)
 
       if (result.success) {
         // Check if we're deleting the currently selected repository

@@ -1,29 +1,49 @@
 import useSWR, { mutate } from 'swr'
 import type { Repository } from '@/types'
 import { useRepositoryDirect } from './useRepositoryDirect'
+import { TypedMCPClient } from '@/lib/typed-mcp-client'
+import type { ListRepositoriesParams } from '@/types/mcp-tools'
 
 interface RepositoriesResponse {
   success: boolean
   repositories: Repository[]
-  owner: string
-  total: number
+  owner?: string
+  total?: number
   message?: string
 }
 
-const fetcher = async (url: string): Promise<RepositoriesResponse> => {
-  const response = await fetch(url)
-  const data = await response.json()
+const mcpClient = new TypedMCPClient()
+
+const fetcher = async (key: string): Promise<RepositoriesResponse> => {
+  // Parse the key to extract any query parameters
+  const url = new URL(key, 'http://localhost')
   
-  if (!data.success) {
-    throw new Error(data.message || 'Failed to load repositories')
+  const params: ListRepositoriesParams = {
+    owner: url.searchParams.get('owner') || undefined,
+    nameFilter: url.searchParams.get('nameFilter') || undefined,
+    type: (url.searchParams.get('type') as 'all' | 'public' | 'private') || undefined,
+    sort: (url.searchParams.get('sort') as 'created' | 'updated' | 'pushed' | 'full_name') || undefined,
+    direction: (url.searchParams.get('direction') as 'asc' | 'desc') || undefined
+  }
+
+  const result = await mcpClient.call('list_repositories', params)
+  
+  if (!result.success) {
+    throw new Error(result.message || 'Failed to load repositories')
   }
   
-  return data
+  return {
+    success: result.success,
+    repositories: result.repositories || [],
+    owner: result.owner,
+    total: result.total,
+    message: result.message
+  }
 }
 
 export function useRepositories() {
   const { data, error, isLoading, mutate: mutateFn } = useSWR<RepositoriesResponse>(
-    '/api/repositories',
+    '/mcp/repositories',
     fetcher,
     {
       // Cache for 5 minutes
@@ -44,13 +64,13 @@ export function useRepositories() {
     error: error?.message || null,
     refresh: mutateFn,
     // Global mutate function for cache invalidation
-    invalidateCache: () => mutate('/api/repositories'),
+    invalidateCache: () => mutate('/mcp/repositories'),
   }
 }
 
 // Helper function to invalidate repositories cache globally
 export const invalidateRepositoriesCache = () => {
-  return mutate('/api/repositories')
+  return mutate('/mcp/repositories')
 }
 
 // Helper function to find a specific repository by owner and name

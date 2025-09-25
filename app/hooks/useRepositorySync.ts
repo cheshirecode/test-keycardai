@@ -4,6 +4,8 @@ import { useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import { useRepository } from '@/contexts/RepositoryContext'
 import type { Repository } from '@/types'
+import { TypedMCPClient } from '@/lib/typed-mcp-client'
+import type { ListRepositoriesParams } from '@/types/mcp-tools'
 
 /**
  * Hook to synchronize repository selection with URL changes
@@ -33,21 +35,20 @@ export function useRepositorySync() {
           }
         }
 
-        // Need to load the repository from the API
+        // Need to load the repository from the MCP client
         try {
-          const response = await fetch('/api/repositories', {
-            signal: controller.signal
-          })
+          const mcpClient = new TypedMCPClient()
+          const params: ListRepositoriesParams = {}
+          
+          const result = await mcpClient.call('list_repositories', params)
           
           // Check if request was aborted
           if (controller.signal.aborted) {
             return
           }
-          
-          const data = await response.json()
 
-          if (data.success && data.repositories) {
-            const repository = data.repositories.find((repository: Repository) => {
+          if (result.success && result.repositories) {
+            const repository = result.repositories.find((repository: Repository) => {
               const [repoOwner] = repository.fullName.split('/')
               return repoOwner.toLowerCase() === owner.toLowerCase() && 
                      repository.name.toLowerCase() === repo.toLowerCase()
