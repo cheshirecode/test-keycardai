@@ -1,6 +1,9 @@
 import { Octokit } from '@octokit/rest'
-import * as fs from 'fs'
-import * as path from 'path'
+// Import fs and path conditionally for server-side only
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const fs = typeof window === 'undefined' ? require('fs') : null
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const path = typeof window === 'undefined' ? require('path') : null
 
 export interface GitHubRepoConfig {
   owner: string
@@ -287,8 +290,130 @@ export class GitHubService {
     }
   }
 
-  // Helper method to collect files from a directory
+  async getRepositoryLanguages(owner: string, repo: string): Promise<{ success: boolean; languages?: Record<string, number>; message: string }> {
+    if (!this.isAvailable) {
+      return {
+        success: false,
+        message: 'GitHub token not available'
+      }
+    }
+
+    try {
+      const { data: languages } = await this.octokit.repos.listLanguages({
+        owner,
+        repo
+      })
+
+      return {
+        success: true,
+        languages,
+        message: 'Languages retrieved successfully'
+      }
+    } catch (error: unknown) {
+      const err = error as { message?: string }
+      return {
+        success: false,
+        message: `Failed to get repository languages: ${err.message || 'Unknown error'}`
+      }
+    }
+  }
+
+  async getRepositoryReadme(owner: string, repo: string): Promise<{ success: boolean; readme?: string; message: string }> {
+    if (!this.isAvailable) {
+      return {
+        success: false,
+        message: 'GitHub token not available'
+      }
+    }
+
+    try {
+      const { data: readmeData } = await this.octokit.repos.getReadme({
+        owner,
+        repo
+      })
+
+      // Decode base64 content
+      const readme = Buffer.from(readmeData.content, 'base64').toString('utf8')
+
+      return {
+        success: true,
+        readme,
+        message: 'README retrieved successfully'
+      }
+    } catch (error: unknown) {
+      const err = error as { message?: string }
+      return {
+        success: false,
+        message: `Failed to get repository README: ${err.message || 'Unknown error'}`
+      }
+    }
+  }
+
+  async getRepositoryTopics(owner: string, repo: string): Promise<{ success: boolean; topics?: string[]; message: string }> {
+    if (!this.isAvailable) {
+      return {
+        success: false,
+        message: 'GitHub token not available'
+      }
+    }
+
+    try {
+      const { data: topicsData } = await this.octokit.repos.getAllTopics({
+        owner,
+        repo
+      })
+
+      return {
+        success: true,
+        topics: topicsData.names,
+        message: 'Topics retrieved successfully'
+      }
+    } catch (error: unknown) {
+      const err = error as { message?: string }
+      return {
+        success: false,
+        message: `Failed to get repository topics: ${err.message || 'Unknown error'}`
+      }
+    }
+  }
+
+  async getCurrentUser(): Promise<{ success: boolean; user?: { login: string; name?: string; email?: string }; message: string }> {
+    if (!this.isAvailable) {
+      return {
+        success: false,
+        message: 'GitHub token not available'
+      }
+    }
+
+    try {
+      const { data: user } = await this.octokit.users.getAuthenticated()
+
+      return {
+        success: true,
+        user: {
+          login: user.login,
+          name: user.name || undefined,
+          email: user.email || undefined
+        },
+        message: 'User retrieved successfully'
+      }
+    } catch (error: unknown) {
+      const err = error as { message?: string }
+      return {
+        success: false,
+        message: `Failed to get current user: ${err.message || 'Unknown error'}`
+      }
+    }
+  }
+
+  // Helper method to collect files from a directory (server-side only)
   static collectFilesFromDirectory(projectPath: string): CommitFile[] {
+    // Check if we're running on the server side
+    if (!fs || !path) {
+      console.warn('collectFilesFromDirectory called on client side - returning empty array')
+      return []
+    }
+
     const files: CommitFile[] = []
 
     function walkDirectory(dir: string, basePath: string = '') {

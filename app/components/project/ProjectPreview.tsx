@@ -6,6 +6,7 @@ import type { ProjectInfo } from '@/types'
 import { MCPClient } from '@/lib/mcp-client'
 import { useHealth } from '@/hooks/useHealth'
 import { useLatestCommit } from '@/hooks/useRepositoryCommits'
+import { useGitHubUser } from '@/hooks/useRepositoryDetails'
 
 interface ProjectPreviewProps {
   project: ProjectInfo
@@ -23,7 +24,7 @@ export function ProjectPreview({ project }: ProjectPreviewProps) {
   const { githubOwner } = useHealth()
   const mcpClient = useMemo(() => new MCPClient(), [])
 
-  // Use shared hook for latest commit
+  // Use shared hooks for real data
   const { latestCommit, isLoading: isLoadingCommit } = useLatestCommit(
     project.name ? {
       name: project.name,
@@ -31,6 +32,7 @@ export function ProjectPreview({ project }: ProjectPreviewProps) {
     } : null,
     !!project.name
   )
+  const { user: githubUser } = useGitHubUser()
   const template = templates[project.template]
 
   // Generate git info when project is completed
@@ -73,51 +75,25 @@ export function ProjectPreview({ project }: ProjectPreviewProps) {
         })
         setIsLoadingGitInfo(false)
       } else {
-        // Fallback to authenticated user
-        mcpClient.call('get_github_user', {})
-          .then((result: unknown) => {
-            const gitResult = result as { success: boolean; user?: { login: string; name?: string; email?: string }; message: string }
-            const timestamp = Date.now()
-            const sanitizedName = project.name.toLowerCase().replace(/[^a-z0-9-]/g, '-')
-            const branchName = `project-${sanitizedName}-${timestamp}`
+        // Use the GitHub user from hook or fallback
+        const timestamp = Date.now()
+        const sanitizedName = project.name.toLowerCase().replace(/[^a-z0-9-]/g, '-')
+        const branchName = `project-${sanitizedName}-${timestamp}`
 
-            let username = 'your-username' // fallback
-            if (gitResult.success && gitResult.user?.login) {
-              username = gitResult.user.login
-            }
+        const username = githubUser?.login || 'your-username'
+        const repositoryUrl = `https://github.com/${username}/${branchName}`
+        const cloneCommand = `git clone ${repositoryUrl}`
 
-            const repositoryUrl = `https://github.com/${username}/${branchName}`
-            const cloneCommand = `git clone ${repositoryUrl}`
-
-            setGitInfo({
-              repositoryUrl,
-              branchName,
-              cloneCommand,
-              githubUser: username
-            })
-          })
-          .catch((error) => {
-            console.error('Failed to get GitHub user:', error)
-            // Fallback to placeholder
-            const timestamp = Date.now()
-            const sanitizedName = project.name.toLowerCase().replace(/[^a-z0-9-]/g, '-')
-            const branchName = `project-${sanitizedName}-${timestamp}`
-            const repositoryUrl = `https://github.com/your-username/${branchName}`
-            const cloneCommand = `git clone ${repositoryUrl}`
-
-            setGitInfo({
-              repositoryUrl,
-              branchName,
-              cloneCommand,
-              githubUser: 'your-username'
-            })
-          })
-          .finally(() => {
-            setIsLoadingGitInfo(false)
-          })
+        setGitInfo({
+          repositoryUrl,
+          branchName,
+          cloneCommand,
+          githubUser: username
+        })
+        setIsLoadingGitInfo(false)
       }
     }
-  }, [project, gitInfo, isLoadingGitInfo, githubOwner, mcpClient])
+  }, [project, gitInfo, isLoadingGitInfo, githubOwner, mcpClient, githubUser])
 
 
   const handleDownload = async () => {

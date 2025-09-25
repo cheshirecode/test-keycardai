@@ -9,6 +9,8 @@ import { useRepository } from '@/contexts/RepositoryContext'
 import { CONFIG } from '@/lib/config'
 import { TypedMCPClient } from '@/lib/typed-mcp-client'
 import type { DeleteRepositoryParams, ListRepositoriesParams } from '@/types/mcp-tools'
+import { useAtomValue } from 'jotai'
+import { isProjectPendingAtom, generateProjectId } from '@/store/aiRequestStore'
 
 interface ProjectSidebarProps {
   selectedRepository?: Repository | null
@@ -447,11 +449,17 @@ function RepositoryItem({ repository, isSelected, isNewlyCreated = false, onClic
     })
   }
 
+  // Check if this project has pending AI requests
+  const projectId = generateProjectId(repository.name, repository.fullName)
+  const isPending = useAtomValue(isProjectPendingAtom(projectId))
+
   return (
     <div
       data-testid="repository-item"
       className={`w-full p-3 rounded-md transition-colors group relative ${
-        isSelected
+        isPending
+          ? 'bg-orange-50 border-l-4 border-orange-400 opacity-75'
+          : isSelected
           ? 'bg-blue-100 border-l-4 border-blue-500'
           : isNewlyCreated
           ? 'bg-green-50 border-l-4 border-green-400 hover:bg-green-100'
@@ -475,10 +483,13 @@ function RepositoryItem({ repository, isSelected, isNewlyCreated = false, onClic
           <div className="flex-1 min-w-0">
             <div className="flex items-center space-x-1">
               <h4 className={`text-sm font-medium truncate ${
-                isSelected ? 'text-blue-900' : 'text-gray-900'
+                isSelected ? 'text-blue-900' : isPending ? 'text-orange-700' : 'text-gray-900'
               }`}>
                 {repository.name}
               </h4>
+              {isPending && (
+                <div className="animate-spin rounded-full h-3 w-3 border-b border-orange-500 flex-shrink-0" />
+              )}
               {repository.private ? (
                 <LockClosedIcon className="w-3 h-3 text-gray-400 flex-shrink-0" />
               ) : (
@@ -506,10 +517,17 @@ function RepositoryItem({ repository, isSelected, isNewlyCreated = false, onClic
         <button
           onClick={(e) => {
             e.stopPropagation() // Prevent triggering the main onClick
-            onDelete(e)
+            if (!isPending) {
+              onDelete(e)
+            }
           }}
-          className="flex-shrink-0 p-1 text-gray-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
-          title={`Delete ${repository.name}`}
+          disabled={isPending}
+          className={`flex-shrink-0 p-1 transition-colors ${
+            isPending 
+              ? 'text-gray-300 cursor-not-allowed opacity-50' 
+              : 'text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100'
+          }`}
+          title={isPending ? 'Cannot delete while AI is processing' : `Delete ${repository.name}`}
         >
           <TrashIcon className="w-4 h-4" />
         </button>

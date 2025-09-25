@@ -26,9 +26,5 @@ export interface RepositoryDetails {
   starsCount?: number
   forksCount?: number
   openIssuesCount?: number
-  lastCommit?: {
-    message: string
-    author: string
-    date: string
-  }
+  // lastCommit removed - now using real data from useLatestCommit hook
 }
