@@ -66,37 +66,75 @@ export function ChatInterface() {
       
       setIsLoadingCommits(true)
       
-      // Try multiple possible paths for the repository based on project path utilities
-      const sanitizedName = selectedRepository.name.replace(/[^a-zA-Z0-9_-]/g, '_')
-      const possiblePaths = [
-        `/tmp/projects/${sanitizedName}`, // Vercel/production temp directory
-        `${process.cwd()}/.temp/projects/${sanitizedName}`, // Local development temp directory
-        `./projects/${sanitizedName}`, // Relative projects directory
-        `./${selectedRepository.name}`, // Current directory with original name
-        selectedRepository.name // Just the repository name
-      ]
-      
       // Try the first path that works
-      const tryPath = async (paths: string[]): Promise<void> => {
-        for (const projectPath of paths) {
+      const tryPath = async (): Promise<void> => {
+        const sanitizedName = selectedRepository.name.replace(/[^a-zA-Z0-9_-]/g, '_')
+        
+        // Build static paths first
+        const staticPaths = [
+          // For newly scaffolded projects
+          `/tmp/projects/${sanitizedName}`, // Vercel/production temp directory for new projects
+          `${process.cwd()}/.temp/projects/${sanitizedName}`, // Local development temp directory for new projects
+          
+          // For cloned/existing repositories (most likely location)
+          `/tmp/repositories/${selectedRepository.name}`, // Standard repository path without timestamp
+          `/tmp/repositories/${sanitizedName}`, // Sanitized repository path
+        ]
+        
+        // Try to find dynamic paths by scanning /tmp/repositories/
+        const getDynamicPaths = async (): Promise<string[]> => {
           try {
+            const fs = await import('fs')
+            if (fs.existsSync('/tmp/repositories')) {
+              return fs.readdirSync('/tmp/repositories')
+                .filter((dir: string) => dir.startsWith(selectedRepository.name) || dir.startsWith(sanitizedName))
+                .map((dir: string) => `/tmp/repositories/${dir}`)
+            }
+          } catch (error) {
+            console.log('Could not scan /tmp/repositories:', error)
+          }
+          return []
+        }
+        
+        // Combine static and dynamic paths
+        const dynamicPaths = await getDynamicPaths()
+        const possiblePaths = [
+          ...staticPaths,
+          ...dynamicPaths,
+          // Fallback paths
+          `./projects/${sanitizedName}`, // Relative projects directory
+          `./${selectedRepository.name}`, // Current directory with original name
+          selectedRepository.name // Just the repository name
+        ]
+        
+        console.log(`🔍 [ChatInterface] Trying to find git repository for: ${selectedRepository.name}`)
+        console.log(`🔍 [ChatInterface] Checking ${possiblePaths.length} possible paths:`, possiblePaths)
+        
+        for (const projectPath of possiblePaths) {
+          try {
+            console.log(`🔍 [ChatInterface] Trying path: ${projectPath}`)
             const result = await typedMcpClient.call('git_log', { path: projectPath, limit: 10 })
+            console.log(`🔍 [ChatInterface] Git log result for ${projectPath}:`, result)
+            
             if (result.success && result.commits && result.commits.length > 0) {
+              console.log(`✅ [ChatInterface] Found ${result.commits.length} commits in ${projectPath}`)
               // Sort commits chronologically (oldest first for chat display)
               const sortedCommits = [...result.commits].reverse()
               setCommits(sortedCommits)
               return // Success, exit the loop
+            } else {
+              console.log(`⚠️ [ChatInterface] No commits found in ${projectPath}`)
             }
           } catch (error) {
             // Continue to next path
-            console.log(`Git log failed for path ${projectPath}:`, error)
+            console.log(`❌ [ChatInterface] Git log failed for path ${projectPath}:`, error)
           }
         }
         // If all paths failed, log it
-        console.log('No git repository found for', selectedRepository.name)
+        console.log(`❌ [ChatInterface] No git repository found for ${selectedRepository.name} in any of the attempted paths`)
       }
       
-      tryPath(possiblePaths).finally(() => {
+      tryPath().finally(() => {
         setIsLoadingCommits(false)
       })
     }

@@ -137,24 +137,61 @@ export function ProjectPreview({ project }: ProjectPreviewProps) {
       
       setIsLoadingCommit(true)
 
-      // Try multiple possible paths for the project based on project path utilities
-      const sanitizedName = project.name.replace(/[^a-zA-Z0-9_-]/g, '_')
-      const possiblePaths = [
-        project.path, // Original path if available
-        `/tmp/projects/${sanitizedName}`, // Vercel/production temp directory
-        `${process.cwd()}/.temp/projects/${sanitizedName}`, // Local development temp directory
-        `./projects/${sanitizedName}`, // Relative projects directory
-        `./${project.name}`, // Current directory with original name
-        project.name // Just the project name
-      ].filter(Boolean) // Remove any undefined/null values
-
       // Try the first path that works
-      const tryPath = async (paths: string[]): Promise<void> => {
-        for (const projectPath of paths) {
+      const tryPath = async (): Promise<void> => {
+        const sanitizedName = project.name.replace(/[^a-zA-Z0-9_-]/g, '_')
+        
+        // Build static paths first
+        const staticPaths = [
+          project.path, // Original path if available
+          
+          // For newly scaffolded projects
+          `/tmp/projects/${sanitizedName}`, // Vercel/production temp directory for new projects
+          `${process.cwd()}/.temp/projects/${sanitizedName}`, // Local development temp directory for new projects
+          
+          // For cloned/existing repositories (most likely location)
+          `/tmp/repositories/${project.name}`, // Standard repository path without timestamp
+          `/tmp/repositories/${sanitizedName}`, // Sanitized repository path
+        ].filter(Boolean) // Remove any undefined/null values
+        
+        // Try to find dynamic paths by scanning /tmp/repositories/
+        const getDynamicPaths = async (): Promise<string[]> => {
           try {
+            const fs = await import('fs')
+            if (fs.existsSync('/tmp/repositories')) {
+              return fs.readdirSync('/tmp/repositories')
+                .filter((dir: string) => dir.startsWith(project.name) || dir.startsWith(sanitizedName))
+                .map((dir: string) => `/tmp/repositories/${dir}`)
+            }
+          } catch (error) {
+            console.log('Could not scan /tmp/repositories:', error)
+          }
+          return []
+        }
+        
+        // Combine static and dynamic paths
+        const dynamicPaths = await getDynamicPaths()
+        const possiblePaths = [
+          ...staticPaths,
+          ...dynamicPaths,
+          // Fallback paths
+          `./projects/${sanitizedName}`, // Relative projects directory
+          `./${project.name}`, // Current directory with original name
+          project.name // Just the project name
+        ]
+
+        console.log(`🔍 [ProjectPreview] Trying to find git repository for: ${project.name}`)
+        console.log(`🔍 [ProjectPreview] Checking ${possiblePaths.length} possible paths:`, possiblePaths)
+        
+        for (const projectPath of possiblePaths) {
+          try {
+            console.log(`🔍 [ProjectPreview] Trying path: ${projectPath}`)
             const result = await typedMcpClient.call('git_log', { path: projectPath, limit: 1 })
+            console.log(`🔍 [ProjectPreview] Git log result for ${projectPath}:`, result)
+            
             if (result.success && result.commits && result.commits.length > 0) {
               const commit = result.commits[0]
+              console.log(`✅ [ProjectPreview] Found latest commit in ${projectPath}:`, commit.subject)
               setLatestCommit({
                 hash: commit.hash,
                 author: commit.author,
@@ -163,17 +200,19 @@ export function ProjectPreview({ project }: ProjectPreviewProps) {
                 timestamp: commit.timestamp
               })
               return // Success, exit the loop
+            } else {
+              console.log(`⚠️ [ProjectPreview] No commits found in ${projectPath}`)
             }
           } catch (error) {
             // Continue to next path
-            console.log(`Git log failed for path ${projectPath}:`, error)
+            console.log(`❌ [ProjectPreview] Git log failed for path ${projectPath}:`, error)
           }
         }
         // If all paths failed, no commit found
-        console.log('No git repository found for project', project.name)
+        console.log(`❌ [ProjectPreview] No git repository found for project ${project.name} in any of the attempted paths`)
       }
 
-      tryPath(possiblePaths).finally(() => {
+      tryPath().finally(() => {
         setIsLoadingCommit(false)
       })
     }
@@ -449,13 +488,38 @@ export function ProjectPreview({ project }: ProjectPreviewProps) {
                   <span className="text-sm">Loading commit history...</span>
                 </div>
               ) : latestCommit ? (
-                <div className="space-y-2">
+                <div className="space-y-3">
+                  {/* Commit SHA - Prominent display */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-medium text-amber-700">SHA:</span>
+                    <code className="flex-1 bg-white px-3 py-1 rounded border text-amber-900 font-mono text-sm">
+                      {latestCommit.hash.substring(0, 12)}
+                    </code>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(latestCommit.hash)
+                        // You could add a toast notification here
+                      }}
+                      className="px-2 py-1 bg-amber-500 text-white text-xs rounded hover:bg-amber-600 transition-colors"
+                      title="Copy full SHA"
+                    >
+                      📋
+                    </button>
+                  </div>
+
+                  {/* Commit Message - Prominent display */}
                   <div>
-                    <p className="text-sm font-medium text-amber-800">{latestCommit.subject}</p>
-                    <div className="text-xs text-amber-600 mt-1 space-y-1">
-                      <div>👤 <span className="font-medium">{latestCommit.author}</span></div>
-                      <div>🕒 {new Date(latestCommit.timestamp).toLocaleString()}</div>
-                      <div>🔗 <code className="bg-white px-1 rounded">{latestCommit.hash.substring(0, 8)}</code></div>
+                    <span className="text-xs font-medium text-amber-700 block mb-1">Message:</span>
+                    <p className="bg-white px-3 py-2 rounded border text-amber-900 text-sm font-medium">
+                      {latestCommit.subject}
+                    </p>
+                  </div>
+
+                  {/* Additional commit info */}
+                  <div className="text-xs text-amber-600 space-y-1 border-t border-amber-200 pt-2">
+                    <div className="flex items-center justify-between">
+                      <span>👤 <span className="font-medium">{latestCommit.author}</span></span>
+                      <span>🕒 {new Date(latestCommit.timestamp).toLocaleString()}</span>
                     </div>
                   </div>
                 </div>
