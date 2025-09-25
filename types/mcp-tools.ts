@@ -126,6 +126,43 @@ export interface DevelopmentResult {
   error?: string
 }
 
+// Type definitions for Repository Management
+export interface ListRepositoriesParams {
+  owner?: string
+  nameFilter?: string
+  type?: 'all' | 'public' | 'private'
+  sort?: 'created' | 'updated' | 'pushed' | 'full_name'
+  direction?: 'asc' | 'desc'
+}
+
+export interface DeleteRepositoryParams {
+  owner: string
+  repo: string
+}
+
+export interface RepositoryResult {
+  success: boolean
+  message: string
+  repositories?: Array<{
+    id: string
+    name: string
+    fullName: string
+    url: string
+    description: string | null
+    private: boolean
+    createdAt: string
+    updatedAt: string
+    isScaffoldedProject: boolean
+  }>
+  owner?: string
+  total?: number
+}
+
+export interface DeleteRepositoryResult {
+  success: boolean
+  message: string
+}
+
 export interface ProcessCleanupResult {
   success: boolean
   message: string
@@ -272,6 +309,17 @@ export interface MCPTools {
   cleanup_processes: (params: CleanupProcessesParams) => Promise<ProcessCleanupResult>
   safe_cleanup: (params?: { projectPath?: string }) => Promise<ProcessCleanupResult>
 
+  // Repository Management
+  list_repositories: (params: ListRepositoriesParams) => Promise<RepositoryResult>
+  delete_repository: (params: DeleteRepositoryParams) => Promise<DeleteRepositoryResult>
+  validate_repository_permissions: (params: { owner: string }) => Promise<{
+    success: boolean
+    message: string
+    canDelete: boolean
+    githubOwner?: string
+    authenticatedUser?: string
+  }>
+
   // Project Management (additional tools that may exist)
   // [key: string]: (params: unknown) => Promise<unknown>
 }
@@ -312,7 +360,10 @@ export function isValidMCPTool(tool: string): tool is Extract<MCPToolName, strin
     'update_packages',
     'run_script',
     'cleanup_processes',
-    'safe_cleanup'
+    'safe_cleanup',
+    'list_repositories',
+    'delete_repository',
+    'validate_repository_permissions'
   ]
   
   return validTools.includes(tool)

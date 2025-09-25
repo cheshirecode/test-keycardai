@@ -7,6 +7,7 @@ import { projectManagement } from './project-management'
 import { fileManagement } from './file-management'
 import { packageManagement } from './package-management'
 import { developmentTools } from './development-tools'
+import { repositoryManagement } from './repository-management'
 
 /**
  * Modular MCP Tools
@@ -23,6 +24,7 @@ import { developmentTools } from './development-tools'
  * - File Management: Advanced file operations (read, update, delete, search)
  * - Package Management: Package installation and management
  * - Development Tools: Script execution and code generation
+ * - Repository Management: GitHub repository operations with enhanced security
  */
 export const mcpTools = {
   // File Operations
@@ -60,5 +62,8 @@ export const mcpTools = {
   ...packageManagement,
 
   // Development Tools - Script execution and code generation
-  ...developmentTools
+  ...developmentTools,
+
+  // Repository Management - GitHub repository operations with enhanced security
+  ...repositoryManagement
 }
