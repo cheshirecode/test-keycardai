@@ -12,7 +12,7 @@ interface RepositoryPageWrapperProps {
 }
 
 export function RepositoryPageWrapper({ owner, repo, children }: RepositoryPageWrapperProps) {
-  const { selectedRepository, setSelectedRepositoryInternal } = useRepositoryContext()
+  const { selectedRepository, setSelectedRepositoryInternal, setIsCreatingNewProject, isCreatingNewProject } = useRepositoryContext()
   const { repository, isLoading: loading, error } = useRepository(owner, repo)
 
   useEffect(() => {
@@ -21,8 +21,14 @@ export function RepositoryPageWrapper({ owner, repo, children }: RepositoryPageW
       if (!selectedRepository || selectedRepository.id !== repository.id) {
         setSelectedRepositoryInternal(repository)
       }
+      
+      // Clear the creating new project flag when we have a specific repository loaded
+      if (isCreatingNewProject) {
+        console.log('🔄 Clearing isCreatingNewProject flag because we loaded a specific repository:', repository.name)
+        setIsCreatingNewProject(false)
+      }
     }
-  }, [repository, selectedRepository, setSelectedRepositoryInternal])
+  }, [repository, selectedRepository, setSelectedRepositoryInternal, isCreatingNewProject, setIsCreatingNewProject])
 
   if (loading) {
     return (

@@ -43,9 +43,31 @@ export function useChatOrchestrator(fastMode: boolean = false) {
   const { classifyRequest } = useRequestClassifier()
 
   // Clear currentProject when selectedRepository changes (user navigates to different repo)
+  // but only if we already had a current project and are switching to a different repository
   useEffect(() => {
-    setCurrentProject(null)
-  }, [selectedRepository])
+    if (currentProject && selectedRepository) {
+      // Extract repository name from project (could be from repositoryUrl or name)
+      let projectRepoName = currentProject.name
+      if (currentProject.repositoryUrl) {
+        // Extract repo name from GitHub URL
+        const urlMatch = currentProject.repositoryUrl.match(/github\.com\/[^\/]+\/([^\/]+)/)
+        if (urlMatch) {
+          projectRepoName = urlMatch[1]
+        }
+      }
+      
+      const selectedRepoName = selectedRepository.name
+      
+      // Only clear if we're switching to a different repository
+      if (projectRepoName !== selectedRepoName) {
+        console.log('🔄 Clearing currentProject because switching repositories:', { 
+          from: projectRepoName, 
+          to: selectedRepoName 
+        })
+        setCurrentProject(null)
+      }
+    }
+  }, [selectedRepository, currentProject])
 
   // Create command context
   const commandContext: CommandContext = {
