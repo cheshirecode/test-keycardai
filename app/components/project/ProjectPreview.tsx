@@ -134,25 +134,27 @@ export function ProjectPreview({ project }: ProjectPreviewProps) {
       if (latestCommitRef.current) {
         setLatestCommit(null)
       }
-      
+
       setIsLoadingCommit(true)
 
       // Try the first path that works
       const tryPath = async (): Promise<void> => {
+        const hasGitHubUrl = project.repositoryUrl && project.repositoryUrl.includes('github.com')
+
         // First, try to get latest commit from GitHub API if this project has a GitHub repository URL
-        if (project.repositoryUrl && project.repositoryUrl.includes('github.com')) {
+        if (hasGitHubUrl) {
           // Extract owner/repo from GitHub URL
-          const githubMatch = project.repositoryUrl.match(/github\.com[/:]([^/]+)\/([^/.]+)/i)
+          const githubMatch = project.repositoryUrl!.match(/github\.com[/:]([^/]+)\/([^/.]+)/i)
           if (githubMatch) {
             const [, owner, repo] = githubMatch
             console.log(`🔍 [ProjectPreview] Attempting to fetch latest commit from GitHub API for: ${owner}/${repo}`)
             try {
-              const result = await typedMcpClient.call('github_get_commits', { 
+              const result = await typedMcpClient.call('github_get_commits', {
                 owner,
                 repo,
-                limit: 1 
+                limit: 1
               })
-              
+
               if (result.success) {
                 if (result.commits && result.commits.length > 0) {
                   console.log(`✅ [ProjectPreview] Found latest commit from GitHub API`)
@@ -184,12 +186,15 @@ export function ProjectPreview({ project }: ProjectPreviewProps) {
               console.log(`❌ [ProjectPreview] GitHub API commit fetch failed:`, error)
             }
           }
+        } else {
+          console.log(`🔍 [ProjectPreview] No GitHub URL found, checking local paths for: ${project.name}`)
         }
-        
+
         // Fallback to local file system search (only if GitHub API failed)
         const sanitizedName = project.name.replace(/[^a-zA-Z0-9_-]/g, '_')
+        console.log(`🔍 [ProjectPreview] Original name: "${project.name}", Sanitized: "${sanitizedName}"`)
         const isGitHubRepoForPaths = project.repositoryUrl && project.repositoryUrl.includes('github.com')
-        
+
         // For GitHub repos, only check the most likely local clone locations
         // For non-GitHub repos, check all possible paths including scaffolded project paths
         const possiblePaths = isGitHubRepoForPaths ? [
@@ -201,24 +206,27 @@ export function ProjectPreview({ project }: ProjectPreviewProps) {
         ] : [
           // For non-GitHub repos, check all scaffolded project paths
           project.path, // Original path if available
-          `/tmp/projects/${sanitizedName}`, // Vercel/production temp directory for new projects
-          `${process.cwd()}/.temp/projects/${sanitizedName}`, // Local development temp directory for new projects
-          `/tmp/repositories/${project.name}`, // Repository path
-          `/tmp/repositories/${sanitizedName}`, // Sanitized repository path
-          `./projects/${sanitizedName}`, // Relative projects directory
+          `/tmp/projects/${project.name}`, // Original name in temp directory
+          `/tmp/projects/${sanitizedName}`, // Sanitized name in temp directory
+          `${process.cwd()}/.temp/projects/${project.name}`, // Original name in local temp
+          `${process.cwd()}/.temp/projects/${sanitizedName}`, // Sanitized name in local temp
+          `/tmp/repositories/${project.name}`, // Repository path with original name
+          `/tmp/repositories/${sanitizedName}`, // Repository path with sanitized name
+          `./projects/${project.name}`, // Original name in relative projects
+          `./projects/${sanitizedName}`, // Sanitized name in relative projects
           `./${project.name}`, // Current directory with original name
           project.name // Just the project name
         ].filter(Boolean) // Remove any undefined/null values
 
-        console.log(`🔍 [ProjectPreview] GitHub API failed, trying local paths for: ${project.name}`)
+        console.log(`🔍 [ProjectPreview] ${hasGitHubUrl ? 'GitHub API failed, trying' : 'Checking'} local paths for: ${project.name}`)
         console.log(`🔍 [ProjectPreview] Checking ${possiblePaths.length} ${isGitHubRepoForPaths ? 'clone' : 'project'} paths:`, possiblePaths)
-        
+
         for (const projectPath of possiblePaths) {
           try {
             console.log(`🔍 [ProjectPreview] Trying path: ${projectPath}`)
             const result = await typedMcpClient.call('git_log', { path: projectPath, limit: 1 })
             console.log(`🔍 [ProjectPreview] Git log result for ${projectPath}:`, result)
-            
+
             if (result.success && result.commits && result.commits.length > 0) {
               const commit = result.commits[0]
               console.log(`✅ [ProjectPreview] Found latest commit in ${projectPath}:`, commit.subject)
@@ -240,14 +248,14 @@ export function ProjectPreview({ project }: ProjectPreviewProps) {
         }
         // If all methods failed, create synthetic commit as last resort
         console.log(`❌ [ProjectPreview] No git repository found for project ${project.name} via GitHub API or local paths`)
-        
+
         // Create a synthetic commit for display with context about the repository type
         const isGitHubRepo = project.repositoryUrl && project.repositoryUrl.includes('github.com')
         const isScaffoldedProject = project.name.includes('-') && /\d{13}/.test(project.name) && !isGitHubRepo
-        
+
         if (isGitHubRepo) {
           console.log(`ℹ️ [ProjectPreview] This is a GitHub repository but no commits were found - repository might be empty`)
-          
+
           setLatestCommit({
             hash: 'github-empty-' + Date.now(),
             author: 'GitHub Repository',
@@ -257,7 +265,7 @@ export function ProjectPreview({ project }: ProjectPreviewProps) {
           })
         } else if (isScaffoldedProject) {
           console.log(`ℹ️ [ProjectPreview] This appears to be a scaffolded project - showing scaffolding info`)
-          
+
           setLatestCommit({
             hash: 'scaffold-' + Date.now(),
             author: 'Project Scaffolder',
@@ -267,7 +275,7 @@ export function ProjectPreview({ project }: ProjectPreviewProps) {
           })
         } else {
           console.log(`ℹ️ [ProjectPreview] Creating generic synthetic commit for local project`)
-          
+
           setLatestCommit({
             hash: 'local-' + Date.now(),
             author: 'Local Project',

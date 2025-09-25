@@ -63,9 +63,9 @@ export function ChatInterface() {
       if (commitsRef.current.length > 0) {
         setCommits([])
       }
-      
+
       setIsLoadingCommits(true)
-      
+
       // Try the first path that works
       const tryPath = async (): Promise<void> => {
         // First, try to get commits from GitHub API if this is a valid owner/repo format
@@ -73,12 +73,12 @@ export function ChatInterface() {
           console.log(`🔍 [ChatInterface] Attempting to fetch commits from GitHub API for: ${selectedRepository.fullName}`)
           try {
             const [owner, repo] = selectedRepository.fullName.split('/')
-            const result = await typedMcpClient.call('github_get_commits', { 
+            const result = await typedMcpClient.call('github_get_commits', {
               owner,
               repo,
-              limit: 10 
+              limit: 10
             })
-            
+
             if (result.success) {
               if (result.commits && result.commits.length > 0) {
                 console.log(`✅ [ChatInterface] Found ${result.commits.length} commits from GitHub API`)
@@ -117,11 +117,11 @@ This is a valid GitHub repository with no commits yet.`,
             console.log(`❌ [ChatInterface] GitHub API commit fetch failed:`, error)
           }
         }
-        
+
         // Fallback to local file system search (only if GitHub API failed)
         const sanitizedName = selectedRepository.name.replace(/[^a-zA-Z0-9_-]/g, '_')
         const isGitHubRepoForPaths = selectedRepository.fullName && selectedRepository.fullName.includes('/')
-        
+
         // For GitHub repos, only check the most likely local clone locations
         // For non-GitHub repos, check all possible paths
         const possiblePaths = isGitHubRepoForPaths ? [
@@ -140,16 +140,16 @@ This is a valid GitHub repository with no commits yet.`,
           `./${selectedRepository.name}`, // Current directory with original name
           selectedRepository.name // Just the repository name
         ]
-        
+
         console.log(`🔍 [ChatInterface] GitHub API failed, trying local paths for: ${selectedRepository.name}`)
         console.log(`🔍 [ChatInterface] Checking ${possiblePaths.length} ${isGitHubRepoForPaths ? 'clone' : 'project'} paths:`, possiblePaths)
-        
+
         for (const projectPath of possiblePaths) {
           try {
             console.log(`🔍 [ChatInterface] Trying path: ${projectPath}`)
             const result = await typedMcpClient.call('git_log', { path: projectPath, limit: 10 })
             console.log(`🔍 [ChatInterface] Git log result for ${projectPath}:`, result)
-            
+
             if (result.success && result.commits && result.commits.length > 0) {
               console.log(`✅ [ChatInterface] Found ${result.commits.length} commits in ${projectPath}`)
               // Sort commits chronologically (oldest first for chat display)
@@ -166,14 +166,14 @@ This is a valid GitHub repository with no commits yet.`,
         }
         // If all methods failed, create synthetic commit as last resort
         console.log(`❌ [ChatInterface] No git repository found for ${selectedRepository.name} via GitHub API or local paths`)
-        
+
         // Create a synthetic commit for display with context about the repository type
         const isGitHubRepo = selectedRepository.fullName && selectedRepository.fullName.includes('/')
         const isScaffoldedProject = selectedRepository.name.includes('-') && /\d{13}/.test(selectedRepository.name) && !isGitHubRepo
-        
+
         if (isGitHubRepo) {
           console.log(`ℹ️ [ChatInterface] This is a GitHub repository but no commits were found - repository might be empty`)
-          
+
           const githubCommit = {
             hash: 'github-empty-' + Date.now(),
             author: 'GitHub Repository',
@@ -198,11 +198,11 @@ Possible reasons for no commits:
 
 Check GitHub token permissions or repository status.`
           }
-          
+
           setCommits([githubCommit])
         } else if (isScaffoldedProject) {
           console.log(`ℹ️ [ChatInterface] This appears to be a scaffolded project - showing scaffolding info`)
-          
+
           const scaffoldingCommit = {
             hash: 'scaffold-' + Date.now(),
             author: 'Project Scaffolder',
@@ -221,11 +221,11 @@ The actual git history will be available once the repository is cloned locally o
 
 Once you start modifying this project, real git commits will appear here.`
           }
-          
+
           setCommits([scaffoldingCommit])
         } else {
           console.log(`ℹ️ [ChatInterface] Creating generic synthetic commit for local project`)
-          
+
           const localCommit = {
             hash: 'local-' + Date.now(),
             author: 'Local Project',
@@ -243,16 +243,16 @@ Git history will appear here once commits are made to this project.`,
             subject: 'docs: local project',
             body: `Local project without accessible git history.`
           }
-          
+
           setCommits([localCommit])
         }
       }
-      
+
       tryPath().finally(() => {
         setIsLoadingCommits(false)
       })
     }
-    
+
     // Clear commits when leaving repository mode
     if (!isRepositoryMode && commitsRef.current.length > 0) {
       setCommits([])
@@ -415,6 +415,32 @@ Git history will appear here once commits are made to this project.`,
                           📝 <strong>Chat log is coming, stay tuned!</strong> Below you can see the commit history formatted as conversation messages.
                         </p>
                       </div>
+
+                      {/* Quick start options for scaffolded projects */}
+                      {isRepositoryMode && selectedRepository && (
+                        <div className="p-4 bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg">
+                          <div className="text-center space-y-3">
+                            <h3 className="text-lg font-semibold text-gray-900">
+                              🔧 Ready to modify &ldquo;{selectedRepository.name}&rdquo;?
+                            </h3>
+                            <p className="text-sm text-gray-600">
+                              Tell me what changes you&apos;d like to make, or try one of these quick options:
+                            </p>
+                            <div className="grid grid-cols-1 gap-2 max-w-md mx-auto">
+                              {quickStartOptions.map((option) => (
+                                <button
+                                  key={option}
+                                  onClick={() => handleQuickStart(option)}
+                                  className="p-3 text-left bg-white hover:bg-blue-50 text-blue-800 rounded-lg transition-colors text-sm border border-blue-200 hover:border-blue-300"
+                                  disabled={isLoading}
+                                >
+                                  {option}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      )}
 
                       {/* Render commits as messages */}
                       {commits.map((commit, index) => {
