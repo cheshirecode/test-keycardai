@@ -26,7 +26,7 @@ export class ModifyRepositoryCommand extends BaseCommand {
       const analysisResult = await this.mcpClient.call('analyze_existing_project', {
         projectPath: `/tmp/repositories/${params.repository.name}`, // We'll need to clone or access the repo
         requestDescription: params.content
-      }) as { 
+      }) as {
         success: boolean
         message: string
         analysis?: {
@@ -57,7 +57,7 @@ export class ModifyRepositoryCommand extends BaseCommand {
           url: params.repository.url,
           description: params.repository.description
         }
-      }) as { 
+      }) as {
         success: boolean
         message: string
         analysis?: {
@@ -197,7 +197,7 @@ export class ModifyRepositoryCommand extends BaseCommand {
       console.error('Repository modification error:', error)
       const errorMessage = `❌ Failed to modify repository: ${error instanceof Error ? error.message : 'Unknown error'}`
       this.addMessage('assistant', errorMessage)
-      
+
       return {
         success: false,
         message: errorMessage

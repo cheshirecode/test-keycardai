@@ -13,14 +13,14 @@ export interface ClassificationResult {
  * Single responsibility: Request type detection
  */
 export function useRequestClassifier() {
-  
+
   const classifyRequest = useCallback((
-    content: string, 
-    hasSelectedRepository: boolean, 
+    content: string,
+    hasSelectedRepository: boolean,
     hasCurrentProject: boolean
   ): ClassificationResult => {
     const lowerContent = content.toLowerCase()
-    
+
     // Enhanced keyword detection
     const modificationKeywords = [
       'add', 'install', 'include', 'integrate', 'update', 'upgrade', 'modify', 'change',
@@ -28,22 +28,22 @@ export function useRequestClassifier() {
       'implement', 'create component', 'create hook', 'create page', 'create util',
       'refactor', 'optimize', 'fix', 'debug', 'test', 'improve'
     ]
-    
+
     const newProjectKeywords = [
       'create project', 'new project', 'build app', 'generate app', 'scaffold',
       'start new', 'make a', 'build a new', 'create a new'
     ]
-    
+
     // Check for explicit new project intent
     const hasNewProjectIntent = newProjectKeywords.some(keyword =>
       lowerContent.includes(keyword)
     )
-    
+
     // Check for modification intent
     const hasModificationIntent = modificationKeywords.some(keyword =>
       lowerContent.includes(keyword)
     )
-    
+
     // Classification logic with confidence scoring
     if (hasNewProjectIntent) {
       return {
@@ -52,7 +52,7 @@ export function useRequestClassifier() {
         reasoning: 'Explicit new project keywords detected'
       }
     }
-    
+
     if (hasSelectedRepository && hasModificationIntent) {
       return {
         type: 'repository_modification',
@@ -60,7 +60,7 @@ export function useRequestClassifier() {
         reasoning: 'Repository context + modification keywords'
       }
     }
-    
+
     if (hasCurrentProject && hasModificationIntent) {
       return {
         type: 'project_modification',
@@ -68,7 +68,7 @@ export function useRequestClassifier() {
         reasoning: 'Project context + modification keywords'
       }
     }
-    
+
     // Short commands are likely modifications if in context
     if (content.split(' ').length <= 3 && hasModificationIntent) {
       if (hasSelectedRepository) {
@@ -86,7 +86,7 @@ export function useRequestClassifier() {
         }
       }
     }
-    
+
     // Default to new project creation
     return {
       type: 'new_project',

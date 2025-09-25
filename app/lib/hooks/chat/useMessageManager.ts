@@ -9,9 +9,9 @@ export function useMessageManager() {
   const [messages, setMessages] = useState<Message[]>([])
 
   const addMessage = useCallback((
-    role: 'user' | 'assistant', 
-    content: string, 
-    chainOfThought?: string, 
+    role: 'user' | 'assistant',
+    content: string,
+    chainOfThought?: string,
     mcpLogs?: MCPLogEntry[]
   ) => {
     const message: Message = {

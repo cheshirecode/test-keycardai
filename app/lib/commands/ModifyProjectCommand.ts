@@ -20,7 +20,7 @@ export class ModifyProjectCommand extends BaseCommand {
       const analysisResult = await this.mcpClient.call('analyze_existing_project', {
         projectPath: params.project.path,
         requestDescription: params.content
-      }) as { 
+      }) as {
         success: boolean
         message: string
         analysis?: {
@@ -45,7 +45,7 @@ export class ModifyProjectCommand extends BaseCommand {
         projectPath: params.project.path,
         requestDescription: params.content,
         analysisData: analysisResult.analysis
-      }) as { 
+      }) as {
         success: boolean
         message: string
         analysis?: {
@@ -171,7 +171,7 @@ export class ModifyProjectCommand extends BaseCommand {
       console.error('Project modification error:', error)
       const errorMessage = `❌ Failed to modify project: ${error instanceof Error ? error.message : 'Unknown error'}`
       this.addMessage('assistant', errorMessage)
-      
+
       return {
         success: false,
         message: errorMessage

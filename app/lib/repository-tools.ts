@@ -326,7 +326,7 @@ logs
       // For now, we'll simulate pushing by returning success
       // In a real implementation, this would use git commands or GitHub API
       console.log(`[Git Push] Simulating push to remote for ${repository?.name || 'repository'}`)
-      
+
       return {
         success: true,
         message: `Changes pushed to ${repository?.name || 'remote repository'} successfully`
@@ -349,7 +349,7 @@ logs
       // For now, we'll simulate cloning by creating a basic project structure
       // In a real implementation, this would use git clone or GitHub API
       console.log(`[Git Clone] Simulating clone of ${url} to ${targetPath}`)
-      
+
       // Create a basic package.json to simulate cloned repository
       const packageJson = {
         name: path.basename(targetPath),
@@ -360,12 +360,12 @@ logs
           start: 'node index.js'
         }
       }
-      
+
       fs.writeFileSync(
         path.join(targetPath, 'package.json'),
         JSON.stringify(packageJson, null, 2)
       )
-      
+
       return {
         success: true,
         message: `Repository cloned successfully to ${targetPath}`

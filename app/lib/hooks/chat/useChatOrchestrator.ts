@@ -29,7 +29,7 @@ export function useChatOrchestrator() {
   const [isLoading, setIsLoading] = useState(false)
   const [currentProject, setCurrentProject] = useState<ProjectInfo | null>(null)
   const isMounted = useIsMounted()
-  
+
   const {
     selectedRepository,
     setNewlyCreatedRepository,

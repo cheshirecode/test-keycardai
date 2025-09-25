@@ -25,7 +25,7 @@ export class CreateProjectCommand extends BaseCommand {
       // Use the secure server-side AI-powered project creation
       const result = await this.mcpClient.call('create_project_with_ai', {
         description: params.content
-      }) as { 
+      }) as {
         success: boolean
         message: string
         project?: {
@@ -51,7 +51,7 @@ export class CreateProjectCommand extends BaseCommand {
           aiPowered: boolean
           llmUsed: string
         }
-        chainOfThought?: string 
+        chainOfThought?: string
       }
 
       if (result.success && result.project) {
@@ -185,7 +185,7 @@ export class CreateProjectCommand extends BaseCommand {
           description: params.content,
           projectPath: `/tmp/projects/fallback-${Date.now()}`,
           autoExecute: false
-        }) as { 
+        }) as {
           success: boolean
           message: string
           analysis?: {
@@ -195,7 +195,7 @@ export class CreateProjectCommand extends BaseCommand {
             features: string[]
             recommendedName: string
           }
-          plannedActions?: string[] 
+          plannedActions?: string[]
         }
 
         this.addMessage('assistant', fallbackResult.message || 'Project setup completed')

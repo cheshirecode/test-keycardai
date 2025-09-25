@@ -342,7 +342,7 @@ export const aiOperations = {
       // Check if this is a repository modification request
       const isRepositoryModification = !!params.existingRepository
       let analysisPrompt = params.description
-      
+
       if (isRepositoryModification && params.existingRepository) {
         analysisPrompt = `REPOSITORY MODIFICATION REQUEST:
 Repository: ${params.existingRepository.name}
@@ -353,7 +353,7 @@ User Request: ${params.description}
 
 This is a modification to an existing repository, NOT a new project creation. Please analyze what changes need to be made to the existing codebase.`
       }
-      
+
       const analysis = await AIService.analyzeProjectRequest(analysisPrompt)
 
       // Step 2: Generate project path if not provided
