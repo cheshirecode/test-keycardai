@@ -154,7 +154,7 @@ Creates GitHub repository.
 
 ### React Hook: `useChat`
 
-The main hook for chat interface integration. Handles both project creation and repository modification.
+The main hook for chat interface integration with enhanced async flow management.
 
 ```typescript
 import { useChat } from '@/lib/hooks/useChat'
@@ -183,10 +183,12 @@ export function MyComponent() {
 }
 ```
 
-**Key Features:**
-- Context-aware: Distinguishes between new projects and modifications
-- Repository integration: Works with selected repositories
-- Error handling: Defensive callback execution to prevent runtime errors
+**Enhanced Features:**
+- **Memory leak protection**: Mount status tracking prevents stale state updates
+- **Context-aware**: Distinguishes between new projects and modifications
+- **Repository integration**: Works with selected repositories and direct navigation
+- **Error handling**: Comprehensive async operation cleanup
+- **Race condition prevention**: AbortController integration for fetch requests
 
 ### MCP Client
 
@@ -347,12 +349,31 @@ DEBUG=mcp:* npm run dev
 4. **Type Errors**: Ensure TypeScript configuration is correct
 5. **File Operations Failing**: Check path permissions and existence
 
-### Recent Fixes
+### Recent Major Improvements
 
-- **Fixed**: `onRepositoryRefresh` TypeError ("c is not a function")
-- **Fixed**: Missing `handleRepositoryModification` function
-- **Improved**: Auto-navigation logic to prevent unwanted redirects
-- **Enhanced**: Repository context management and callback handling
+**🚀 Async Flow & Memory Management**
+- **Fixed**: Race conditions in `useRepositorySync` with AbortController cleanup
+- **Fixed**: Memory leaks in `useChat` with mount status tracking
+- **Fixed**: Infinite loops in `ProjectSidebar` with ref-based dependency stability
+- **Fixed**: SWR focus revalidation issues causing unwanted side effects
+
+**🎯 New Project Flow Enhancement**
+- **Added**: `isCreatingNewProject` flag for better state management
+- **Improved**: Direct navigation to newly created repositories
+- **Enhanced**: New Project button with comprehensive state clearing
+- **Eliminated**: Refresh delays and auto-navigation conflicts
+
+**🔧 Technical Improvements**
+- **Added**: `useIsMounted` hook for component lifecycle tracking
+- **Enhanced**: Error handling with proper async operation cleanup
+- **Improved**: Dependency array stability to prevent unnecessary re-renders
+- **Fixed**: TypeScript errors and linting issues
+
+**🛡️ Stability & Performance**
+- **Eliminated**: Race conditions in async operations
+- **Prevented**: Stale state updates after component unmount
+- **Improved**: SWR configuration to prevent unwanted revalidation
+- **Enhanced**: Overall application stability and user experience
 
 ---
 

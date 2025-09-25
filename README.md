@@ -84,25 +84,32 @@ npm run dev
 
 ## 🏆 Key Features
 
-**✅ Context-Aware**
+**✅ Enhanced New Project Flow**
+- Smart state management with creation flags
+- Direct navigation to newly created repositories
+- Eliminates refresh delays and navigation issues
+
+**✅ Context-Aware Development**
 - Remembers your active project
 - Distinguishes between new projects vs modifications
-- Maintains conversation context
+- Maintains conversation context throughout sessions
 
 **✅ Smart Package Detection**
 - Recognizes popular libraries (jotai, zustand, tailwind)
 - Installs correct dependencies automatically
 - Handles dev vs production packages
 
-**✅ GitHub Integration**
+**✅ Robust GitHub Integration**
 - Creates repositories automatically
 - Commits changes with descriptive messages
 - Supports personal and organization accounts
+- Race condition protection with proper cleanup
 
-**✅ Visual Feedback**
-- Project status indicators
-- Real-time progress updates
-- Context-aware input suggestions
+**✅ Memory Leak Prevention**
+- Component mount status tracking
+- Proper async operation cleanup
+- AbortController for fetch requests
+- Stable dependency management
 
 ## 🧪 Testing
 
@@ -117,13 +124,28 @@ npm run ci        # Full CI check
 
 ```
 ├── app/                 # Next.js App Router
-│   ├── api/mcp/        # MCP protocol server
-│   ├── components/     # React components
-│   ├── contexts/       # React contexts
+│   ├── api/mcp/        # MCP protocol server with AI tools
+│   ├── components/     # React components with memory leak protection
+│   ├── contexts/       # React contexts with proper state management
+│   ├── hooks/          # Custom hooks with AbortController support
 │   └── lib/            # Utilities and services
 ├── types/              # TypeScript definitions
-└── docs/              # Documentation
+└── docs/              # Comprehensive documentation
 ```
+
+## 🔧 Recent Improvements
+
+**🚀 Performance & Stability**
+- Fixed race conditions in async operations
+- Eliminated memory leaks with mount status tracking
+- Improved dependency stability to prevent infinite loops
+- Enhanced error handling with proper cleanup
+
+**🎯 User Experience**
+- Streamlined new project creation flow
+- Direct navigation to created repositories
+- Better state management and context awareness
+- Eliminated unwanted auto-navigation issues
 
 ## 🚀 Deployment
 
