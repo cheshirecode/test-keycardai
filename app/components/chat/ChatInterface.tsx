@@ -1,12 +1,13 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { useChat } from '@/lib/hooks/useChat'
 import { ProjectPreview } from '@/components/project'
 import { RepositoryPreview } from '@/components/repository'
 import { useRepository } from '@/contexts/RepositoryContext'
 import { UserProfile } from '@/components/user'
 import { useLocalStorage } from '@/hooks/useLocalStorage'
+import { TypedMCPClient } from '@/lib/typed-mcp-client'
 
 export function ChatInterface() {
   const [input, setInput] = useState('')
@@ -19,6 +20,18 @@ export function ChatInterface() {
     setIsCreatingNewProject
   } = useRepository()
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const [commits, setCommits] = useState<Array<{
+    hash: string
+    author: string
+    email: string
+    date: string
+    timestamp: number
+    message: string
+    subject: string
+    body: string
+  }>>([])
+  const [isLoadingCommits, setIsLoadingCommits] = useState(false)
+  const typedMcpClient = useMemo(() => new TypedMCPClient(), [])
 
   // User profile integration with localStorage
   const [userProfile, , isProfileInitialized] = useLocalStorage('userProfile', {
@@ -34,6 +47,32 @@ export function ChatInterface() {
   useEffect(() => {
     scrollToBottom()
   }, [messages])
+
+  // Fetch commits when in repository mode
+  useEffect(() => {
+    if (isRepositoryMode && selectedRepository && !isLoadingCommits && commits.length === 0) {
+      setIsLoadingCommits(true)
+      
+      // Try to determine project path from repository
+      // For now, use a placeholder path structure - this should be enhanced
+      const projectPath = `/tmp/projects/${selectedRepository.name}`
+      
+      typedMcpClient.call('git_log', { path: projectPath, limit: 10 })
+        .then((result) => {
+          if (result.success && result.commits) {
+            // Sort commits chronologically (oldest first for chat display)
+            const sortedCommits = [...result.commits].reverse()
+            setCommits(sortedCommits)
+          }
+        })
+        .catch((error) => {
+          console.error('Failed to fetch commits:', error)
+        })
+        .finally(() => {
+          setIsLoadingCommits(false)
+        })
+    }
+  }, [isRepositoryMode, selectedRepository, commits, isLoadingCommits, typedMcpClient])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -143,7 +182,7 @@ export function ChatInterface() {
           {/* Chat Panel */}
           <div className="flex flex-col bg-white border-r border-gray-200 min-h-0">
             <div className="p-4 flex-1 overflow-y-auto min-h-0">
-              {messages.length === 0 ? (
+              {messages.length === 0 && commits.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-center space-y-6">
                   <div className="space-y-2">
                     <h2 className="text-xl font-semibold text-gray-900">
@@ -155,6 +194,15 @@ export function ChatInterface() {
                         : 'I can help you create new projects quickly. Just describe what you want to build!'
                       }
                     </p>
+                    
+                    {/* Chat log coming soon note for repository mode */}
+                    {isRepositoryMode && (
+                      <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <p className="text-sm text-blue-800">
+                          📝 <strong>Chat log is coming, stay tuned!</strong> Soon you&apos;ll see the full conversation history integrated with git commits.
+                        </p>
+                      </div>
+                    )}
                   </div>
 
                   <div className="space-y-3 w-full max-w-sm">
@@ -173,6 +221,110 @@ export function ChatInterface() {
                 </div>
               ) : (
                 <div className="space-y-4 min-h-full">
+                  {/* Show commit history for repositories with no regular messages */}
+                  {messages.length === 0 && commits.length > 0 && (
+                    <div className="space-y-4">
+                      {/* Coming soon note */}
+                      <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <p className="text-sm text-blue-800">
+                          📝 <strong>Chat log is coming, stay tuned!</strong> Below you can see the commit history formatted as conversation messages.
+                        </p>
+                      </div>
+                      
+                      {/* Render commits as messages */}
+                      {commits.map((commit, index) => {
+                        const isFirstCommit = index === 0
+                        return (
+                          <div key={commit.hash} className="flex justify-start">
+                            <div className="max-w-[85%] space-y-3">
+                              {/* First commit gets special treatment as scaffolding request */}
+                              {isFirstCommit && (
+                                <div className="space-y-2">
+                                  {/* Chain of Thought for scaffolding */}
+                                  <details className="group" open>
+                                    <summary className="cursor-pointer text-xs opacity-75 hover:opacity-100 flex items-center gap-2 p-2 rounded hover:bg-blue-50 transition-colors border border-blue-200">
+                                      🤔 <span className="text-blue-700 font-medium">AI Reasoning</span>
+                                      <span className="text-gray-500 text-xs">Project Scaffolding</span>
+                                    </summary>
+                                    <div className="mt-2 p-3 bg-blue-50 rounded-md text-xs text-blue-900 border-l-4 border-blue-400">
+                                      <div className="font-medium text-blue-800 mb-2 flex items-center gap-1">
+                                        💭 <span>Project Scaffolding Analysis</span>
+                                      </div>
+                                      <div className="whitespace-pre-wrap leading-relaxed bg-white p-2 rounded border">
+                                        {`Initial project setup detected. This appears to be the foundational commit that established the project structure.
+
+Analysis:
+- Repository: ${selectedRepository?.name}
+- Author: ${commit.author}
+- Initial commit suggests this was a scaffolding request to create the project foundation
+- Project type likely determined from commit content and structure`}
+                                      </div>
+                                    </div>
+                                  </details>
+                                  
+                                  {/* MCP Logs for scaffolding */}
+                                  <details className="group">
+                                    <summary className="cursor-pointer text-xs opacity-75 hover:opacity-100 flex items-center gap-2 p-2 rounded hover:bg-green-50 transition-colors border border-green-200">
+                                      🛠️ <span className="text-green-700 font-medium">MCP Tool Logs</span>
+                                      <span className="text-gray-500 text-xs">Scaffolding Operations</span>
+                                    </summary>
+                                    <div className="mt-2 p-3 bg-green-50 rounded-md text-xs border-l-4 border-green-400">
+                                      <div className="space-y-2">
+                                        <div className="flex items-center justify-between text-green-800">
+                                          <span className="font-medium">🏗️ Project Scaffolding</span>
+                                          <span className="text-xs opacity-75">{new Date(commit.timestamp).toLocaleString()}</span>
+                                        </div>
+                                        <div className="bg-white p-2 rounded border text-green-900">
+                                          <pre className="text-xs">Initial project structure created via scaffolding tools</pre>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </details>
+                                </div>
+                              )}
+                              
+                              {/* Commit message as assistant response */}
+                              <div className="bg-gray-100 p-4 rounded-lg">
+                                <div className="prose prose-sm max-w-none">
+                                  <div className="flex items-start gap-3 mb-2">
+                                    <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                      <span className="text-white text-sm font-bold">
+                                        {isFirstCommit ? '🏗️' : '📝'}
+                                      </span>
+                                    </div>
+                                    <div className="flex-1">
+                                      <div className="flex items-center gap-2 mb-1">
+                                        <span className="font-medium text-gray-900">
+                                          {isFirstCommit ? 'Project Scaffolding' : 'Commit'}
+                                        </span>
+                                        <span className="text-xs text-gray-500">
+                                          {new Date(commit.timestamp).toLocaleString()}
+                                        </span>
+                                      </div>
+                                      <div className="text-sm text-gray-700">
+                                        <strong>{commit.subject}</strong>
+                                        {commit.body && (
+                                          <div className="mt-2 whitespace-pre-wrap text-gray-600">
+                                            {commit.body}
+                                          </div>
+                                        )}
+                                      </div>
+                                      <div className="mt-2 flex items-center gap-4 text-xs text-gray-500">
+                                        <span>👤 {commit.author}</span>
+                                        <span>🔗 {commit.hash.substring(0, 8)}</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+                  
+                  {/* Regular messages */}
                   {messages.map((message) => (
                     <div
                       key={message.id}

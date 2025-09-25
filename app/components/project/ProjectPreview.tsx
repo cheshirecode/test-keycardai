@@ -5,6 +5,7 @@ import { templates } from '@/lib/templates'
 import type { ProjectInfo } from '@/types'
 import { MCPClient } from '@/lib/mcp-client'
 import { useHealth } from '@/hooks/useHealth'
+import { TypedMCPClient } from '@/lib/typed-mcp-client'
 
 interface ProjectPreviewProps {
   project: ProjectInfo
@@ -19,8 +20,17 @@ export function ProjectPreview({ project }: ProjectPreviewProps) {
     githubUser?: string
   } | null>(null)
   const [isLoadingGitInfo, setIsLoadingGitInfo] = useState(false)
+  const [latestCommit, setLatestCommit] = useState<{
+    hash: string
+    author: string
+    date: string
+    subject: string
+    timestamp: number
+  } | null>(null)
+  const [isLoadingCommit, setIsLoadingCommit] = useState(false)
   const { githubOwner } = useHealth()
   const mcpClient = useMemo(() => new MCPClient(), [])
+  const typedMcpClient = useMemo(() => new TypedMCPClient(), [])
   const template = templates[project.template]
 
   // Generate git info when project is completed
@@ -108,6 +118,33 @@ export function ProjectPreview({ project }: ProjectPreviewProps) {
       }
     }
   }, [project, gitInfo, isLoadingGitInfo, githubOwner, mcpClient])
+
+  // Fetch latest commit when project path is available
+  useEffect(() => {
+    if (project.path && !latestCommit && !isLoadingCommit) {
+      setIsLoadingCommit(true)
+      
+      typedMcpClient.call('git_log', { path: project.path, limit: 1 })
+        .then((result) => {
+          if (result.success && result.commits && result.commits.length > 0) {
+            const commit = result.commits[0]
+            setLatestCommit({
+              hash: commit.hash,
+              author: commit.author,
+              date: commit.date,
+              subject: commit.subject,
+              timestamp: commit.timestamp
+            })
+          }
+        })
+        .catch((error) => {
+          console.error('Failed to fetch latest commit:', error)
+        })
+        .finally(() => {
+          setIsLoadingCommit(false)
+        })
+    }
+  }, [project.path, latestCommit, isLoadingCommit, typedMcpClient])
 
   const handleDownload = async () => {
     if (isDownloading) return
@@ -367,6 +404,30 @@ export function ProjectPreview({ project }: ProjectPreviewProps) {
                 <p className="text-sm text-purple-700">
                   Repository info will be available once project is created.
                 </p>
+              )}
+            </div>
+
+            {/* Latest Commit Info */}
+            <div className="bg-amber-50 border border-amber-200 p-4 rounded-lg">
+              <h5 className="font-medium text-amber-900 mb-3">📝 Latest Commit</h5>
+              {isLoadingCommit ? (
+                <div className="flex items-center gap-2 text-amber-700">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-amber-500"></div>
+                  <span className="text-sm">Loading commit history...</span>
+                </div>
+              ) : latestCommit ? (
+                <div className="space-y-2">
+                  <div>
+                    <p className="text-sm font-medium text-amber-800">{latestCommit.subject}</p>
+                    <div className="text-xs text-amber-600 mt-1 space-y-1">
+                      <div>👤 <span className="font-medium">{latestCommit.author}</span></div>
+                      <div>🕒 {new Date(latestCommit.timestamp).toLocaleString()}</div>
+                      <div>🔗 <code className="bg-white px-1 rounded">{latestCommit.hash.substring(0, 8)}</code></div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-sm text-amber-700">No git commits found in this project.</p>
               )}
             </div>
 

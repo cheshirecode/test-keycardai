@@ -342,6 +342,22 @@ export interface MCPTools {
     authenticatedUser?: string
   }>
 
+  // Git Operations
+  git_log: (params: { path: string; limit?: number }) => Promise<{
+    success: boolean
+    message: string
+    commits?: Array<{
+      hash: string
+      author: string
+      email: string
+      date: string
+      timestamp: number
+      message: string
+      subject: string
+      body: string
+    }>
+  }>
+
   // Project Management (additional tools that may exist)
   // [key: string]: (params: unknown) => Promise<unknown>
 }
@@ -386,7 +402,8 @@ export function isValidMCPTool(tool: string): tool is Extract<MCPToolName, strin
     'list_repositories',
     'delete_repository',
     'get_repository',
-    'validate_repository_permissions'
+    'validate_repository_permissions',
+    'git_log'
   ]
 
   return validTools.includes(tool)

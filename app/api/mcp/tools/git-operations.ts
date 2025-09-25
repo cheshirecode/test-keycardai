@@ -238,5 +238,119 @@ export const gitOperations = {
     } catch (error) {
       throw new Error(`Repository history failed: ${error}`)
     }
+  },
+
+  /**
+   * Gets detailed commit logs for a repository path
+   */
+  git_log: async (params: { path: string; limit?: number }): Promise<{
+    success: boolean
+    message: string
+    commits?: Array<{
+      hash: string
+      author: string
+      email: string
+      date: string
+      timestamp: number
+      message: string
+      subject: string
+      body: string
+    }>
+  }> => {
+    try {
+      const limit = params.limit || 20
+      const fs = await import('fs')
+      const path = await import('path')
+      const { execSync } = await import('child_process')
+
+      // Check if path exists and is a git repository
+      if (!fs.existsSync(params.path)) {
+        return {
+          success: false,
+          message: 'Repository path does not exist'
+        }
+      }
+
+      const gitDir = path.join(params.path, '.git')
+      if (!fs.existsSync(gitDir)) {
+        return {
+          success: false,
+          message: 'Not a git repository'
+        }
+      }
+
+      // Get detailed commit information using git log with custom format
+      const gitLogOutput = execSync(
+        `git log --pretty=format:"%H|%an|%ae|%ad|%at|%s|%b" --date=iso -${limit}`,
+        {
+          cwd: params.path,
+          encoding: 'utf8',
+          stdio: 'pipe'
+        }
+      )
+
+      if (!gitLogOutput.trim()) {
+        return {
+          success: true,
+          message: 'No commits found',
+          commits: []
+        }
+      }
+
+      const commits = gitLogOutput
+        .trim()
+        .split('\n')
+        .filter((line: string) => line.trim())
+        .map((line: string) => {
+          const parts = line.split('|')
+          if (parts.length < 6) return null
+
+          const [hash, author, email, date, timestamp, subject, ...bodyParts] = parts
+          const body = bodyParts.join('|').trim()
+
+          return {
+            hash: hash.trim(),
+            author: author.trim(),
+            email: email.trim(),
+            date: date.trim(),
+            timestamp: parseInt(timestamp.trim()) * 1000, // Convert to milliseconds
+            message: subject.trim() + (body ? '\n\n' + body : ''),
+            subject: subject.trim(),
+            body: body
+          }
+        })
+        .filter((commit: {
+          hash: string
+          author: string
+          email: string
+          date: string
+          timestamp: number
+          message: string
+          subject: string
+          body: string
+        } | null): commit is {
+          hash: string
+          author: string
+          email: string
+          date: string
+          timestamp: number
+          message: string
+          subject: string
+          body: string
+        } => commit !== null)
+
+      return {
+        success: true,
+        message: `Found ${commits.length} commits`,
+        commits
+      }
+
+    } catch (error) {
+      console.error('Git log error:', error)
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : 'Failed to get git log'
+      }
+    }
   }
 }
