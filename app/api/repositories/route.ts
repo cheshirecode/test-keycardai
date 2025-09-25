@@ -84,11 +84,13 @@ function isScaffoldedProject(name: string, description: string | null): boolean 
   // Check for common project prefixes/patterns
   const projectPatterns = [
     /^project-/i,
+    /^my-project-/i,      // Match "my-project-..." pattern
     /^scaffolded-/i,
     /^generated-/i,
     /-project$/i,
     /-app$/i,
-    /-demo$/i
+    /-demo$/i,
+    /project.*\d{13}/i    // Match project names with timestamps
   ]
 
   const nameMatches = projectPatterns.some(pattern => pattern.test(name))

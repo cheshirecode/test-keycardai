@@ -259,6 +259,34 @@ export class GitHubService {
     }
   }
 
+  async getRepository(owner: string, repo: string): Promise<{ success: boolean; repository?: Record<string, unknown>; message: string }> {
+    if (!this.isAvailable) {
+      return {
+        success: false,
+        message: 'GitHub token not available'
+      }
+    }
+
+    try {
+      const { data: repository } = await this.octokit.repos.get({
+        owner,
+        repo
+      })
+
+      return {
+        success: true,
+        repository,
+        message: 'Repository retrieved successfully'
+      }
+    } catch (error: unknown) {
+      const err = error as { message?: string }
+      return {
+        success: false,
+        message: `Failed to get repository: ${err.message || 'Unknown error'}`
+      }
+    }
+  }
+
   // Helper method to collect files from a directory
   static collectFilesFromDirectory(projectPath: string): CommitFile[] {
     const files: CommitFile[] = []
