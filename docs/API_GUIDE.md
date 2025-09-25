@@ -36,13 +36,13 @@ Complete reference for the Project Scaffolder API.
 - **`create_project_with_ai`** - Create projects with AI analysis
 - **`intelligent_project_setup`** - Create projects without AI
 
-### Project Management  
+### Project Management
 - **`analyze_existing_project`** - Analyze project structure
 - **`generate_modification_plan`** - Plan project changes
 
 ### Package Management
 - **`add_packages`** - Install npm packages
-- **`remove_packages`** - Uninstall packages  
+- **`remove_packages`** - Uninstall packages
 - **`update_packages`** - Update to latest versions
 
 ### File Operations
@@ -137,7 +137,7 @@ DEBUG=mcp:* npm run dev
 
 **Common Issues:**
 - **AI failing**: Check OpenAI API key
-- **GitHub errors**: Verify token permissions  
+- **GitHub errors**: Verify token permissions
 - **File operations**: Check path permissions
 
 ---

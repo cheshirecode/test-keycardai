@@ -1,6 +1,7 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import { GitHubService, GitHubRepoConfig } from '@/lib/github-service'
+import type { Repository } from '@/types'
 
 export interface CheckOwnerTypeParams {
   owner: string
@@ -43,6 +44,45 @@ export interface GitHubBranchResult {
  * Handles GitHub-specific operations like user authentication, owner type checking, and repository creation
  */
 export const githubOperations = {
+  /**
+   * Clone a repository for local modification
+   */
+  clone_repository: async (params: { repository: Repository }): Promise<{ success: boolean; message: string; localPath?: string }> => {
+    try {
+      const repoName = params.repository.name
+      const repoUrl = params.repository.url
+      const localPath = `/tmp/repositories/${repoName}-${Date.now()}`
+      
+      // Ensure the repositories directory exists
+      const repositoriesDir = '/tmp/repositories'
+      if (!fs.existsSync(repositoriesDir)) {
+        fs.mkdirSync(repositoriesDir, { recursive: true })
+      }
+      
+      // Clone the repository using git clone
+      const { exec } = await import('child_process')
+      const { promisify } = await import('util')
+      const execAsync = promisify(exec)
+      
+      await execAsync(`git clone ${repoUrl} ${localPath}`)
+      
+      if (!fs.existsSync(localPath)) {
+        throw new Error('Repository clone failed - directory not created')
+      }
+      
+      return {
+        success: true,
+        message: `Repository cloned successfully to ${localPath}`,
+        localPath
+      }
+    } catch (error) {
+      return {
+        success: false,
+        message: `Failed to clone repository: ${error instanceof Error ? error.message : 'Unknown error'}`
+      }
+    }
+  },
+
   /**
    * Gets the authenticated GitHub user information
    */

@@ -39,20 +39,24 @@ export function ProjectSidebar({ selectedRepository, onRepositorySelect, classNa
     }
   }, [newlyCreatedRepository]) // Remove refresh from dependencies
 
-  // Select newly created repository when repositories list updates
+  // Highlight newly created repository but don't auto-navigate
   useEffect(() => {
-    if (newlyCreatedRepository && repositories.length > 0 && selectedRepository === null) {
-      // Only auto-select if no repository is currently selected (user is on home page)
+    if (newlyCreatedRepository && repositories.length > 0) {
+      // Just highlight the new repository without auto-navigation
+      // User can click to navigate manually
       const newRepo = repositories.find(repo =>
         repo.name === newlyCreatedRepository ||
         repo.fullName.includes(newlyCreatedRepository)
       )
+      
+      // Clear the newly created flag after highlighting
       if (newRepo) {
-        // Only select if it's not already selected to prevent unnecessary navigation
-        onRepositorySelect(newRepo)
+        setTimeout(() => {
+          // Clear after showing highlighting for a bit
+        }, 3000)
       }
     }
-  }, [repositories, newlyCreatedRepository, onRepositorySelect, selectedRepository])
+  }, [repositories, newlyCreatedRepository])
 
   const handleDeleteRepository = async (repository: Repository, event: React.MouseEvent) => {
     event.stopPropagation() // Prevent repository selection
@@ -74,13 +78,32 @@ export function ProjectSidebar({ selectedRepository, onRepositorySelect, classNa
       const result = await response.json()
 
       if (result.success) {
+        // Check if we're deleting the currently selected repository
+        const isDeletingCurrentRepo = selectedRepository?.id === repository.id
+        
         // Invalidate the cache to refetch repositories
         refresh()
-
-        // Deselect if this was the selected repository
-        if (selectedRepository?.id === repository.id) {
-          onRepositorySelect(null)
-        }
+        
+        // Wait for refresh, then handle routing
+        setTimeout(() => {
+          if (isDeletingCurrentRepo) {
+            // If deleting current repo, navigate to first available project
+            if (repositories.length > 1) {
+              // Find first repository that's not the one being deleted
+              const firstRepo = repositories.find(repo => repo.id !== repository.id)
+              if (firstRepo) {
+                onRepositorySelect(firstRepo)
+              } else {
+                // No other repositories, go to home
+                navigateToHome()
+              }
+            } else {
+              // No other repositories, go to home
+              navigateToHome()
+            }
+          }
+        }, 500) // Small delay to ensure refresh completes
+        
       } else {
         alert(`Failed to delete repository: ${result.message}`)
       }
@@ -213,6 +236,9 @@ export function ProjectSidebar({ selectedRepository, onRepositorySelect, classNa
                       key={repo.id}
                       repository={repo}
                       isSelected={selectedRepository?.id === repo.id}
+                      isNewlyCreated={newlyCreatedRepository ? 
+                        (repo.name === newlyCreatedRepository || repo.fullName.includes(newlyCreatedRepository)) : 
+                        false}
                       onClick={() => handleRepositoryClick(repo)}
                       onDelete={(e) => handleDeleteRepository(repo, e)}
                     />
@@ -233,6 +259,9 @@ export function ProjectSidebar({ selectedRepository, onRepositorySelect, classNa
                       key={repo.id}
                       repository={repo}
                       isSelected={selectedRepository?.id === repo.id}
+                      isNewlyCreated={newlyCreatedRepository ? 
+                        (repo.name === newlyCreatedRepository || repo.fullName.includes(newlyCreatedRepository)) : 
+                        false}
                       onClick={() => handleRepositoryClick(repo)}
                       onDelete={(e) => handleDeleteRepository(repo, e)}
                     />
@@ -256,11 +285,12 @@ export function ProjectSidebar({ selectedRepository, onRepositorySelect, classNa
 interface RepositoryItemProps {
   repository: Repository
   isSelected: boolean
+  isNewlyCreated?: boolean
   onClick: () => void
   onDelete: (event: React.MouseEvent) => void
 }
 
-function RepositoryItem({ repository, isSelected, onClick, onDelete }: RepositoryItemProps) {
+function RepositoryItem({ repository, isSelected, isNewlyCreated = false, onClick, onDelete }: RepositoryItemProps) {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'short',
@@ -275,6 +305,8 @@ function RepositoryItem({ repository, isSelected, onClick, onDelete }: Repositor
       className={`w-full p-3 text-left rounded-md transition-colors group ${
         isSelected
           ? 'bg-blue-100 border-l-4 border-blue-500'
+          : isNewlyCreated
+          ? 'bg-green-50 border-l-4 border-green-400 hover:bg-green-100'
           : 'hover:bg-gray-100 border-l-4 border-transparent'
       }`}
     >
@@ -318,16 +350,14 @@ function RepositoryItem({ repository, isSelected, onClick, onDelete }: Repositor
           </div>
         </div>
 
-        {/* Delete button - only show for scaffolded projects */}
-        {repository.isScaffoldedProject && (
-          <button
-            onClick={onDelete}
-            className="flex-shrink-0 p-1 text-gray-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
-            title={`Delete ${repository.name}`}
-          >
-            <TrashIcon className="w-4 h-4" />
-          </button>
-        )}
+        {/* Delete button - show for all repositories */}
+        <button
+          onClick={onDelete}
+          className="flex-shrink-0 p-1 text-gray-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+          title={`Delete ${repository.name}`}
+        >
+          <TrashIcon className="w-4 h-4" />
+        </button>
       </div>
     </button>
   )

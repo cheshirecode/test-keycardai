@@ -20,11 +20,30 @@ export class ModifyRepositoryCommand extends BaseCommand {
     try {
       // For repository modifications, we need to use a different approach
       // that properly handles existing repository context
-      this.addMessage('assistant', `🔄 **Modifying Repository: ${params.repository.name}**\n\nAnalyzing your request and preparing modifications...`)
+      this.addMessage('assistant', `🔄 **Modifying Repository: ${params.repository.name}**\n\nCloning repository and analyzing your request...`)
 
-      // First, analyze the existing repository
+      // First, clone the repository to a local path
+      const cloneResult = await this.mcpClient.call('clone_repository', {
+        repository: params.repository
+      }) as {
+        success: boolean
+        message: string
+        localPath?: string
+      }
+
+      if (!cloneResult.success || !cloneResult.localPath) {
+        this.addMessage('assistant', `❌ Failed to clone repository: ${cloneResult.message}`)
+        return {
+          success: false,
+          message: cloneResult.message
+        }
+      }
+
+      const projectPath = cloneResult.localPath
+
+      // Now analyze the existing repository
       const analysisResult = await this.mcpClient.call('analyze_existing_project', {
-        projectPath: `/tmp/repositories/${params.repository.name}`, // We'll need to clone or access the repo
+        projectPath,
         requestDescription: params.content
       }) as {
         success: boolean
@@ -48,7 +67,7 @@ export class ModifyRepositoryCommand extends BaseCommand {
 
       // Generate modification plan specifically for repository modification
       const planResult = await this.mcpClient.call('generate_modification_plan', {
-        projectPath: `/tmp/repositories/${params.repository.name}`,
+        projectPath,
         requestDescription: params.content,
         analysisData: analysisResult.analysis,
         repositoryContext: {
@@ -136,13 +155,13 @@ export class ModifyRepositoryCommand extends BaseCommand {
         try {
           // First commit locally
           await this.mcpClient.call('git_add_commit', {
-            path: `/tmp/repositories/${params.repository.name}`,
+            path: projectPath,
             message: `feat: ${params.content.toLowerCase()}\n\nModifications applied via MCP:\n${plan.map(s => `- ${s.description}`).join('\n')}`
           })
 
           // Then push to remote repository
           await this.mcpClient.call('git_push', {
-            path: `/tmp/repositories/${params.repository.name}`,
+            path: projectPath,
             repository: params.repository
           })
 

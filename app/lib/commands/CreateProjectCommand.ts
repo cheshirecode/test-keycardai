@@ -121,43 +121,28 @@ export class CreateProjectCommand extends BaseCommand {
           const repoName = project.repositoryUrl.split('/').pop() || project.name
           params.setNewlyCreatedRepository(repoName)
 
-          // Invalidate SWR cache first
+          // Invalidate SWR cache and refresh sidebar only (no navigation yet)
           params.invalidateRepositoriesCache()
-
-          // Wait for cache invalidation, then fetch and navigate directly
+          
+          // Refresh repositories sidebar silently without navigation
           setTimeout(async () => {
             if (!this.checkMounted()) return
 
             try {
-              // Refresh repositories to get the new one
+              // Just refresh the repositories list
               params.refreshRepositories()
-
-              if (!this.checkMounted()) return
-
-              // Try to find the new repository and navigate to it
-              const response = await fetch('/api/repositories')
-              const data = await response.json()
-
-              if (!this.checkMounted()) return
-
-              if (data.success && data.repositories) {
-                const newRepo = data.repositories.find((repo: Repository) =>
-                  repo.name === repoName || repo.fullName.includes(repoName)
-                )
-
-                if (newRepo && this.checkMounted()) {
-                  // Navigate directly to the new repository
-                  params.navigateToRepository(newRepo)
-                }
-              }
+              
+              // The sidebar will automatically highlight the new project
+              // via the newlyCreatedRepository state in ProjectSidebar
+              
             } catch (error) {
-              console.error('Failed to navigate to new repository:', error)
-              // Fallback to the old refresh method
+              console.error('Failed to refresh repositories:', error)
+              // Fallback refresh
               if (this.checkMounted()) {
                 params.refreshRepositories()
               }
             }
-          }, 2000) // Longer delay to ensure GitHub API is updated
+          }, 1500) // Shorter delay for better UX
         } else if (project.repositoryUrl) {
           // Fallback for non-new-project flows
           const repoName = project.repositoryUrl.split('/').pop() || project.name
