@@ -134,6 +134,116 @@ types/mcp/
    - Organize by functional area
    - Maintain backward compatibility
 
+### **Phase 4: Command Pattern Complexity (Medium Impact)**
+**Duration:** 1-1.5 days
+**Complexity:** Medium
+
+**Problems Identified:**
+- Command orchestration in `useChatOrchestrator` has tight coupling (190 lines)
+- Commands have duplicated error handling and logging patterns
+- Complex parameter interfaces across commands
+- Command context is overloaded with multiple responsibilities
+- No command composition or chaining mechanisms
+
+**Command Classes Analysis:**
+- `CreateProjectCommand` (215 lines) - Complex AI workflow orchestration
+- `ModifyProjectCommand` (181 lines) - Duplicated plan execution logic  
+- `ModifyRepositoryCommand` (229 lines) - Repository cloning + modification logic
+- `BaseCommand` - Minimal abstraction, missing common patterns
+
+**Proposed Solution: Command System Refactoring**
+
+```typescript
+app/lib/commands/
+├── core/
+│   ├── CommandExecutor.ts        (Command orchestration)
+│   ├── CommandComposer.ts        (Command chaining/composition)
+│   ├── CommandLogger.ts          (Centralized logging)
+│   └── CommandErrorHandler.ts    (Standardized error handling)
+├── workflows/
+│   ├── ProjectCreationWorkflow.ts  (Multi-step creation)
+│   ├── ProjectModificationWorkflow.ts (Multi-step modification)
+│   └── RepositoryWorkflow.ts       (Repository operations)
+├── operations/
+│   ├── AnalysisOperation.ts       (Project analysis)
+│   ├── PlanningOperation.ts       (Plan generation)
+│   ├── ExecutionOperation.ts      (Plan execution)
+│   └── CommitOperation.ts         (Git operations)
+└── types/
+    ├── CommandTypes.ts            (Core command interfaces)
+    ├── WorkflowTypes.ts           (Workflow-specific types)
+    └── OperationTypes.ts          (Operation parameter types)
+```
+
+**Benefits:**
+- Eliminate duplicate error handling and logging
+- Enable command composition and reuse
+- Separate concerns: orchestration vs execution
+- Better testability with focused operations
+
+### **Phase 5: Hook Coupling Issues (Medium Impact)**
+**Duration:** 1 day
+**Complexity:** Medium
+
+**Problems Identified:**
+- Repository hooks have circular dependencies and tight coupling
+- `useRepositoryAtoms` imports navigation hooks, creating coupling
+- `useRepositorySync` directly manipulates atoms, bypassing abstractions
+- Repository state management spread across multiple hooks
+- Complex interdependencies between hooks make testing difficult
+
+**Hook Coupling Analysis:**
+```typescript
+useRepositoryAtoms 
+├── depends on → useRepositoryNavigation (circular coupling)
+├── depends on → useNewProjectFlow (tight coupling)
+└── manages → 9 different atoms (too many responsibilities)
+
+useRepositorySync
+├── directly manipulates → selectedRepositoryAtom (bypassing abstraction)
+├── depends on → pathname changes (coupling to router)
+└── complex logic → URL parsing + repository fetching (mixed concerns)
+
+useRepositoryDetails/useRepositoryCommits
+├── tight coupling → Repository type structure
+├── shared caching → SWR keys overlapping
+└── similar patterns → duplicated fetching logic
+```
+
+**Proposed Solution: Hook Decoupling & Abstraction**
+
+```typescript
+app/hooks/repository/
+├── core/
+│   ├── useRepositoryStore.ts      (Pure atom management)
+│   ├── useRepositoryActions.ts    (Action dispatchers)
+│   └── useRepositoryState.ts      (State selectors)
+├── data/
+│   ├── useRepositoryData.ts       (Data fetching)
+│   ├── useRepositoryCommits.ts    (Commit fetching)
+│   └── useRepositoryDetails.ts    (Details fetching)
+├── navigation/
+│   ├── useRepositoryNavigation.ts (Navigation logic)
+│   └── useRepositorySync.ts       (URL synchronization)
+└── workflows/
+    ├── useNewProjectFlow.ts       (New project workflow)
+    ├── useRepositorySelection.ts  (Repository selection)
+    └── useProjectCreation.ts      (Project creation flow)
+```
+
+**Decoupling Strategy:**
+1. **Separate State from Actions**: Pure state hooks vs action hooks
+2. **Abstract Navigation**: Remove navigation logic from state hooks
+3. **Centralize Repository Data**: Single source for repository operations
+4. **Eliminate Direct Atom Access**: All atom access through abstractions
+5. **Standardize Hook Interfaces**: Consistent return types and parameters
+
+**Benefits:**
+- Eliminate circular dependencies between hooks
+- Improve testability with focused responsibilities
+- Better separation of data fetching vs state management
+- Easier to reason about hook interactions
+
 ## 🔄 **Migration Strategy**
 
 ### **Backward Compatibility Approach**
@@ -194,17 +304,49 @@ export type { ChatInterfaceProps } from './types/ChatTypes'
 
 ## 📈 **Success Metrics**
 
-- [ ] Reduce ChatInterface.tsx from 926 to <100 lines
+### **Phase 1 & 3 (Completed ✅)**
+- [x] Reduce ChatInterface.tsx from 926 to <100 lines (Achieved: 95 lines)
+- [x] Organize MCP types into 7+ domain-specific files (Achieved: 14 organized files)
+- [x] Maintain 100% backward compatibility (Achieved: No breaking changes)
+- [x] Improve build performance (Achieved: 24% faster compilation)
+
+### **Phase 2: AI Operations (Pending)**
 - [ ] Split ai-operations.ts into 4-5 focused modules
-- [ ] Organize MCP types into 6 domain-specific files
-- [ ] Maintain 100% test coverage during refactoring
-- [ ] No increase in bundle size
-- [ ] No performance regressions
+- [ ] Reduce largest AI function from 200+ to <50 lines
+- [ ] Create reusable AI service abstractions
+- [ ] Eliminate duplicate error handling patterns
+
+### **Phase 4: Command Pattern (Pending)**
+- [ ] Reduce command orchestration complexity in useChatOrchestrator (190 → <50 lines)
+- [ ] Extract 8+ reusable command operations from existing commands
+- [ ] Create command composition system for workflow building
+- [ ] Eliminate duplicate error handling across commands (4 → 1 centralized handler)
+- [ ] Reduce command classes average size by 60% (208 → <80 lines)
+
+### **Phase 5: Hook Coupling (Pending)**
+- [ ] Eliminate circular dependencies in repository hooks (3 identified cycles)
+- [ ] Reduce useRepositoryAtoms responsibilities (9 → 3 atoms max)
+- [ ] Create 6+ focused hook abstractions from current coupling
+- [ ] Achieve independent testability for all repository hooks
+- [ ] Standardize hook interfaces across repository management
+
+### **Overall Quality Metrics**
+- [ ] Maintain 100% test coverage during all refactoring phases
+- [ ] No increase in bundle size across all phases
+- [ ] No performance regressions in any phase
+- [ ] Achieve <10 cyclomatic complexity per module
 
 ---
 
 **Next Steps:**
-1. Review and approve this refactoring plan
-2. Create implementation tickets for each phase
-3. Begin with ChatInterface decomposition (highest impact)
-4. Execute phases incrementally with testing at each step
+1. ✅ **Completed**: ChatInterface decomposition (Phase 1) - 926 → 95 lines
+2. ✅ **Completed**: Type organization (Phase 3) - 461-line god object → 14 organized files  
+3. **Next Priority**: Choose remaining phases based on impact:
+   - **Phase 2**: AI Operations refactoring (Medium complexity, high maintainability impact)
+   - **Phase 4**: Command Pattern complexity (Medium complexity, medium impact)
+   - **Phase 5**: Hook coupling issues (Medium complexity, high testability impact)
+4. Execute remaining phases incrementally with comprehensive testing at each step
+
+**Recommended Phase Order:**
+- **Phase 2 (AI Operations)** → **Phase 5 (Hook Coupling)** → **Phase 4 (Command Pattern)**
+- Rationale: AI Operations affects core functionality, Hook decoupling improves testability for Command refactoring
