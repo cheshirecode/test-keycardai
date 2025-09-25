@@ -326,17 +326,17 @@ logs
       // First try to push via GitHub API if repository info is available
       if (repository && repository.url && repository.name.includes('/')) {
         const githubService = new GitHubService()
-        
+
         if (githubService.isGitHubAvailable()) {
           try {
             console.log(`[Git Push] Attempting real push to GitHub for ${repository.name}`)
-            
+
             // Extract owner and repo from repository name (format: owner/repo)
             const [owner, repo] = repository.name.split('/')
-            
+
             // Collect all files from the project directory
             const files = GitHubService.collectFilesFromDirectory(projectPath)
-            
+
             if (files.length === 0) {
               return {
                 success: false,
@@ -404,16 +404,16 @@ Timestamp: ${new Date().toISOString()}`
       // First try real git clone if git is available and it's a valid GitHub URL
       if (this.isGitHubUrl(url)) {
         const githubService = new GitHubService()
-        
+
         if (githubService.isGitHubAvailable()) {
           try {
             console.log(`[Git Clone] Attempting real clone of ${url} to ${targetPath}`)
-            
+
             // Extract owner and repo from GitHub URL
             const repoMatch = url.match(/github\.com[/:]([^/]+)\/([^/.]+)/i)
             if (repoMatch) {
               const [, owner, repo] = repoMatch
-              
+
               // Get repository info first to validate access
               const repoInfo = await githubService.getRepositoryInfo({ owner, repo })
               if (!repoInfo.success || !repoInfo.info) {
@@ -423,7 +423,7 @@ Timestamp: ${new Date().toISOString()}`
 
               // Download repository as zip and extract
               const downloadUrl = `https://api.github.com/repos/${owner}/${repo}/zipball/${repoInfo.info.defaultBranch || 'main'}`
-              
+
               const response = await fetch(downloadUrl, {
                 headers: {
                   'Authorization': `token ${process.env.GITHUB_TOKEN}`,
@@ -440,27 +440,27 @@ Timestamp: ${new Date().toISOString()}`
               const buffer = await response.arrayBuffer()
               const AdmZip = await import('adm-zip')
               const zip = new AdmZip.default(Buffer.from(buffer))
-              
+
               // Extract to temporary location first
               const tempExtractPath = `${targetPath}-temp`
               zip.extractAllTo(tempExtractPath, true)
-              
+
               // Find the extracted folder (GitHub creates a folder with commit hash)
               const extractedFolders = fs.readdirSync(tempExtractPath)
               if (extractedFolders.length === 0) {
                 throw new Error('No content extracted from repository')
               }
-              
+
               // Move contents from the extracted folder to our target path
               const extractedFolder = path.join(tempExtractPath, extractedFolders[0])
               const items = fs.readdirSync(extractedFolder)
-              
+
               for (const item of items) {
                 const sourcePath = path.join(extractedFolder, item)
                 const destPath = path.join(targetPath, item)
                 fs.renameSync(sourcePath, destPath)
               }
-              
+
               // Clean up temp directory
               fs.rmSync(tempExtractPath, { recursive: true, force: true })
 

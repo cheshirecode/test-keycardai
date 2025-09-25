@@ -755,7 +755,7 @@ async function generateContextualPlan(
   description: string
 }>> {
   console.log('[AI Planning] Generating modification plan with AI...')
-  
+
   // First try AI-powered planning if OpenAI API is available
   if (process.env.OPENAI_API_KEY) {
     try {
@@ -806,7 +806,7 @@ PROJECT PATH: ${projectPath}
 
 Available MCP tools:
 - generate_code: Create new files/components
-- add_packages: Install npm packages  
+- add_packages: Install npm packages
 - write_file: Create/update specific files
 - create_directory: Create new directories
 - run_script: Execute npm scripts or commands
@@ -815,7 +815,7 @@ Generate a JSON array of modification steps. Each step should have:
 {
   "step": number,
   "action": "brief action name",
-  "tool": "mcp_tool_name", 
+  "tool": "mcp_tool_name",
   "params": { tool_specific_parameters },
   "description": "detailed description of what this step does"
 }
@@ -833,7 +833,7 @@ Respond with ONLY the JSON array, no other text.`
     // Use the ai library directly for this specific use case
     const { generateText } = await import('ai')
     const { openai } = await import('@ai-sdk/openai')
-    
+
     const result = await generateText({
       model: openai('gpt-3.5-turbo'),
       prompt
@@ -844,7 +844,7 @@ Respond with ONLY the JSON array, no other text.`
     const aiPlan = JSON.parse(cleanedResponse)
 
     // Validate the plan structure
-    if (Array.isArray(aiPlan) && aiPlan.every(step => 
+    if (Array.isArray(aiPlan) && aiPlan.every(step =>
       typeof step.step === 'number' &&
       typeof step.action === 'string' &&
       typeof step.tool === 'string' &&
@@ -888,7 +888,7 @@ function generateRuleBasedPlan(
   const lowerRequest = requestDescription.toLowerCase()
 
   // Component creation patterns
-  if ((lowerRequest.includes('add') || lowerRequest.includes('create')) && 
+  if ((lowerRequest.includes('add') || lowerRequest.includes('create')) &&
       (lowerRequest.includes('component') || lowerRequest.includes('page'))) {
     plan.push({
       step: 1,
@@ -1051,14 +1051,14 @@ function extractServiceName(description: string): string {
     /create\s+([a-zA-Z]+)\s+(?:api|service)/i,
     /([a-zA-Z]+)\s+service/i
   ]
-  
+
   for (const pattern of patterns) {
     const match = description.match(pattern)
     if (match) {
       return match[1]
     }
   }
-  
+
   return 'ApiService'
 }
 

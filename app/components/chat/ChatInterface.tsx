@@ -81,31 +81,14 @@ export function ChatInterface() {
           `/tmp/repositories/${sanitizedName}`, // Sanitized repository path
         ]
         
-        // Try to find dynamic paths by scanning /tmp/repositories/
-        const getDynamicPaths = async (): Promise<string[]> => {
-          try {
-            const fs = await import('fs')
-            if (fs.existsSync('/tmp/repositories')) {
-              return fs.readdirSync('/tmp/repositories')
-                .filter((dir: string) => dir.startsWith(selectedRepository.name) || dir.startsWith(sanitizedName))
-                .map((dir: string) => `/tmp/repositories/${dir}`)
-            }
-          } catch (error) {
-            console.log('Could not scan /tmp/repositories:', error)
-          }
-          return []
-        }
-        
-        // Combine static and dynamic paths
-        const dynamicPaths = await getDynamicPaths()
-        const possiblePaths = [
-          ...staticPaths,
-          ...dynamicPaths,
-          // Fallback paths
-          `./projects/${sanitizedName}`, // Relative projects directory
-          `./${selectedRepository.name}`, // Current directory with original name
-          selectedRepository.name // Just the repository name
-        ]
+      // Simple static paths only (no client-side file system access)
+      const possiblePaths = [
+        ...staticPaths,
+        // Fallback paths
+        `./projects/${sanitizedName}`, // Relative projects directory
+        `./${selectedRepository.name}`, // Current directory with original name
+        selectedRepository.name // Just the repository name
+      ]
         
         console.log(`🔍 [ChatInterface] Trying to find git repository for: ${selectedRepository.name}`)
         console.log(`🔍 [ChatInterface] Checking ${possiblePaths.length} possible paths:`, possiblePaths)
@@ -130,8 +113,34 @@ export function ChatInterface() {
             console.log(`❌ [ChatInterface] Git log failed for path ${projectPath}:`, error)
           }
         }
-        // If all paths failed, log it
+        // If all paths failed, log it with helpful context
         console.log(`❌ [ChatInterface] No git repository found for ${selectedRepository.name} in any of the attempted paths`)
+        
+        // For scaffolded projects, show a helpful message instead of just empty state
+        if (selectedRepository.name.includes('-') && /\d{13}/.test(selectedRepository.name)) {
+          console.log(`ℹ️ [ChatInterface] This appears to be a scaffolded project - showing scaffolding info instead`)
+          
+          // Create a synthetic "scaffolding" commit for display
+          const scaffoldingCommit = {
+            hash: 'scaffold-' + Date.now(),
+            author: 'Project Scaffolder',
+            email: 'scaffolder@system',
+            date: new Date().toISOString(),
+            timestamp: Date.now(),
+            message: 'Initial project scaffolding via MCP tools',
+            subject: 'feat: initial project scaffolding',
+            body: `This project was created using the Project Scaffolder tool.
+
+Repository: ${selectedRepository.name}
+Created: ${new Date().toLocaleString()}
+Type: Scaffolded project
+
+The actual git history will be available once the repository is cloned locally or after manual git operations.`
+          }
+          
+          setCommits([scaffoldingCommit])
+          return
+        }
       }
       
       tryPath().finally(() => {

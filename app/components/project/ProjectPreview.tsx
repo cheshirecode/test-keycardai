@@ -154,31 +154,14 @@ export function ProjectPreview({ project }: ProjectPreviewProps) {
           `/tmp/repositories/${sanitizedName}`, // Sanitized repository path
         ].filter(Boolean) // Remove any undefined/null values
         
-        // Try to find dynamic paths by scanning /tmp/repositories/
-        const getDynamicPaths = async (): Promise<string[]> => {
-          try {
-            const fs = await import('fs')
-            if (fs.existsSync('/tmp/repositories')) {
-              return fs.readdirSync('/tmp/repositories')
-                .filter((dir: string) => dir.startsWith(project.name) || dir.startsWith(sanitizedName))
-                .map((dir: string) => `/tmp/repositories/${dir}`)
-            }
-          } catch (error) {
-            console.log('Could not scan /tmp/repositories:', error)
-          }
-          return []
-        }
-        
-        // Combine static and dynamic paths
-        const dynamicPaths = await getDynamicPaths()
-        const possiblePaths = [
-          ...staticPaths,
-          ...dynamicPaths,
-          // Fallback paths
-          `./projects/${sanitizedName}`, // Relative projects directory
-          `./${project.name}`, // Current directory with original name
-          project.name // Just the project name
-        ]
+      // Simple static paths only (no client-side file system access)
+      const possiblePaths = [
+        ...staticPaths,
+        // Fallback paths
+        `./projects/${sanitizedName}`, // Relative projects directory
+        `./${project.name}`, // Current directory with original name
+        project.name // Just the project name
+      ]
 
         console.log(`🔍 [ProjectPreview] Trying to find git repository for: ${project.name}`)
         console.log(`🔍 [ProjectPreview] Checking ${possiblePaths.length} possible paths:`, possiblePaths)
@@ -210,6 +193,20 @@ export function ProjectPreview({ project }: ProjectPreviewProps) {
         }
         // If all paths failed, no commit found
         console.log(`❌ [ProjectPreview] No git repository found for project ${project.name} in any of the attempted paths`)
+        
+        // For scaffolded projects, create a synthetic latest commit
+        if (project.name.includes('-') && /\d{13}/.test(project.name)) {
+          console.log(`ℹ️ [ProjectPreview] This appears to be a scaffolded project - creating synthetic commit info`)
+          
+          setLatestCommit({
+            hash: 'scaffold-' + Date.now(),
+            author: 'Project Scaffolder',
+            date: new Date().toISOString(),
+            subject: 'feat: initial project scaffolding',
+            timestamp: Date.now()
+          })
+          return
+        }
       }
 
       tryPath().finally(() => {
