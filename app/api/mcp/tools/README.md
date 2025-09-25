@@ -5,7 +5,7 @@ Modular tools for AI-powered project operations.
 ## 📁 Tool Modules
 
 ### 🤖 **ai-operations.ts** - AI-Powered Intelligence
-- `create_project_with_ai` - Create projects with AI analysis
+- `create_project_with_ai` - Create GitHub projects with AI analysis
 - `analyze_project_request` - Understand user requests
 - `generate_modification_plan` - Plan project changes
 

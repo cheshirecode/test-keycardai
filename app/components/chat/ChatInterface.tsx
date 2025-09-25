@@ -46,9 +46,9 @@ export function ChatInterface() {
   // Handle new project creation with proper state management
   const handleNewProject = useCallback(() => {
     const timestamp = Date.now()
-    console.log(`🚀 [${timestamp}] New Project clicked - Current state:`, { 
-      currentProject: !!currentProject, 
-      isCreatingNewProject, 
+    console.log(`🚀 [${timestamp}] New Project clicked - Current state:`, {
+      currentProject: !!currentProject,
+      isCreatingNewProject,
       isRepositoryMode,
       isLoading,
       selectedRepository: selectedRepository ? { name: selectedRepository.name, id: selectedRepository.id } : null,
@@ -80,15 +80,15 @@ export function ChatInterface() {
     // Use setTimeout to check final state and focus
     setTimeout(() => {
       console.log(`📍 [${timestamp}] Final state check after 100ms:`, {
-        currentProject: !!currentProject, 
-        isCreatingNewProject, 
+        currentProject: !!currentProject,
+        isCreatingNewProject,
         isRepositoryMode,
         isLoading,
         selectedRepository: selectedRepository ? { name: selectedRepository.name, id: selectedRepository.id } : null,
         messagesLength: messages.length,
         pathname: window.location.pathname
       })
-      
+
       const input = document.querySelector('input[type="text"]') as HTMLInputElement
       if (input) {
         input.focus()
@@ -101,8 +101,8 @@ export function ChatInterface() {
     // Also check state after a longer delay to see if something is resetting it
     setTimeout(() => {
       console.log(`🔍 [${timestamp}] Extended state check after 500ms:`, {
-        currentProject: !!currentProject, 
-        isCreatingNewProject, 
+        currentProject: !!currentProject,
+        isCreatingNewProject,
         isRepositoryMode,
         isLoading,
         selectedRepository: selectedRepository ? { name: selectedRepository.name, id: selectedRepository.id } : null,
@@ -158,7 +158,7 @@ export function ChatInterface() {
             <p className="text-gray-600">
               {isRepositoryMode && selectedRepository
                 ? `Modifying: ${selectedRepository.name}`
-                : 'Create projects with natural language'
+                : 'Create GitHub projects with natural language'
               }
             </p>
           </div>
@@ -241,8 +241,8 @@ export function ChatInterface() {
             <div className="p-4 flex-1 overflow-y-auto min-h-0">
               {messages.length === 0 && commits.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-center space-y-6">
-                  <div className="space-y-2">
-                    <h2 className="text-xl font-semibold text-gray-900">
+                  <div className="space-y-2 w-full">
+                    <h2 className="text-xl font-semibold text-gray-900 text-center mx-auto">
                       {isRepositoryMode
                         ? '🔧 Project Modification Mode'
                         : isCreatingNewProject
@@ -250,7 +250,7 @@ export function ChatInterface() {
                           : '👋 Welcome to Project Scaffolder'
                       }
                     </h2>
-                    <p className="text-gray-600">
+                    <p className="text-gray-600 text-center mx-auto max-w-md">
                       {isRepositoryMode
                         ? `I can help you modify and improve "${selectedRepository?.name}". Tell me what changes you'd like to make!`
                         : isCreatingNewProject
@@ -261,8 +261,8 @@ export function ChatInterface() {
 
                     {/* New Project Mode Indicator */}
                     {isCreatingNewProject && !isRepositoryMode && (
-                      <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                        <p className="text-sm text-green-800">
+                      <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg max-w-md mx-auto">
+                        <p className="text-sm text-green-800 text-center">
                           🎯 <strong>New Project Mode Active!</strong> Type your project description below to get started.
                         </p>
                       </div>
@@ -270,8 +270,8 @@ export function ChatInterface() {
 
                     {/* Chat log coming soon note for repository mode */}
                     {isRepositoryMode && (
-                      <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                        <p className="text-sm text-blue-800">
+                      <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg max-w-md mx-auto">
+                        <p className="text-sm text-blue-800 text-center">
                           📝 <strong>Chat log is coming, stay tuned!</strong> Soon you&apos;ll see the full conversation history integrated with git commits.
                         </p>
                       </div>

@@ -13,17 +13,17 @@ test.describe('Homepage', () => {
 
     // Verify key homepage elements are present
     await expect(page.locator('h1')).toContainText('Project Scaffolder')
-    await expect(page.locator('text=Create projects with natural language')).toBeVisible()
-    
+    await expect(page.locator('text=Create GitHub projects with natural language')).toBeVisible()
+
     // Verify the welcome message is displayed
     await expect(page.locator('text=Welcome to Project Scaffolder')).toBeVisible()
-    
+
     // Verify the New Project button is present
     await expect(page.locator('button:has-text("+ New Project")')).toBeVisible()
-    
+
     // Verify the chat input is present
     await expect(page.locator('input[type="text"]')).toBeVisible()
-    
+
     // Verify the sidebar is present
     await expect(page.locator('text=Projects')).toBeVisible()
   })
@@ -40,7 +40,7 @@ test.describe('Homepage', () => {
 
     // Verify no repository is selected (no repository mode indicators)
     await expect(page.locator('text=Modifying:')).not.toBeVisible()
-    
+
     // Verify we see the welcome message instead of repository content
     await expect(page.locator('text=Welcome to Project Scaffolder')).toBeVisible()
   })
@@ -54,15 +54,15 @@ test.describe('Homepage', () => {
 
     // Verify the sidebar is visible
     await expect(page.locator('text=Projects')).toBeVisible()
-    
+
     // Wait for repositories to load (or show loading state)
     await page.waitForTimeout(1000)
-    
+
     // Should see either repositories or a loading/empty state
     const hasRepositories = await page.locator('[data-testid="repository-item"]').count() > 0
     const hasLoadingState = await page.locator('text=Loading repositories').isVisible()
     const hasEmptyState = await page.locator('text=No repositories found').isVisible()
-    
+
     // At least one of these should be true
     expect(hasRepositories || hasLoadingState || hasEmptyState).toBeTruthy()
   })

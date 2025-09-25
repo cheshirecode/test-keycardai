@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, useMemo } from 'react'
 import type { Repository } from '@/types'
-import { ChevronDownIcon, ChevronRightIcon, TrashIcon, PlusIcon, FunnelIcon, ArrowUpIcon, ArrowDownIcon } from '@heroicons/react/24/outline'
+import { ChevronDownIcon, ChevronRightIcon, TrashIcon, FunnelIcon, ArrowUpIcon, ArrowDownIcon } from '@heroicons/react/24/outline'
 import { FolderIcon, GlobeAltIcon, LockClosedIcon } from '@heroicons/react/24/solid'
 import { useRepositories } from '@/hooks/useRepositories'
 import { useRepository } from '@/contexts/RepositoryContext'
@@ -132,7 +132,7 @@ export function ProjectSidebar({ selectedRepository, onRepositorySelect, classNa
         setTimeout(() => {
           // Reset the deleting state
           setDeletingRepositoryId(null)
-          
+
           // Invalidate the cache to refetch repositories
           refresh()
 
@@ -206,16 +206,6 @@ export function ProjectSidebar({ selectedRepository, onRepositorySelect, classNa
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-semibold text-gray-900">Projects</h2>
           <div className="flex items-center space-x-1">
-            <button
-              onClick={() => {
-                navigateToHome()
-                onRepositorySelect(null)
-              }}
-              className="p-1 text-blue-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
-              title="Create new project"
-            >
-              <PlusIcon className="w-4 h-4" />
-            </button>
             <button
               onClick={() => setIsCollapsed(true)}
               className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
@@ -349,7 +339,7 @@ export function ProjectSidebar({ selectedRepository, onRepositorySelect, classNa
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
               <p className="text-gray-600 text-sm">Loading repositories...</p>
             </div>
-            
+
             {/* Loading skeleton */}
             <div className="mt-4 space-y-2">
               {[1, 2, 3].map((index) => (
@@ -560,8 +550,8 @@ function RepositoryItem({ repository, isSelected, isNewlyCreated = false, isDele
           }}
           disabled={isPending}
           className={`flex-shrink-0 p-1 transition-colors ${
-            isPending 
-              ? 'text-gray-300 cursor-not-allowed opacity-50' 
+            isPending
+              ? 'text-gray-300 cursor-not-allowed opacity-50'
               : 'text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100'
           }`}
           title={isPending ? 'Cannot delete while AI is processing' : `Delete ${repository.name}`}
