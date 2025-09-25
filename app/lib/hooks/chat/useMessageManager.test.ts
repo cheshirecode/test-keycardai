@@ -91,20 +91,19 @@ describe('useMessageManager', () => {
       expect(messages[2].content).toBe('Third message')
     })
 
-    it('should generate unique IDs for each message', async () => {
+    it('should generate unique IDs for each message', () => {
       act(() => {
         result.result.current.addMessage('user', 'Message 1')
-      })
-      
-      // Add a small delay to ensure different timestamps
-      await new Promise(resolve => setTimeout(resolve, 1))
-      
-      act(() => {
         result.result.current.addMessage('user', 'Message 2')
       })
 
       const messages = result.result.current.messages
+      expect(messages).toHaveLength(2)
       expect(messages[0].id).not.toBe(messages[1].id)
+      expect(typeof messages[0].id).toBe('string')
+      expect(typeof messages[1].id).toBe('string')
+      expect(messages[0].id.length).toBeGreaterThan(0)
+      expect(messages[1].id.length).toBeGreaterThan(0)
     })
 
     it('should return the added message', () => {
@@ -167,14 +166,14 @@ describe('useMessageManager', () => {
       })
 
       const message = result.result.current.messages[0]
-      
+
       expect(message).toHaveProperty('id')
       expect(message).toHaveProperty('role', 'assistant')
       expect(message).toHaveProperty('content', 'Complete message')
       expect(message).toHaveProperty('timestamp')
       expect(message).toHaveProperty('chainOfThought', chainOfThought)
       expect(message).toHaveProperty('mcpLogs', mcpLogs)
-      
+
       expect(typeof message.id).toBe('string')
       expect(message.timestamp).toBeInstanceOf(Date)
     })
@@ -183,16 +182,16 @@ describe('useMessageManager', () => {
   describe('performance and memory', () => {
     it('should handle large number of messages efficiently', () => {
       const startTime = performance.now()
-      
+
       act(() => {
         for (let i = 0; i < 1000; i++) {
           result.result.current.addMessage('user', `Message ${i}`)
         }
       })
-      
+
       const endTime = performance.now()
       const duration = endTime - startTime
-      
+
       expect(result.result.current.messages).toHaveLength(1000)
       expect(duration).toBeLessThan(1000) // Should complete in less than 1 second
     })

@@ -28,6 +28,21 @@ export default defineConfig({
       '**/.turbo/**',
       '**/tsconfig.tsbuildinfo'
     ],
+    // Performance and timeout settings
+    testTimeout: 10000,
+    hookTimeout: 10000,
+    teardownTimeout: 5000,
+    // // Improved test isolation
+    // isolate: true,
+    pool: 'vmForks',
+    // poolOptions: {
+    //   forks: {
+    //     singleFork: true
+    //   }
+    // },
+    outputFile: {
+      junit: './test-results/junit.xml'
+    },
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],

@@ -15,7 +15,7 @@ export function useMessageManager() {
     mcpLogs?: MCPLogEntry[]
   ) => {
     const message: Message = {
-      id: Date.now().toString(),
+      id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       role,
       content,
       timestamp: new Date(),
