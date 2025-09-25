@@ -4,7 +4,7 @@
  * Single responsibility: Individual message display
  */
 
-import { ChatMessageItemProps } from './types/ChatTypes'
+import { ChatMessageItemProps } from '@/types'
 
 export function ChatMessageItem({ message }: ChatMessageItemProps) {
   return (

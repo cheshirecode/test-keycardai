@@ -2,15 +2,11 @@
 
 import React, { useState, useEffect, useMemo } from 'react'
 import { templates } from '@/lib/templates'
-import type { ProjectInfo } from '@/types'
+import type { ProjectPreviewProps } from '@/types'
 import { MCPClient } from '@/lib/mcp-client'
 import { useHealth } from '@/hooks/useHealth'
 import { useLatestCommit } from '@/hooks/useRepositoryCommits'
 import { useGitHubUser } from '@/hooks/useRepositoryDetails'
-
-interface ProjectPreviewProps {
-  project: ProjectInfo
-}
 
 export function ProjectPreview({ project }: ProjectPreviewProps) {
   const [isDownloading, setIsDownloading] = useState(false)

@@ -8,6 +8,20 @@
 // Core application types
 export * from './ui'
 export * from './api'
-export * from './mcp'
 export * from './project'
 export * from './repository'
+
+// Component types
+export * from './components'
+
+// Hook types
+export * from './hooks'
+
+// Service types
+export * from './services'
+
+// MCP types (comprehensive type system)
+export * from './mcp'
+
+// Legacy MCP tools export for backward compatibility
+export * from './mcp-tools'

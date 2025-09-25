@@ -6,7 +6,7 @@
 
 import { ChatMessageItem } from './ChatMessageItem'
 import { ChatQuickStart } from './ChatQuickStart'
-import { ChatMessageListProps } from './types/ChatTypes'
+import { ChatMessageListProps } from '@/types'
 
 export function ChatMessageList({
   messages,

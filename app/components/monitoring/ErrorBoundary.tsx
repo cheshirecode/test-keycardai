@@ -1,19 +1,8 @@
 'use client'
 
-import React, { Component, ReactNode } from 'react'
+import React, { Component } from 'react'
 import { logErrorBoundary } from '@/lib/logger'
-
-interface ErrorBoundaryState {
-  hasError: boolean
-  error?: Error
-  errorInfo?: React.ErrorInfo
-}
-
-interface ErrorBoundaryProps {
-  children: ReactNode
-  fallback?: ReactNode
-  onError?: (error: Error, errorInfo: React.ErrorInfo) => void
-}
+import { ErrorBoundaryState, ErrorBoundaryProps } from '@/types'
 
 /**
  * Enhanced Error Boundary with comprehensive logging

@@ -7,7 +7,7 @@
 
 import { useRef, useEffect } from 'react'
 import { Message } from '@/types'
-import { ChatScrollingState } from '../types/ChatTypes'
+import { ChatScrollingState } from '@/types'
 
 export function useChatScrolling(messages: Message[]): ChatScrollingState {
   const messagesEndRef = useRef<HTMLDivElement>(null)

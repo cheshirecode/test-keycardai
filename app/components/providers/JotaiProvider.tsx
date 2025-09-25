@@ -1,11 +1,7 @@
 'use client'
 
 import { Provider } from 'jotai'
-import type { ReactNode } from 'react'
-
-interface JotaiProviderProps {
-  children: ReactNode
-}
+import { JotaiProviderProps } from '@/types'
 
 /**
  * Jotai Provider component for global state management

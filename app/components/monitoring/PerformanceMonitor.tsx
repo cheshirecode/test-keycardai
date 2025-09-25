@@ -2,12 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 import { logger, measurePerformance } from '@/lib/logger'
-
-interface PerformanceMonitorProps {
-  componentName: string
-  threshold?: number // ms
-  children: React.ReactNode
-}
+import { PerformanceMonitorProps } from '@/types'
 
 /**
  * Performance monitoring component

@@ -14,7 +14,7 @@ export { useChatLayout } from './hooks/useChatLayout'
 export { useChatScrolling } from './hooks/useChatScrolling'
 export { useChatMessages } from './hooks/useChatMessages'
 
-// Types
+// Types - now centralized in @/types
 export type {
   ChatInterfaceProps,
   ChatHeaderProps,
@@ -25,4 +25,4 @@ export type {
   ChatMobileAccordionProps,
   ChatLayoutState,
   ChatScrollingState
-} from './types/ChatTypes'
+} from '@/types'

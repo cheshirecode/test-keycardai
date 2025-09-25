@@ -5,7 +5,7 @@
  */
 
 import { UserProfile } from '@/components/user'
-import { ChatHeaderProps } from './types/ChatTypes'
+import { ChatHeaderProps } from '@/types'
 
 export function ChatHeader({
   onToggleSidebar,

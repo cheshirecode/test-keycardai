@@ -31,3 +31,12 @@ export interface MCPServerError {
   message: string
   data?: unknown
 }
+
+export interface MCPLogEntry {
+  timestamp: string
+  type: 'request' | 'response' | 'error' | 'info'
+  tool?: string
+  message: string
+  data?: unknown
+  duration?: number
+}

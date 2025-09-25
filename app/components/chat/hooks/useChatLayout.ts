@@ -6,7 +6,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ChatLayoutState } from '../types/ChatTypes'
+import { ChatLayoutState } from '@/types'
 
 export function useChatLayout(): ChatLayoutState {
   const [mobileExpandedPanel, setMobileExpandedPanel] = useState<'chat' | 'preview' | null>('chat')

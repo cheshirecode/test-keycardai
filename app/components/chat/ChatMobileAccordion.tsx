@@ -7,7 +7,7 @@
 // Import components for mobile layout
 import { ProjectPreview } from '@/components/project'
 import { RepositoryPreview } from '@/components/repository'
-import { ChatMobileAccordionProps } from './types/ChatTypes'
+import { ChatMobileAccordionProps } from '@/types'
 
 export function ChatMobileAccordion({
   mobileExpandedPanel,

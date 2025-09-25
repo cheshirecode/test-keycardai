@@ -4,7 +4,7 @@
  * Single responsibility: Input form handling
  */
 
-import { ChatInputFormProps } from './types/ChatTypes'
+import { ChatInputFormProps } from '@/types'
 
 export function ChatInputForm({
   input,

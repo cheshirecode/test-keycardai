@@ -3,12 +3,7 @@
  * This demonstrates the extended MCP workflow for ongoing project development
  */
 import Image from 'next/image'
-
-interface UserProfileProps {
-  name: string
-  email: string
-  avatar?: string
-}
+import { UserProfileProps } from '@/types'
 
 export default function UserProfile({ name, email, avatar }: UserProfileProps) {
   // Don't render anything if no name is provided

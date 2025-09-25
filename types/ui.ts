@@ -1,11 +1,14 @@
 /**
  * UI and Frontend Types for Client-Side Operations
- * 
+ *
  * These types are used primarily by:
  * - React components
  * - Client-side hooks and utilities
  * - Frontend state management
  */
+
+// Import MCPLogEntry from mcp types to avoid duplication
+import type { MCPLogEntry } from './mcp'
 
 // Chat and messaging types for frontend
 export interface Message {
@@ -15,13 +18,4 @@ export interface Message {
   timestamp: Date
   chainOfThought?: string  // AI reasoning/chain of thought
   mcpLogs?: MCPLogEntry[]  // MCP server logs for debugging
-}
-
-export interface MCPLogEntry {
-  timestamp: string
-  type: 'request' | 'response' | 'error' | 'info'
-  tool?: string
-  message: string
-  data?: unknown
-  duration?: number
 }

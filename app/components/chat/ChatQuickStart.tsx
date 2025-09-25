@@ -4,7 +4,7 @@
  * Single responsibility: Quick start UI and interactions
  */
 
-import { ChatQuickStartProps } from './types/ChatTypes'
+import { ChatQuickStartProps } from '@/types'
 
 export function ChatQuickStart({
   quickStartOptions,

@@ -4,10 +4,7 @@ import React, { useEffect, useRef, useCallback, useState } from 'react'
 import { ProjectSidebar } from '@/components/project'
 import { useRepositoryState } from '@/hooks/useRepositoryAtoms'
 import { useRepositorySync } from '@/hooks/useRepositorySync'
-
-interface MainLayoutProps {
-  children: React.ReactNode
-}
+import { MainLayoutProps } from '@/types'
 
 export function MainLayout({ children }: MainLayoutProps) {
   const {

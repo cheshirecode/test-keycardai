@@ -1,15 +1,11 @@
 'use client'
 
 import React from 'react'
-import type { Repository } from '@/types'
+import type { Repository, RepositoryPreviewProps } from '@/types'
 import { GlobeAltIcon, LockClosedIcon, ClockIcon, UserIcon, CodeBracketIcon } from '@heroicons/react/24/outline'
 import { CONFIG } from '@/lib/config'
 import { useLatestCommit } from '@/hooks/useRepositoryCommits'
 import { useRepositoryDetails } from '@/hooks/useRepositoryDetails'
-
-interface RepositoryPreviewProps {
-  repository: Repository
-}
 
 
 export function RepositoryPreview({ repository }: RepositoryPreviewProps) {

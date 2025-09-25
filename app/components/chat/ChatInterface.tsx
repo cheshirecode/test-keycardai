@@ -22,7 +22,7 @@ import { useChatScrolling } from './hooks/useChatScrolling'
 import { useChatMessages } from './hooks/useChatMessages'
 
 // Import types
-import { ChatInterfaceProps } from './types/ChatTypes'
+import { ChatInterfaceProps } from '@/types'
 
 export function ChatInterface({ onToggleSidebar }: ChatInterfaceProps = {}) {
   const [input, setInput] = useState('')
