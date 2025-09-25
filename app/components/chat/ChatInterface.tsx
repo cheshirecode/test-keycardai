@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import { useChat } from '@/lib/hooks/useChat'
 import { ProjectPreview } from '@/components/project'
 import { RepositoryPreview } from '@/components/repository'
-import { useRepository } from '@/contexts/RepositoryContext'
+import { useRepositoryState, useRepositoryCreation } from '@/hooks/useRepositoryAtoms'
 import { UserProfile } from '@/components/user'
 import { useLocalStorage } from '@/hooks/useLocalStorage'
 import { useRepositoryCommits } from '@/hooks/useRepositoryCommits'
@@ -15,14 +15,8 @@ export function ChatInterface() {
   const [input, setInput] = useState('')
   const [isFastMode, setIsFastMode] = useAtom(isFastModeAtom)
   const { messages, isLoading, currentProject, sendMessage, clearChat } = useChat(isFastMode)
-  const {
-    selectedRepository,
-    isRepositoryMode,
-    navigateToHome,
-    clearAllRepositoryData,
-    setIsCreatingNewProject,
-    isCreatingNewProject
-  } = useRepository()
+  const { selectedRepository, isRepositoryMode } = useRepositoryState()
+  const { isCreatingNewProject, startNewProject } = useRepositoryCreation()
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   // User profile integration with localStorage
@@ -43,74 +37,27 @@ export function ChatInterface() {
     return [...rawCommits].reverse()
   }, [rawCommits])
 
-  // Handle new project creation with proper state management
+  // Handle new project creation with simplified state management
   const handleNewProject = useCallback(() => {
-    const timestamp = Date.now()
-    console.log(`🚀 [${timestamp}] New Project clicked - Current state:`, {
-      currentProject: !!currentProject,
-      isCreatingNewProject,
-      isRepositoryMode,
-      isLoading,
-      selectedRepository: selectedRepository ? { name: selectedRepository.name, id: selectedRepository.id } : null,
-      messagesLength: messages.length,
-      pathname: window.location.pathname
-    })
+    console.log('🚀 New Project clicked - starting clean project flow')
 
-    // If we're in loading state, we should still proceed to interrupt the current operation
-    if (isLoading) {
-      console.log(`⚠️ [${timestamp}] New Project clicked during loading - proceeding to interrupt current operation`)
-    }
-
-    console.log(`🧹 [${timestamp}] Step 1: Calling clearChat()`)
-    // Clear chat and current project FIRST
+    // Clear chat first
     clearChat()
 
-    console.log(`🗑️ [${timestamp}] Step 2: Calling clearAllRepositoryData(true)`)
-    // Clear all repository-related state but preserve the creating flag
-    clearAllRepositoryData(true)
+    // Use the simplified new project flow from Jotai atoms
+    startNewProject()
 
-    console.log(`✅ [${timestamp}] Step 3: Setting isCreatingNewProject(true)`)
-    // Set flag to indicate new project creation AFTER clearing
-    setIsCreatingNewProject(true)
-
-    console.log(`🏠 [${timestamp}] Step 4: Calling navigateToHome()`)
-    // Navigate to home immediately - the state updates should be synchronous enough
-    navigateToHome()
-
-    // Use setTimeout to check final state and focus
+    // Focus on input after a brief delay
     setTimeout(() => {
-      console.log(`📍 [${timestamp}] Final state check after 100ms:`, {
-        currentProject: !!currentProject,
-        isCreatingNewProject,
-        isRepositoryMode,
-        isLoading,
-        selectedRepository: selectedRepository ? { name: selectedRepository.name, id: selectedRepository.id } : null,
-        messagesLength: messages.length,
-        pathname: window.location.pathname
-      })
-
       const input = document.querySelector('input[type="text"]') as HTMLInputElement
       if (input) {
         input.focus()
-        console.log(`🎯 [${timestamp}] Input focused successfully`)
-      } else {
-        console.log(`❌ [${timestamp}] Input element not found`)
+        console.log('🎯 Input focused successfully')
       }
     }, 100)
 
-    // Also check state after a longer delay to see if something is resetting it
-    setTimeout(() => {
-      console.log(`🔍 [${timestamp}] Extended state check after 500ms:`, {
-        currentProject: !!currentProject,
-        isCreatingNewProject,
-        isRepositoryMode,
-        isLoading,
-        selectedRepository: selectedRepository ? { name: selectedRepository.name, id: selectedRepository.id } : null,
-        messagesLength: messages.length,
-        pathname: window.location.pathname
-      })
-    }, 500)
-  }, [setIsCreatingNewProject, clearAllRepositoryData, clearChat, navigateToHome, currentProject, isCreatingNewProject, isRepositoryMode, isLoading, selectedRepository, messages.length])
+    console.log('✅ New Project flow completed')
+  }, [clearChat, startNewProject])
 
 
   const scrollToBottom = () => {
