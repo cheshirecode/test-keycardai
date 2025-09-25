@@ -1,6 +1,7 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import { execSync } from 'child_process'
+import { fullProcessCleanup, safeProcessCleanup, ProcessCleanupResult } from '../../../lib/process-cleanup'
 // import { AIService } from '@/lib/ai-service' // Currently unused
 
 export interface RunScriptParams {
@@ -33,6 +34,46 @@ export interface DevelopmentResult {
  * Handles script execution, code generation, and development workflows
  */
 export const developmentTools = {
+  /**
+   * Clean up processes and build artifacts before starting development
+   */
+  cleanup_processes: async (params: { 
+    projectPath?: string
+    ports?: number[]
+    killNodeProcesses?: boolean
+    cleanBuildArtifacts?: boolean
+  }): Promise<ProcessCleanupResult> => {
+    try {
+      return await fullProcessCleanup({
+        projectPath: params.projectPath,
+        ports: params.ports || [3000, 3001, 8000, 8080],
+        killNodeProcesses: params.killNodeProcesses || false,
+        cleanBuildArtifacts: params.cleanBuildArtifacts !== false // Default to true
+      })
+    } catch (error) {
+      return {
+        success: false,
+        message: 'Process cleanup failed',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      }
+    }
+  },
+
+  /**
+   * Safe cleanup that won't interfere with current processes
+   */
+  safe_cleanup: async (params: { projectPath?: string }): Promise<ProcessCleanupResult> => {
+    try {
+      return await safeProcessCleanup(params.projectPath)
+    } catch (error) {
+      return {
+        success: false,
+        message: 'Safe cleanup failed',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      }
+    }
+  },
+
   /**
    * Run a script in the project
    */

@@ -1,5 +1,6 @@
 import * as fs from 'fs'
 import * as path from 'path'
+import { validatePath } from '../../../lib/path-utils'
 // Types imported for future use
 // import type { ProjectInfo, ProjectTemplate } from '@/types'
 
@@ -52,14 +53,21 @@ export const projectManagement = {
    */
   set_project_context: async (params: ProjectContextParams): Promise<ProjectContextResult> => {
     try {
-      if (!fs.existsSync(params.projectPath)) {
+      // Validate and resolve the project path
+      const pathValidation = validatePath(params.projectPath, {
+        mustExist: true,
+        mustBeDirectory: true,
+        mustBeWritable: true
+      })
+
+      if (!pathValidation.isValid) {
         return {
           success: false,
-          message: `Project directory not found: ${params.projectPath}`
+          message: `Invalid project path: ${pathValidation.error}`
         }
       }
 
-      const projectName = params.projectName || path.basename(params.projectPath)
+      const projectName = params.projectName || path.basename(pathValidation.normalizedPath)
       
       // Store project context (in a real app, this would be persisted)
       // For now, we'll just validate and return the context
@@ -67,7 +75,7 @@ export const projectManagement = {
         success: true,
         message: `Project context set: ${projectName}`,
         context: {
-          projectPath: params.projectPath,
+          projectPath: pathValidation.normalizedPath,
           projectName,
           isActive: true
         }

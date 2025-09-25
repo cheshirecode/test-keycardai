@@ -14,9 +14,8 @@ export function ChatInterface() {
   const { 
     selectedRepository, 
     isRepositoryMode, 
-    setSelectedRepository, 
     navigateToHome, 
-    setNewlyCreatedRepository,
+    clearAllRepositoryData,
     setIsCreatingNewProject
   } = useRepository()
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -90,14 +89,17 @@ export function ChatInterface() {
             {/* New Project Button - Always visible */}
             <button
               onClick={() => {
-                // Clear all repository-related state
-                setSelectedRepository(null)
-                setNewlyCreatedRepository(null)
-                setIsCreatingNewProject(true) // Set flag to indicate new project creation
+                // Clear all repository-related state comprehensively
+                clearAllRepositoryData()
                 
-                // Navigate to home and clear chat
-                navigateToHome()
+                // Clear chat and current project
                 clearChat()
+                
+                // Navigate to home
+                navigateToHome()
+                
+                // Set flag to indicate new project creation
+                setIsCreatingNewProject(true)
                 
                 // Focus on the input field after clearing
                 setTimeout(() => {

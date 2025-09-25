@@ -11,6 +11,7 @@ interface RepositoryContextType {
   isRepositoryMode: boolean
   navigateToRepository: (repository: Repository) => void
   navigateToHome: () => void
+  clearAllRepositoryData: () => void
   newlyCreatedRepository: string | null
   setNewlyCreatedRepository: (repositoryName: string | null) => void
   refreshRepositories: () => void
@@ -59,6 +60,16 @@ export function RepositoryProvider({ children }: RepositoryProviderProps) {
   const navigateToHome = useCallback(() => {
     router.push('/')
   }, [router])
+
+  const clearAllRepositoryData = useCallback(() => {
+    setSelectedRepository(null)
+    setNewlyCreatedRepository(null)
+    setIsCreatingNewProject(false)
+    // Clear any cached repository data
+    if (onRepositoryRefresh) {
+      onRepositoryRefresh()
+    }
+  }, [onRepositoryRefresh])
 
   const setSelectedRepositoryWithNavigation = useCallback((repository: Repository | null) => {
     setSelectedRepository(repository)
@@ -109,6 +120,7 @@ export function RepositoryProvider({ children }: RepositoryProviderProps) {
       isRepositoryMode,
       navigateToRepository,
       navigateToHome,
+      clearAllRepositoryData,
       newlyCreatedRepository,
       setNewlyCreatedRepository,
       refreshRepositories,
