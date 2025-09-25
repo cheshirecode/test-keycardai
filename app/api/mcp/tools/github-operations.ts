@@ -45,12 +45,20 @@ export interface GitHubBranchResult {
  */
 export const githubOperations = {
   /**
-   * Clone a repository for local modification
+   * Download repository contents for local modification using GitHub API
    */
   clone_repository: async (params: { repository: Repository }): Promise<{ success: boolean; message: string; localPath?: string }> => {
     try {
+      const githubService = new GitHubService()
+      if (!githubService.isGitHubAvailable()) {
+        return {
+          success: false,
+          message: 'GitHub token not available. Please set GITHUB_TOKEN environment variable.'
+        }
+      }
+
+      const [owner, repo] = params.repository.fullName.split('/')
       const repoName = params.repository.name
-      const repoUrl = params.repository.url
       const localPath = `/tmp/repositories/${repoName}-${Date.now()}`
       
       // Ensure the repositories directory exists
@@ -59,26 +67,71 @@ export const githubOperations = {
         fs.mkdirSync(repositoriesDir, { recursive: true })
       }
       
-      // Clone the repository using git clone
-      const { exec } = await import('child_process')
-      const { promisify } = await import('util')
-      const execAsync = promisify(exec)
-      
-      await execAsync(`git clone ${repoUrl} ${localPath}`)
-      
-      if (!fs.existsSync(localPath)) {
-        throw new Error('Repository clone failed - directory not created')
+      // Get repository info and default branch
+      const repoInfo = await githubService.getRepositoryInfo({ owner, repo })
+      if (!repoInfo.success || !repoInfo.info) {
+        return {
+          success: false,
+          message: `Failed to get repository info: ${repoInfo.message}`
+        }
       }
+
+      // Download repository as zip archive using GitHub API
+      const downloadUrl = `https://api.github.com/repos/${owner}/${repo}/zipball/${repoInfo.info.defaultBranch || 'main'}`
+      
+      // Use GitHub service to download the repository
+      const response = await fetch(downloadUrl, {
+        headers: {
+          'Authorization': `token ${process.env.GITHUB_TOKEN}`,
+          'Accept': 'application/vnd.github.v3+json',
+          'User-Agent': 'Project-Scaffolder'
+        }
+      })
+
+      if (!response.ok) {
+        throw new Error(`GitHub API error: ${response.status} ${response.statusText}`)
+      }
+
+      // Extract the zip file to local path
+      const buffer = await response.arrayBuffer()
+      const AdmZip = await import('adm-zip')
+      const zip = new AdmZip.default(Buffer.from(buffer))
+      
+      // Create the local directory
+      fs.mkdirSync(localPath, { recursive: true })
+      
+      // Extract to temporary location first
+      const tempExtractPath = `${localPath}-temp`
+      zip.extractAllTo(tempExtractPath, true)
+      
+      // Find the extracted folder (GitHub creates a folder with commit hash)
+      const extractedFolders = fs.readdirSync(tempExtractPath)
+      if (extractedFolders.length === 0) {
+        throw new Error('No content extracted from repository')
+      }
+      
+      // Move contents from the extracted folder to our target path
+      const extractedFolder = path.join(tempExtractPath, extractedFolders[0])
+      const items = fs.readdirSync(extractedFolder)
+      
+      for (const item of items) {
+        const sourcePath = path.join(extractedFolder, item)
+        const destPath = path.join(localPath, item)
+        fs.renameSync(sourcePath, destPath)
+      }
+      
+      // Clean up temp directory
+      fs.rmSync(tempExtractPath, { recursive: true, force: true })
       
       return {
         success: true,
-        message: `Repository cloned successfully to ${localPath}`,
+        message: `Repository contents downloaded successfully to ${localPath}`,
         localPath
       }
     } catch (error) {
       return {
         success: false,
-        message: `Failed to clone repository: ${error instanceof Error ? error.message : 'Unknown error'}`
+        message: `Failed to download repository: ${error instanceof Error ? error.message : 'Unknown error'}`
       }
     }
   },
