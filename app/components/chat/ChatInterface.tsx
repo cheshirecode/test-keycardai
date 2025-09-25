@@ -52,11 +52,11 @@ export function ChatInterface() {
   useEffect(() => {
     if (isRepositoryMode && selectedRepository && !isLoadingCommits && commits.length === 0) {
       setIsLoadingCommits(true)
-      
+
       // Try to determine project path from repository
       // For now, use a placeholder path structure - this should be enhanced
       const projectPath = `/tmp/projects/${selectedRepository.name}`
-      
+
       typedMcpClient.call('git_log', { path: projectPath, limit: 10 })
         .then((result) => {
           if (result.success && result.commits) {
@@ -194,7 +194,7 @@ export function ChatInterface() {
                         : 'I can help you create new projects quickly. Just describe what you want to build!'
                       }
                     </p>
-                    
+
                     {/* Chat log coming soon note for repository mode */}
                     {isRepositoryMode && (
                       <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
@@ -230,7 +230,7 @@ export function ChatInterface() {
                           📝 <strong>Chat log is coming, stay tuned!</strong> Below you can see the commit history formatted as conversation messages.
                         </p>
                       </div>
-                      
+
                       {/* Render commits as messages */}
                       {commits.map((commit, index) => {
                         const isFirstCommit = index === 0
@@ -261,7 +261,7 @@ Analysis:
                                       </div>
                                     </div>
                                   </details>
-                                  
+
                                   {/* MCP Logs for scaffolding */}
                                   <details className="group">
                                     <summary className="cursor-pointer text-xs opacity-75 hover:opacity-100 flex items-center gap-2 p-2 rounded hover:bg-green-50 transition-colors border border-green-200">
@@ -282,7 +282,7 @@ Analysis:
                                   </details>
                                 </div>
                               )}
-                              
+
                               {/* Commit message as assistant response */}
                               <div className="bg-gray-100 p-4 rounded-lg">
                                 <div className="prose prose-sm max-w-none">
@@ -323,7 +323,7 @@ Analysis:
                       })}
                     </div>
                   )}
-                  
+
                   {/* Regular messages */}
                   {messages.map((message) => (
                     <div

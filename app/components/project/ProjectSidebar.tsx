@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useRef, useCallback } from 'react'
+import React, { useState, useEffect, useRef, useMemo } from 'react'
 import type { Repository } from '@/types'
 import { ChevronDownIcon, ChevronRightIcon, TrashIcon, PlusIcon, FunnelIcon, ArrowUpIcon, ArrowDownIcon } from '@heroicons/react/24/outline'
 import { FolderIcon, GlobeAltIcon, LockClosedIcon } from '@heroicons/react/24/solid'
@@ -46,7 +46,7 @@ export function ProjectSidebar({ selectedRepository, onRepositorySelect, classNa
   })
 
   // Check if we have active filters
-  const hasActiveFilters = useCallback(() => {
+  const hasActiveFilters = useMemo(() => {
     return (
       debouncedFilter.length > 0 ||
       repositoryParams.type !== 'all' ||
@@ -228,9 +228,9 @@ export function ProjectSidebar({ selectedRepository, onRepositorySelect, classNa
             <button
               onClick={() => setShowFilters(!showFilters)}
               className={`relative flex items-center space-x-1 px-2 py-1 text-xs rounded transition-colors ${
-                showFilters
-                  ? 'bg-blue-100 text-blue-700'
-                  : hasActiveFilters()
+                showFilters 
+                  ? 'bg-blue-100 text-blue-700' 
+                  : hasActiveFilters
                     ? 'bg-orange-100 text-orange-700'
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
@@ -238,7 +238,7 @@ export function ProjectSidebar({ selectedRepository, onRepositorySelect, classNa
             >
               <FunnelIcon className="w-3 h-3" />
               <span>Filters</span>
-              {hasActiveFilters() && (
+              {hasActiveFilters && (
                 <span className="absolute -top-1 -right-1 w-2 h-2 bg-orange-500 rounded-full"></span>
               )}
             </button>
@@ -390,7 +390,7 @@ export function ProjectSidebar({ selectedRepository, onRepositorySelect, classNa
 
             {sortedRepositories.length === 0 && !loading && !error && (
               <div className="p-4 text-center text-gray-500 text-sm">
-                {hasActiveFilters() ? (
+                {hasActiveFilters ? (
                   <div>
                     <p>No repositories match your current filters.</p>
                     <button
@@ -417,7 +417,7 @@ export function ProjectSidebar({ selectedRepository, onRepositorySelect, classNa
             {/* Results count */}
             {!loading && !error && sortedRepositories.length > 0 && (
               <div className="px-4 py-2 text-xs text-gray-500 border-t border-gray-100">
-                {hasActiveFilters() ? (
+                {hasActiveFilters ? (
                   `${sortedRepositories.length} repositories match your filters`
                 ) : (
                   `${sortedRepositories.length} repositories total`

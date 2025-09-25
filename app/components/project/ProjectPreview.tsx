@@ -123,7 +123,7 @@ export function ProjectPreview({ project }: ProjectPreviewProps) {
   useEffect(() => {
     if (project.path && !latestCommit && !isLoadingCommit) {
       setIsLoadingCommit(true)
-      
+
       typedMcpClient.call('git_log', { path: project.path, limit: 1 })
         .then((result) => {
           if (result.success && result.commits && result.commits.length > 0) {
