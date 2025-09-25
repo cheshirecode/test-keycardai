@@ -11,6 +11,7 @@ export interface CreateProjectParams {
   invalidateRepositoriesCache: () => void
   isCreatingNewProject: boolean
   setIsCreatingNewProject: (creating: boolean) => void
+  fastMode?: boolean
 }
 
 /**
@@ -24,7 +25,8 @@ export class CreateProjectCommand extends BaseCommand {
     try {
       // Use the secure server-side AI-powered project creation
       const result = await this.mcpClient.call('create_project_with_ai', {
-        description: params.content
+        description: params.content,
+        fastMode: params.fastMode
       }) as {
         success: boolean
         message: string
@@ -169,7 +171,8 @@ export class CreateProjectCommand extends BaseCommand {
         const fallbackResult = await this.mcpClient.call('intelligent_project_setup', {
           description: params.content,
           projectPath: `/tmp/projects/fallback-${Date.now()}`,
-          autoExecute: false
+          autoExecute: false,
+          fastMode: params.fastMode
         }) as {
           success: boolean
           message: string

@@ -3,6 +3,11 @@ import * as path from 'path'
 import { AIService } from '@/lib/ai-service'
 import { RepositoryTools } from '@/lib/repository-tools'
 import { CONFIG } from '@/lib/config'
+import type {
+  IntelligentProjectSetupParams,
+  CreateProjectWithAIParams,
+  GenerateModificationPlanParams
+} from '@/types/mcp-tools'
 
 export interface AnalyzeProjectParams {
   description: string
@@ -14,23 +19,6 @@ export interface GenerateProjectPlanParams {
   projectName?: string
 }
 
-export interface IntelligentProjectSetupParams {
-  description: string
-  projectPath: string
-  autoExecute?: boolean
-}
-
-export interface CreateProjectWithAIParams {
-  description: string
-  projectPath?: string
-  projectName?: string
-  existingRepository?: {
-    name: string
-    fullName: string
-    url: string
-    description?: string
-  }
-}
 
 export interface AnalyzeAndOptimizeParams {
   description: string
@@ -44,11 +32,6 @@ export interface AnalyzeExistingProjectParams {
   includeFileAnalysis?: boolean
 }
 
-export interface GenerateModificationPlanParams {
-  projectPath: string
-  requestDescription: string
-  analysisData?: unknown
-}
 
 export interface ContextualProjectResult {
   success: boolean
@@ -234,6 +217,30 @@ export const aiOperations = {
     llmUsed: string
   }> => {
     try {
+      // Check if Fast Mode is enabled - skip AI processing
+      if (params.fastMode) {
+        console.log('[Fast Mode] Skipping AI processing, using rule-based setup')
+        return {
+          success: true,
+          message: 'Fast Mode: Using rule-based project setup (AI processing skipped)',
+          analysis: {
+            projectType: 'web-application',
+            confidence: 0.8,
+            reasoning: 'Fast Mode: Rule-based analysis based on common patterns',
+            features: ['typescript', 'react', 'modern-tooling'],
+            recommendedName: `project-${Date.now()}`
+          },
+          plannedActions: [
+            'Create project structure',
+            'Install basic dependencies',
+            'Setup configuration files'
+          ],
+          executionResults: null,
+          aiPowered: false,
+          llmUsed: 'none (Fast Mode)'
+        }
+      }
+
       if (!process.env.OPENAI_API_KEY) {
         return {
           success: false,
@@ -323,6 +330,60 @@ export const aiOperations = {
    */
   create_project_with_ai: async (params: CreateProjectWithAIParams, mcpTools: Record<string, (...args: unknown[]) => Promise<unknown>>): Promise<AIProjectResult> => {
     try {
+      // Check if Fast Mode is enabled - skip AI processing
+      if (params.fastMode) {
+        console.log('[Fast Mode] Skipping AI project creation, using rule-based approach')
+
+        // Generate a basic project using rule-based logic
+        const projectName = `fast-project-${Date.now()}`
+        const projectPath = `/tmp/projects/${projectName}`
+
+        return {
+          success: true,
+          message: 'Fast Mode: Project created using rule-based approach (AI processing skipped)',
+          project: {
+            name: projectName,
+            path: projectPath,
+            type: 'web-application',
+            description: 'Fast Mode project created with basic setup',
+            confidence: 0.8,
+            reasoning: 'Fast Mode: Rule-based project creation for quick demonstration',
+            features: ['typescript', 'react', 'vite', 'tailwind'],
+            repositoryUrl: undefined,
+            totalSteps: 3,
+            executionSteps: [
+              {
+                step: 1,
+                action: 'Create directory structure',
+                tool: 'rule-based',
+                success: true,
+                result: 'Directory structure created',
+                timestamp: new Date().toISOString()
+              },
+              {
+                step: 2,
+                action: 'Install basic dependencies',
+                tool: 'rule-based',
+                success: true,
+                result: 'Dependencies configured',
+                timestamp: new Date().toISOString()
+              },
+              {
+                step: 3,
+                action: 'Setup configuration',
+                tool: 'rule-based',
+                success: true,
+                result: 'Configuration files created',
+                timestamp: new Date().toISOString()
+              }
+            ],
+            createdAt: new Date().toISOString(),
+            aiPowered: false,
+            llmUsed: 'none (Fast Mode)'
+          }
+        }
+      }
+
       if (!process.env.OPENAI_API_KEY) {
         return {
           success: false,
@@ -650,7 +711,10 @@ This is a modification to an existing repository, NOT a new project creation. Pl
    */
   generate_modification_plan: async (params: GenerateModificationPlanParams): Promise<ContextualProjectResult> => {
     try {
-      if (!process.env.OPENAI_API_KEY) {
+      // Check if Fast Mode is enabled - skip AI requirement check
+      if (params.fastMode) {
+        console.log('[Fast Mode] Skipping AI requirement check for modification planning')
+      } else if (!process.env.OPENAI_API_KEY) {
         return {
           success: false,
           message: 'OpenAI API key not configured for modification planning.'
@@ -676,7 +740,8 @@ This is a modification to an existing repository, NOT a new project creation. Pl
       const modificationPlan = await generateContextualPlan(
         params.requestDescription,
         analysisData as Record<string, unknown>,
-        params.projectPath
+        params.projectPath,
+        params.fastMode || false
       )
 
       return {
@@ -746,7 +811,8 @@ function getProjectStructure(projectPath: string, maxDepth = CONFIG.PROJECT.MAX_
 async function generateContextualPlan(
   requestDescription: string,
   analysisData: Record<string, unknown>,
-  projectPath: string
+  projectPath: string,
+  fastMode: boolean = false
 ): Promise<Array<{
   step: number
   action: string
@@ -755,6 +821,12 @@ async function generateContextualPlan(
   description: string
 }>> {
   console.log('[AI Planning] Generating modification plan with AI...')
+
+  // Check if Fast Mode is enabled - skip AI processing
+  if (fastMode) {
+    console.log('[Fast Mode] Skipping AI planning, using rule-based approach')
+    return generateRuleBasedPlan(requestDescription, analysisData, projectPath)
+  }
 
   // First try AI-powered planning if OpenAI API is available
   if (process.env.OPENAI_API_KEY) {

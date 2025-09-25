@@ -69,8 +69,22 @@ export function useRepositorySync() {
           }
         }
       } else if (pathname === '/') {
+        // On home page, clear repository selection if one is currently selected
+        // This ensures clean state when navigating away from project routes
         // On home page, don't interfere with repository selection
         // The repository context will handle navigation when a repository is selected
+        console.log('🏠 useRepositorySync on home page - selectedRepository:', !!selectedRepository)
+
+        // If we have a selectedRepository but we're on home page, it might be from
+        // clicking "New Project" - let's check if we should clear it
+        if (selectedRepository) {
+          setSelectedRepositoryInternal(null)
+
+          // If we have a selectedRepository but we're on home page, it might be from
+          // clicking "New Project" - let's check if we should clear it
+          console.log('🔄 useRepositorySync: On home page but selectedRepository is set:', selectedRepository.name)
+          console.log('🔄 This might be interfering with New Project mode')
+        }
       }
     }
 

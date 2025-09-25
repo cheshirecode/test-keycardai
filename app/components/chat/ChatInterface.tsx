@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect, useMemo } from 'react'
+import { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import { useChat } from '@/lib/hooks/useChat'
 import { ProjectPreview } from '@/components/project'
 import { RepositoryPreview } from '@/components/repository'
@@ -8,10 +8,13 @@ import { useRepository } from '@/contexts/RepositoryContext'
 import { UserProfile } from '@/components/user'
 import { useLocalStorage } from '@/hooks/useLocalStorage'
 import { useRepositoryCommits } from '@/hooks/useRepositoryCommits'
+import { useAtom } from 'jotai'
+import { isFastModeAtom } from '@/store/aiRequestStore'
 
 export function ChatInterface() {
   const [input, setInput] = useState('')
-  const { messages, isLoading, currentProject, sendMessage, clearChat } = useChat()
+  const [isFastMode, setIsFastMode] = useAtom(isFastModeAtom)
+  const { messages, isLoading, currentProject, sendMessage, clearChat } = useChat(isFastMode)
   const {
     selectedRepository,
     isRepositoryMode,
@@ -39,6 +42,43 @@ export function ChatInterface() {
   const commits = useMemo(() => {
     return [...rawCommits].reverse()
   }, [rawCommits])
+
+  // Handle new project creation with proper state management
+  const handleNewProject = useCallback(() => {
+    console.log('🚀 New Project clicked - Current state:', { 
+      currentProject: !!currentProject, 
+      isCreatingNewProject, 
+      isRepositoryMode,
+      isLoading,
+      selectedRepository: !!selectedRepository,
+      messagesLength: messages.length 
+    })
+
+    // If we're in loading state, we should still proceed to interrupt the current operation
+    if (isLoading) {
+      console.log('⚠️ New Project clicked during loading - proceeding to interrupt current operation')
+    }
+
+    // Clear chat and current project FIRST
+    clearChat()
+
+    // Clear all repository-related state but preserve the creating flag
+    clearAllRepositoryData(true)
+
+    // Set flag to indicate new project creation AFTER clearing
+    setIsCreatingNewProject(true)
+
+    // Navigate to home immediately - the state updates should be synchronous enough
+    navigateToHome()
+
+    // Use setTimeout only for focus and final state check
+    setTimeout(() => {
+      console.log('📍 After navigation and state updates - Final state check')
+
+      const input = document.querySelector('input[type="text"]') as HTMLInputElement
+      input?.focus()
+    }, 100)
+  }, [setIsCreatingNewProject, clearAllRepositoryData, clearChat, navigateToHome, currentProject, isCreatingNewProject, isRepositoryMode, isLoading, selectedRepository, messages.length])
 
 
   const scrollToBottom = () => {
@@ -102,31 +142,36 @@ export function ChatInterface() {
 
             {/* New Project Button - Always visible */}
             <button
-              onClick={() => {
-                // Clear all repository-related state comprehensively
-                clearAllRepositoryData()
-
-                // Clear chat and current project
-                clearChat()
-
-                // Navigate to home
-                navigateToHome()
-
-                // Set flag to indicate new project creation
-                setIsCreatingNewProject(true)
-
-                // Focus on the input field after clearing
-                setTimeout(() => {
-                  const input = document.querySelector('input[type="text"]') as HTMLInputElement
-                  input?.focus()
-                }, 100)
-              }}
+              onClick={handleNewProject}
               className="px-4 py-2 text-sm bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors font-medium"
-              disabled={isLoading}
-              title="Create a new project"
+              disabled={false}
+              title="Create a new project (interrupts current operation)"
             >
               + New Project
             </button>
+
+            {/* Fast Mode Toggle */}
+            <div className="flex items-center space-x-2">
+              <label className="flex items-center space-x-2 cursor-pointer" title="Fast Mode: Skip AI processing and use rule-based planning. Useful for demonstrations and when API keys are not available due to time constraints and complexity of implementing API key rotation.">
+                <input
+                  type="checkbox"
+                  checked={isFastMode}
+                  onChange={(e) => setIsFastMode(e.target.checked)}
+                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                />
+                <span className="text-sm text-gray-700 font-medium">Fast Mode</span>
+              </label>
+              <div className="relative group">
+                <div className="w-4 h-4 text-gray-400 hover:text-gray-600 cursor-help">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-3a1 1 0 00-.867.5 1 1 0 11-1.731-1A3 3 0 0113 8a3.001 3.001 0 01-2 2.83V11a1 1 0 11-2 0v-1a1 1 0 011-1 1 1 0 100-2zm0 8a1 1 0 100-2 1 1 0 000 2z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 p-2 text-xs text-white bg-gray-900 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
+                  Skips AI processing due to time constraints and complexity of implementing API key rotation. Uses rule-based planning instead.
+                </div>
+              </div>
+            </div>
 
             {/* User Profile */}
             <div className="hidden md:block">
@@ -161,10 +206,10 @@ export function ChatInterface() {
                 <div className="h-full flex flex-col items-center justify-center text-center space-y-6">
                   <div className="space-y-2">
                     <h2 className="text-xl font-semibold text-gray-900">
-                      {isRepositoryMode 
-                        ? '🔧 Project Modification Mode' 
-                        : isCreatingNewProject 
-                          ? '✨ New Project Creation Mode' 
+                      {isRepositoryMode
+                        ? '🔧 Project Modification Mode'
+                        : isCreatingNewProject
+                          ? '✨ New Project Creation Mode'
                           : '👋 Welcome to Project Scaffolder'
                       }
                     </h2>

@@ -25,7 +25,7 @@ const useIsMounted = () => {
  * Main orchestrator hook for chat functionality
  * Coordinates message management, request classification, and command execution
  */
-export function useChatOrchestrator() {
+export function useChatOrchestrator(fastMode: boolean = false) {
   const [isLoading, setIsLoading] = useState(false)
   const [currentProject, setCurrentProject] = useState<ProjectInfo | null>(null)
   const isMounted = useIsMounted()
@@ -94,7 +94,8 @@ export function useChatOrchestrator() {
               navigateToRepository,
               invalidateRepositoriesCache,
               isCreatingNewProject,
-              setIsCreatingNewProject
+              setIsCreatingNewProject,
+              fastMode
             })
           }
           break
@@ -115,7 +116,8 @@ export function useChatOrchestrator() {
               navigateToRepository,
               invalidateRepositoriesCache,
               isCreatingNewProject,
-              setIsCreatingNewProject
+              setIsCreatingNewProject,
+              fastMode
             })
           }
           break
@@ -144,8 +146,11 @@ export function useChatOrchestrator() {
   }
 
   const clearChat = () => {
+    console.log('🧹 clearChat called - resetting loading state')
     clearMessages()
     setCurrentProject(null)
+    setIsLoading(false) // Reset loading state when clearing chat
+    console.log('🧹 clearChat completed - isLoading should now be false')
   }
 
   return {

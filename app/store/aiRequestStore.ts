@@ -44,6 +44,12 @@ export const pendingRequestCountAtom = atom((get) => {
 })
 
 /**
+ * Fast Mode atom - when enabled, skips AI processing and uses rule-based planning
+ * Useful for demonstrations and when API keys are not available
+ */
+export const isFastModeAtom = atom<boolean>(false)
+
+/**
  * Action atoms for managing pending requests
  */
 

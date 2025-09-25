@@ -148,6 +148,7 @@ npm run deploy:vercel    # Deploy to Vercel
 - **Template Selection**: React, Next.js, Node.js with intelligent defaults
 - **Smart Dependencies**: Context-aware package installation
 - **GitHub Integration**: Automatic repository creation and management
+- **Fast Mode Toggle**: Skip AI processing for quick demonstrations and when API keys are unavailable
 
 ### Real-Time Project Modifications
 - **Live Repository Updates**: Direct GitHub API integration with fallbacks
@@ -160,6 +161,43 @@ npm run deploy:vercel    # Deploy to Vercel
 - **Unit Testing**: Vitest for component and logic validation
 - **Coverage Reporting**: Detailed test coverage analysis
 - **Quality Assurance**: Automated testing pipeline
+
+---
+
+## ⚡ Fast Mode
+
+**Fast Mode** is a key design decision that addresses practical constraints in demonstration environments and API key management complexity.
+
+### Problem Statement
+- **API Key Rotation Complexity**: Implementing secure, production-ready API key rotation for OpenAI requires significant infrastructure overhead
+- **Demo Environment Limitations**: Live demonstrations may not have access to external AI services
+- **Time Constraints**: Comprehensive API key management was outside the scope of this take-home challenge
+
+### Solution: Fast Mode Toggle
+The application includes a toggle that allows users to:
+- **Skip AI Processing**: Bypass OpenAI API calls entirely
+- **Use Rule-Based Planning**: Fall back to deterministic project scaffolding
+- **Maintain Core Functionality**: Still create repositories and execute project operations
+- **Enable Demonstrations**: Show the application working without external dependencies
+
+### Implementation Details
+```typescript
+// Fast Mode is controlled via Jotai atom
+export const isFastModeAtom = atom<boolean>(false)
+
+// MCP tools check for Fast Mode before AI operations
+if (params.fastMode) {
+  return generateRuleBasedPlan(requestDescription, analysisData, projectPath)
+}
+```
+
+### User Experience
+- **Prominent Toggle**: Clearly visible next to the "New Project" button
+- **Tooltip Explanation**: Explains the reasoning and use case
+- **Seamless Fallback**: Projects are still created with sensible defaults
+- **Visual Indicators**: Shows when Fast Mode is active in logs and responses
+
+This design demonstrates architectural flexibility and practical consideration for real-world deployment scenarios.
 
 ---
 

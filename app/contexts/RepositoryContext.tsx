@@ -11,7 +11,7 @@ interface RepositoryContextType {
   isRepositoryMode: boolean
   navigateToRepository: (repository: Repository) => void
   navigateToHome: () => void
-  clearAllRepositoryData: () => void
+  clearAllRepositoryData: (preserveCreatingFlag?: boolean) => void
   newlyCreatedRepository: string | null
   setNewlyCreatedRepository: (repositoryName: string | null) => void
   refreshRepositories: () => void
@@ -61,15 +61,24 @@ export function RepositoryProvider({ children }: RepositoryProviderProps) {
     router.push('/')
   }, [router])
 
-  const clearAllRepositoryData = useCallback(() => {
+  const clearAllRepositoryData = useCallback((preserveCreatingFlag?: boolean) => {
+    console.log('🗑️ clearAllRepositoryData called - preserveCreatingFlag:', preserveCreatingFlag)
+    console.log('🗑️ Before clear - selectedRepository:', !!selectedRepository)
+
+    // Use direct state setter to avoid navigation side effects
     setSelectedRepository(null)
     setNewlyCreatedRepository(null)
-    setIsCreatingNewProject(false)
+
+    if (!preserveCreatingFlag) {
+      setIsCreatingNewProject(false)
+    }
+    console.log('🗑️ After setSelectedRepository(null) - should be cleared')
+
     // Clear any cached repository data
     if (onRepositoryRefresh && typeof onRepositoryRefresh === 'function') {
       onRepositoryRefresh()
     }
-  }, [onRepositoryRefresh])
+  }, [onRepositoryRefresh, selectedRepository, setSelectedRepository])
 
   const setSelectedRepositoryWithNavigation = useCallback((repository: Repository | null) => {
     setSelectedRepository(repository)

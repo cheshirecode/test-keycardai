@@ -18,12 +18,14 @@ export interface IntelligentProjectSetupParams {
   description: string
   projectPath: string
   autoExecute?: boolean
+  fastMode?: boolean
 }
 
 export interface CreateProjectWithAIParams {
   description: string
   projectPath?: string
   projectName?: string
+  fastMode?: boolean
   existingRepository?: {
     name: string
     fullName: string
@@ -48,6 +50,7 @@ export interface GenerateModificationPlanParams {
   projectPath: string
   requestDescription: string
   analysisData?: unknown
+  fastMode?: boolean
 }
 
 // Type definitions for File Management
