@@ -182,7 +182,7 @@ export function ChatInterface() {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-h-0">
-        <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-0 min-h-0">
+        <div className="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-0 min-h-0 h-full">
           {/* Chat Panel */}
           <div className="flex flex-col bg-white border-r border-gray-200 min-h-0">
             <div className="p-4 flex-1 overflow-y-auto min-h-0">
@@ -527,13 +527,13 @@ Analysis:
           </div>
 
           {/* Project Preview Panel */}
-          <div className="bg-white flex flex-col min-h-0">
+          <div className="bg-white flex flex-col min-h-0 h-full">
             <div className="p-4 border-b border-gray-200 flex-shrink-0">
               <h2 className="text-lg font-semibold text-gray-900">
                 {isRepositoryMode ? 'Repository Details' : 'Project Preview'}
               </h2>
             </div>
-            <div className="flex-1 p-4 overflow-y-auto min-h-0">
+            <div className="flex-1 px-4 pb-4 overflow-y-auto min-h-0">
               {isRepositoryMode && selectedRepository ? (
                 <RepositoryPreview repository={selectedRepository} />
               ) : currentProject ? (

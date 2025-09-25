@@ -102,7 +102,7 @@ This project is licensed under the MIT License.
   }
 
   return (
-    <div className="space-y-6 max-h-[70vh] overflow-y-auto">
+    <div className="space-y-6 h-full overflow-y-auto">
       {/* Repository Header */}
       <div className="border-b border-gray-200 pb-4">
         <div className="flex items-start justify-between">
