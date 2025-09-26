@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { useRepositoryState, useRepositoryCreation } from '@/hooks/useRepositoryAtoms'
-import { useRepositoryNavigation } from '@/lib/navigation'
+import { useRepositoryManager } from '@/hooks/composed/useRepositoryManager'
 import { invalidateRepositoriesCache } from '@/hooks/useRepositories'
 import type { ProjectInfo } from '@/types'
 
@@ -31,18 +30,16 @@ export function useChatOrchestrator(fastMode: boolean = false) {
   const [currentProject, setCurrentProject] = useState<ProjectInfo | null>(null)
   const isMounted = useIsMounted()
 
+  // Use new decoupled repository manager - NO MORE CIRCULAR DEPENDENCIES!
+  const repositoryManager = useRepositoryManager()
   const {
     selectedRepository,
-    refreshRepositories
-  } = useRepositoryState()
-  
-  const {
+    refreshRepositories,
     isCreatingNewProject,
     setIsCreatingNewProject,
-    setNewlyCreatedRepository
-  } = useRepositoryCreation()
-  
-  const { navigateToRepository } = useRepositoryNavigation()
+    setNewlyCreatedRepository,
+    navigateToRepository
+  } = repositoryManager
 
   const { messages, addMessage, clearMessages } = useMessageManager()
   const { classifyRequest } = useRequestClassifier()

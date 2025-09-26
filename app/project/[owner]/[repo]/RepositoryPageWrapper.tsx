@@ -2,7 +2,7 @@
 
 import React, { useEffect } from 'react'
 import Link from 'next/link'
-import { useRepositoryState } from '@/hooks/useRepositoryAtoms'
+import { useRepositoryManager } from '@/hooks/composed/useRepositoryManager'
 import { useRepository } from '@/hooks/useRepositories'
 
 interface RepositoryPageWrapperProps {
@@ -12,14 +12,15 @@ interface RepositoryPageWrapperProps {
 }
 
 export function RepositoryPageWrapper({ owner, repo, children }: RepositoryPageWrapperProps) {
-  const { selectedRepository, setSelectedRepositoryInternal, setIsCreatingNewProject, isCreatingNewProject } = useRepositoryState()
+  const repositoryManager = useRepositoryManager()
+  const { selectedRepository, setSelectedRepository, setIsCreatingNewProject, isCreatingNewProject } = repositoryManager
   const { repository, isLoading: loading, error } = useRepository(owner, repo)
 
   useEffect(() => {
     if (repository) {
       // Only update if it's different from current selection
       if (!selectedRepository || selectedRepository.id !== repository.id) {
-        setSelectedRepositoryInternal(repository)
+        setSelectedRepository(repository)
       }
 
       // Clear the creating new project flag when we have a specific repository loaded
@@ -28,7 +29,7 @@ export function RepositoryPageWrapper({ owner, repo, children }: RepositoryPageW
         setIsCreatingNewProject(false)
       }
     }
-  }, [repository, selectedRepository, setSelectedRepositoryInternal, isCreatingNewProject, setIsCreatingNewProject])
+  }, [repository, selectedRepository, setSelectedRepository, isCreatingNewProject, setIsCreatingNewProject])
 
   if (loading) {
     return (

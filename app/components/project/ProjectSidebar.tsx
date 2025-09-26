@@ -9,8 +9,7 @@ import { useRepositoryNavigation } from '@/lib/navigation'
 import { CONFIG } from '@/lib/config'
 import { TypedMCPClient } from '@/lib/typed-mcp-client'
 import type { DeleteRepositoryParams, ListRepositoriesParams } from '@/types/mcp-tools'
-import { useAtomValue } from 'jotai'
-import { isProjectPendingAtom, generateProjectId } from '@/store/aiRequestStore'
+// Note: generateProjectId import removed - project pending state handling needs refactoring
 
 interface ProjectSidebarProps {
   selectedRepository?: Repository | null
@@ -491,9 +490,8 @@ function RepositoryItem({ repository, isSelected, isNewlyCreated = false, isDele
   }
 
   // Check if this project has pending AI requests
-  const projectId = useMemo(() => generateProjectId(repository.name, repository.fullName), [repository.name, repository.fullName])
-  const pendingAtom = useMemo(() => isProjectPendingAtom(projectId), [projectId])
-  const isPending = useAtomValue(pendingAtom)
+  // TODO: Refactor pending state checking to use new decoupled architecture
+  const isPending = false // Temporarily disabled during hook refactoring
 
   return (
     <div

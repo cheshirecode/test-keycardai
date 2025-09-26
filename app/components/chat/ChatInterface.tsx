@@ -4,11 +4,10 @@ import { useState, useCallback } from 'react'
 import { useChat } from '@/lib/hooks/useChat'
 import { ProjectPreview } from '@/components/project'
 import { RepositoryPreview } from '@/components/repository'
-import { useRepositoryState, useRepositoryCreation } from '@/hooks/useRepositoryAtoms'
+import { useRepositoryManager } from '@/hooks/composed/useRepositoryManager'
+import { useAIManager } from '@/hooks/composed/useAIManager'
 import { useLocalStorage } from '@/hooks/useLocalStorage'
 import { useRepositoryCommits } from '@/hooks/useRepositoryCommits'
-import { useAtom } from 'jotai'
-import { isFastModeAtom } from '@/store/aiRequestStore'
 
 // Import new components
 import { ChatHeader } from './ChatHeader'
@@ -26,14 +25,16 @@ import { ChatInterfaceProps } from '@/types'
 
 export function ChatInterface({ onToggleSidebar }: ChatInterfaceProps = {}) {
   const [input, setInput] = useState('')
-  const [isFastMode, setIsFastMode] = useAtom(isFastModeAtom)
+  
+  // Use new decoupled hooks - NO MORE DIRECT ATOM ACCESS!
+  const { isFastMode, setIsFastMode } = useAIManager()
+  const repositoryManager = useRepositoryManager()
 
   // Use extracted hooks
   const { mobileExpandedPanel, setMobileExpandedPanel } = useChatLayout()
 
   const { messages, isLoading, currentProject, sendMessage, clearChat } = useChat(isFastMode)
-  const { selectedRepository, isRepositoryMode } = useRepositoryState()
-  const { isCreatingNewProject, startNewProject } = useRepositoryCreation()
+  const { selectedRepository, isRepositoryMode, isCreatingNewProject, startNewProject } = repositoryManager
 
   // User profile integration with localStorage
   const [userProfile, , isProfileInitialized] = useLocalStorage('userProfile', {

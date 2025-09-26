@@ -231,12 +231,12 @@ import { selectedRepositoryAtom } from '@/store/repositoryStore'
 const [selectedRepository] = useAtom(selectedRepositoryAtom)
 const setSelectedRepository = useSetAtom(selectedRepositoryAtom)
 
-// ❌ ChatInterface.tsx - Direct atom access  
+// ❌ ChatInterface.tsx - Direct atom access
 import { isFastModeAtom } from '@/store/aiRequestStore'
 const [isFastMode, setIsFastMode] = useAtom(isFastModeAtom)
 
 // ❌ navigation.ts - Direct atom access within hooks
-import { selectedRepositoryAtom } from '@/store/repositoryStore'  
+import { selectedRepositoryAtom } from '@/store/repositoryStore'
 const setSelectedRepository = useSetAtom(setSelectedRepositoryAtom)
 ```
 
@@ -245,7 +245,7 @@ const setSelectedRepository = useSetAtom(setSelectedRepositoryAtom)
 **useRepositoryAtoms.ts - 9 ATOM RESPONSIBILITIES:**
 ```typescript
 selectedRepositoryAtom          // Repository selection
-newlyCreatedRepositoryAtom      // Creation tracking  
+newlyCreatedRepositoryAtom      // Creation tracking
 isCreatingNewProjectAtom        // Creation state
 onRepositoryRefreshAtom         // Refresh callbacks
 isRepositoryModeAtom           // Mode switching
@@ -258,7 +258,7 @@ refreshRepositoriesAtom         // Refresh actions
 **useChatOrchestrator.ts - 5 MAJOR CONCERNS:**
 ```typescript
 - Message state management (useMessageManager)
-- Request classification (useRequestClassifier)  
+- Request classification (useRequestClassifier)
 - Command execution orchestration
 - Repository state coordination
 - Navigation coordination
@@ -281,7 +281,7 @@ useRepositoryDetails.ts
 ├── Shared caching patterns with useRepositoryCommits
 └── Both depend on same Repository type structure
 
-useRepositoryCommits.ts  
+useRepositoryCommits.ts
 ├── SWR key collision → ['repository-commits', fullName, limit]
 ├── Duplicated owner/repo extraction logic
 └── Similar error handling patterns
@@ -303,7 +303,7 @@ MainLayout.tsx (2 conflicting patterns)
 ├── useRepositorySync (direct atom access) ← CONFLICT!
 
 ProjectSidebar.tsx (2 coupling issues)
-├── useRepositories (data fetching)  
+├── useRepositories (data fetching)
 ├── useRepositoryNavigation (action coupling)
 ```
 
@@ -341,7 +341,7 @@ app/hooks/
 // ✅ BEFORE: Circular imports
 useRepositoryAtoms → useRepositoryNavigation → atoms (CYCLE)
 
-// ✅ AFTER: One-way dependency flow  
+// ✅ AFTER: One-way dependency flow
 Components → Composed Hooks → Workflow Hooks → Core Hooks → Atoms
 ```
 
@@ -355,14 +355,14 @@ import { useAtomManager } from '@/hooks/core/useAtomManager'
 const { getRepository, setRepository } = useAtomManager()
 ```
 
-#### **3. Separate Data Fetching from State Management** 
+#### **3. Separate Data Fetching from State Management**
 ```typescript
 // ❌ CURRENT: Mixed concerns in useRepositorySync
 URL parsing + data fetching + state management + lifecycle
 
 // ✅ NEW: Separated concerns
 useUrlSync.ts       → URL ↔ State synchronization only
-useRepositoryData.ts → Data fetching only  
+useRepositoryData.ts → Data fetching only
 useRepositoryStore.ts → State management only
 ```
 
@@ -389,7 +389,7 @@ ChatInterface.tsx → useChatManager() + useRepositoryManager() + UI hooks only
 // ✅ NEW: Workflow-driven hook composition
 
 useRepositoryWorkflow.ts → Complete repository selection process
-useProjectCreationWorkflow.ts → Complete project creation process  
+useProjectCreationWorkflow.ts → Complete project creation process
 useChatWorkflow.ts → Complete chat orchestration process
 ```
 
@@ -407,13 +407,13 @@ export function useRepositoryWorkflow(
 ```typescript
 // ✅ NEW: Each hook is independently testable
 core/ hooks → Pure functions, no external dependencies
-workflow/ hooks → Accept injected dependencies  
+workflow/ hooks → Accept injected dependencies
 composed/ hooks → Orchestrate core + workflow hooks
 ```
 
 **Benefits:**
 - **Eliminate 3 circular dependency cycles**
-- **Reduce hook responsibilities by 60-80%** 
+- **Reduce hook responsibilities by 60-80%**
 - **Enable independent testing of all hooks**
 - **Standardize data fetching patterns across components**
 - **Improve code reuse and composability**
@@ -500,10 +500,10 @@ export type { ChatInterfaceProps } from './types/ChatTypes'
 
 ### **Phase 5: Hook Coupling (CRITICAL - Pending)**
 - [ ] **Eliminate 3 circular dependency cycles** (Repository↔Navigation, Chat↔Repository, Sync↔Atoms)
-- [ ] **Fix 5 direct atom access violations** (useRepositorySync, ChatInterface, navigation.ts)  
+- [ ] **Fix 5 direct atom access violations** (useRepositorySync, ChatInterface, navigation.ts)
 - [ ] **Reduce useRepositoryAtoms from 9 → 3 atom responsibilities**
 - [ ] **Separate useRepositorySync 4 mixed concerns** (URL+data+state+lifecycle)
-- [ ] **Fix ChatInterface 8+ hook imports** → Max 3-4 composed hooks  
+- [ ] **Fix ChatInterface 8+ hook imports** → Max 3-4 composed hooks
 - [ ] **Eliminate SWR key collisions** in data fetching hooks
 - [ ] **Create 12+ focused hook abstractions** (core/data/navigation/workflows/composed)
 - [ ] **Achieve 100% independent testability** for all repository hooks
@@ -528,8 +528,8 @@ export type { ChatInterfaceProps } from './types/ChatTypes'
 4. Execute remaining phases incrementally with comprehensive testing at each step
 
 **🚨 UPDATED Recommended Phase Order (Based on Deep Dive):**
-- **Phase 5 (Hook Coupling - CRITICAL)** → **Phase 4 (Command Pattern)** → **Phase 2 (AI Operations)**  
-- **New Rationale**: 
+- **Phase 5 (Hook Coupling - CRITICAL)** → **Phase 4 (Command Pattern)** → **Phase 2 (AI Operations)**
+- **New Rationale**:
   - **Phase 5 is now CRITICAL**: 3 circular dependencies + 5 abstraction violations affect entire codebase
   - Hook coupling blocks effective testing of Commands and AI Operations
   - Commands depend on repository hooks, so hook decoupling enables better Command refactoring

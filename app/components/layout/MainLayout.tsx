@@ -2,23 +2,21 @@
 
 import React, { useEffect, useRef, useCallback, useState } from 'react'
 import { ProjectSidebar } from '@/components/project'
-import { useRepositoryState } from '@/hooks/useRepositoryAtoms'
-import { useRepositorySync } from '@/hooks/useRepositorySync'
+import { useRepositoryManager } from '@/hooks/composed/useRepositoryManager'
 import { MainLayoutProps } from '@/types'
 
 export function MainLayout({ children }: MainLayoutProps) {
+  // Use new decoupled repository manager - includes URL sync automatically
+  const repositoryManager = useRepositoryManager()
   const {
     selectedRepository,
     setSelectedRepository,
     newlyCreatedRepository,
     setOnRepositoryRefresh
-  } = useRepositoryState()
+  } = repositoryManager
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const sidebarRefreshRef = useRef<(() => void) | null>(null)
-
-  // Sync repository selection with URL changes
-  useRepositorySync()
 
   // Set up the refresh callback - only set if we have a valid function
   useEffect(() => {

@@ -1,126 +1,88 @@
 /**
- * Repository hooks using Jotai atoms
+ * Repository hooks using new decoupled architecture
  *
- * Simplified replacement for RepositoryContext that provides the same interface
- * but with better performance and maintainability
+ * @deprecated This file is maintained for backward compatibility during migration.
+ * New code should use:
+ * - useRepositoryManager() for complete repository management
+ * - useRepositoryStore() for read-only state access
+ * - useRepositoryActions() for state mutations
+ * - useRepositoryWorkflow() for composed workflows
+ * 
+ * BREAKING CHANGE: Removed circular dependencies with navigation hooks.
+ * Navigation is now handled through dependency injection in workflows.
  */
 
-import { useAtom, useAtomValue, useSetAtom } from 'jotai'
-import {
-  selectedRepositoryAtom,
-  newlyCreatedRepositoryAtom,
-  isCreatingNewProjectAtom,
-  onRepositoryRefreshAtom,
-  isRepositoryModeAtom,
-  currentRepositoryInfoAtom,
-  setNewlyCreatedRepositoryAtom,
-  clearAllRepositoryDataAtom,
-  refreshRepositoriesAtom,
-  isNewlyCreatedRepositoryAtom
-} from '@/store/repositoryStore'
-import { useRepositoryNavigation, useNewProjectFlow } from '@/lib/navigation'
+// Import the new decoupled hooks - NO MORE CIRCULAR DEPENDENCIES!
+import { useRepositoryState as useRepositoryStateNew, useRepositoryCreation as useRepositoryCreationNew } from './composed/useRepositoryManager'
+import { useRepositoryStore } from './core/useRepositoryStore'
+import { useAtomManager } from './core/useAtomManager'
 
 /**
+ * @deprecated Use useRepositoryManager() instead
  * Main hook that provides the same interface as the old RepositoryContext
  * This makes migration easier by providing backward compatibility
  */
 export function useRepositoryState() {
-  // Atom values
-  const selectedRepository = useAtomValue(selectedRepositoryAtom)
-  const newlyCreatedRepository = useAtomValue(newlyCreatedRepositoryAtom)
-  const isCreatingNewProject = useAtomValue(isCreatingNewProjectAtom)
-  const isRepositoryMode = useAtomValue(isRepositoryModeAtom)
-  const [onRepositoryRefresh, setOnRepositoryRefresh] = useAtom(onRepositoryRefreshAtom)
-
-  // Action setters
-  const setNewlyCreatedRepository = useSetAtom(setNewlyCreatedRepositoryAtom)
-  const setIsCreatingNewProject = useSetAtom(isCreatingNewProjectAtom)
-  const clearAllRepositoryData = useSetAtom(clearAllRepositoryDataAtom)
-  const refreshRepositories = useSetAtom(refreshRepositoriesAtom)
-
-  // Navigation hooks
-  const { navigateToRepository, navigateToHome, selectRepositoryWithNavigation } = useRepositoryNavigation()
-
-  // Direct internal setter (bypasses navigation logic)
-  const setSelectedRepositoryInternal = useSetAtom(selectedRepositoryAtom)
-
-  return {
-    // State
-    selectedRepository,
-    newlyCreatedRepository,
-    isCreatingNewProject,
-    isRepositoryMode,
-    onRepositoryRefresh,
-
-    // Actions
-    setSelectedRepository: selectRepositoryWithNavigation,
-    setSelectedRepositoryInternal,
-    setNewlyCreatedRepository,
-    setIsCreatingNewProject,
-    clearAllRepositoryData,
-    refreshRepositories,
-    setOnRepositoryRefresh,
-
-    // Navigation
-    navigateToRepository,
-    navigateToHome
-  }
+  // Use the new decoupled architecture
+  return useRepositoryStateNew()
 }
 
 /**
+ * @deprecated Use useRepositoryStore().selectedRepository instead
  * Lightweight hook for components that only need selected repository
  */
 export function useSelectedRepository() {
-  return useAtomValue(selectedRepositoryAtom)
+  const { repository } = useAtomManager()
+  return repository.getSelectedRepository()
 }
 
 /**
+ * @deprecated Use useRepositoryStore().isRepositoryMode instead
  * Lightweight hook for components that only need repository mode
  */
 export function useIsRepositoryMode() {
-  return useAtomValue(isRepositoryModeAtom)
+  const { repository } = useAtomManager()
+  return repository.getIsRepositoryMode()
 }
 
 /**
+ * @deprecated Use useRepositoryStore() and check manually
  * Hook for components that need to check if a repository is newly created
  */
 export function useIsNewlyCreated() {
-  return useAtomValue(isNewlyCreatedRepositoryAtom)
+  const { repository } = useAtomManager()
+  return (repoName: string) => repository.getIsNewlyCreatedRepository(repoName)
 }
 
 /**
+ * @deprecated Use useRepositoryManager() instead
  * Hook for repository creation workflow
  */
 export function useRepositoryCreation() {
-  const [isCreatingNewProject, setIsCreatingNewProject] = useAtom(isCreatingNewProjectAtom)
-  const setNewlyCreatedRepository = useSetAtom(setNewlyCreatedRepositoryAtom)
-  const { startNewProject } = useNewProjectFlow()
-
-  return {
-    isCreatingNewProject,
-    setIsCreatingNewProject,
-    setNewlyCreatedRepository,
-    startNewProject
-  }
+  // Use the new decoupled architecture
+  return useRepositoryCreationNew()
 }
 
 /**
+ * @deprecated Use useRepositoryStore().currentRepositoryInfo instead
  * Hook for components that need current repository info
  */
 export function useCurrentRepositoryInfo() {
-  return useAtomValue(currentRepositoryInfoAtom)
+  const { repository } = useAtomManager()
+  return repository.getCurrentRepositoryInfo()
 }
 
 /**
+ * @deprecated Use useRepositoryManager() instead
  * Hook for repository refresh functionality
  */
 export function useRepositoryRefresh() {
-  const [onRepositoryRefresh, setOnRepositoryRefresh] = useAtom(onRepositoryRefreshAtom)
-  const refreshRepositories = useSetAtom(refreshRepositoriesAtom)
+  const repositoryStore = useRepositoryStore()
+  const { repository } = useAtomManager()
 
   return {
-    onRepositoryRefresh,
-    setOnRepositoryRefresh,
-    refreshRepositories
+    onRepositoryRefresh: repositoryStore.onRepositoryRefresh,
+    setOnRepositoryRefresh: repository.setOnRepositoryRefresh,
+    refreshRepositories: repository.refreshRepositories
   }
 }
