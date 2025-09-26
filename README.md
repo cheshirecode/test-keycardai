@@ -121,6 +121,57 @@ sequenceDiagram
 - **Testing**: Playwright (E2E) + Vitest (Unit) with coverage
 - **Deployment**: Vercel serverless deployment
 
+### 🔧 **Serverless Architecture Considerations**
+
+#### **Current File System Limitations**
+The project currently uses local file system operations (`/tmp/projects`) for project scaffolding, which presents challenges in Vercel's serverless environment:
+
+- **Limited disk space**: Only 512MB available in `/tmp` directory
+- **Stateless functions**: Files don't persist between invocations
+- **Concurrency issues**: Multiple users can exhaust available disk space
+- **Cold start overhead**: File I/O operations slow down function startup
+
+#### **Planned Architectural Improvements**
+
+**🎯 Primary Solution: In-Memory Project Builder**
+```typescript
+class InMemoryProjectBuilder {
+  private files: Map<string, string> = new Map()
+  
+  addFromTemplate(template: ProjectTemplate): void {
+    // Generate project files directly in memory
+  }
+  
+  async commitToGitHub(repoConfig: GitHubRepoConfig): Promise<void> {
+    // Stream files directly to GitHub API without local storage
+  }
+}
+```
+
+**Benefits:**
+- **Zero disk usage**: All operations in memory (up to 3GB on Vercel)
+- **Better concurrency**: No shared disk space conflicts
+- **Faster execution**: Eliminates file I/O bottlenecks
+- **Automatic cleanup**: Memory freed when function completes
+
+**🏗️ Secondary Solution: Vercel Blob Integration**
+For complex operations requiring persistence:
+```typescript
+import { put, del } from '@vercel/blob'
+
+// Temporary storage with automatic cleanup
+const blob = await put(`projects/${projectId}`, projectData)
+// ... process project
+await del(blob.url) // Cleanup
+```
+
+**Migration Strategy:**
+1. **Phase 1**: Implement in-memory builder for new projects
+2. **Phase 2**: Migrate existing templates to memory-based approach  
+3. **Phase 3**: Add Vercel Blob fallback for edge cases
+
+This architecture shift will significantly improve scalability, reliability, and performance in serverless environments.
+
 ---
 
 ## 🚀 Quick Start
