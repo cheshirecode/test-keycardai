@@ -141,6 +141,25 @@ npm run deploy:vercel    # Deploy to Vercel
 
 ---
 
+## 📚 Documentation
+
+### **Project Documentation**
+All detailed documentation has been organized in the [`docs/`](./docs/) folder:
+
+- **[📋 Documentation Index](./docs/README.md)** - Complete documentation overview
+- **[🔧 Refactoring Plan](./docs/REFACTORING_PLAN.md)** - Current refactoring status and priorities
+- **[🔍 Code Smell Analysis](./docs/CODE_SMELL_ANALYSIS.md)** - Comprehensive complexity analysis
+- **[📊 Refactoring Summary](./docs/REFACTORING_SUMMARY.md)** - Completed refactoring work
+- **[🏗️ Migration Plan](./docs/MIGRATION_PLAN.md)** - Architecture decisions and migration strategies
+- **[🔗 Hook Coupling Analysis](./docs/HOOK_COUPLING_ANALYSIS.md)** - Deep dive into hook architecture
+
+### **Current Refactoring Status**
+- ✅ **4/9 phases completed** (44% progress)
+- 🚨 **Current priority**: AI Operations god object (1,176 lines)
+- 📊 **7 god objects identified** (3 completed, 4 pending)
+
+---
+
 ## 💡 Core Features
 
 ### AI-Powered Project Creation
