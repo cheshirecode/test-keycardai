@@ -5,6 +5,7 @@ This folder contains all project documentation and analysis files.
 ## 📋 **Documentation Index**
 
 ### **🔧 Refactoring & Architecture**
+- **[CRITICAL_ISSUES_ACTION_PLAN.md](./CRITICAL_ISSUES_ACTION_PLAN.md)** - **NEW** Comprehensive action plan for tackling critical god objects
 - **[REFACTORING_PLAN.md](./REFACTORING_PLAN.md)** - Comprehensive refactoring plan with phases and priorities
 - **[REFACTORING_SUMMARY.md](./REFACTORING_SUMMARY.md)** - Summary of completed refactoring work
 - **[CODE_SMELL_ANALYSIS.md](./CODE_SMELL_ANALYSIS.md)** - Detailed code smell analysis and complexity metrics
@@ -34,6 +35,7 @@ This folder contains all project documentation and analysis files.
 
 ## 🔍 **Quick Reference**
 
+- **🚨 Need immediate action plan?** → Check `CRITICAL_ISSUES_ACTION_PLAN.md`
 - **Need refactoring status?** → Check `REFACTORING_PLAN.md`
 - **Looking for complexity analysis?** → See `CODE_SMELL_ANALYSIS.md`
 - **Want to see progress?** → Review `REFACTORING_SUMMARY.md`
