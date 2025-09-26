@@ -1,9 +1,9 @@
 /**
  * Core Atom Manager - Single Point of Atom Access
- * 
+ *
  * This hook provides the ONLY access point to Jotai atoms in the application.
  * All other hooks must use this abstraction instead of importing atoms directly.
- * 
+ *
  * Benefits:
  * - Eliminates circular dependencies from direct atom imports
  * - Provides consistent atom access patterns
@@ -24,6 +24,7 @@ import {
   setNewlyCreatedRepositoryAtom,
   clearAllRepositoryDataAtom,
   refreshRepositoriesAtom,
+  startNewProjectModeAtom,
   // isNewlyCreatedRepositoryAtom - removed due to type mismatch, needs refactoring
 } from '@/store/repositoryStore'
 import { isFastModeAtom } from '@/store/aiRequestStore'
@@ -47,6 +48,9 @@ export interface RepositoryAtomManager {
   setIsCreatingNewProject: (creating: boolean) => void
   clearAllRepositoryData: (preserveCreatingFlag?: boolean) => void
   refreshRepositories: () => void
+  
+  // Atomic actions (prevent race conditions)
+  startNewProjectMode: () => void
   
   // Callback management
   getOnRepositoryRefresh: () => (() => void) | null
@@ -73,15 +77,16 @@ export function useAtomManager() {
   const isRepositoryMode = useAtomValue(isRepositoryModeAtom)
   const currentRepositoryInfo = useAtomValue(currentRepositoryInfoAtom)
   const [onRepositoryRefresh, setOnRepositoryRefresh] = useAtom(onRepositoryRefreshAtom)
-  
+
   // Repository action setters
   const setSelectedRepositoryAtom = useSetAtom(selectedRepositoryAtom)
   const setNewlyCreatedRepositoryAction = useSetAtom(setNewlyCreatedRepositoryAtom)
   const setIsCreatingNewProjectAction = useSetAtom(isCreatingNewProjectAtom)
   const clearAllRepositoryDataAction = useSetAtom(clearAllRepositoryDataAtom)
   const refreshRepositoriesAction = useSetAtom(refreshRepositoriesAtom)
+  const startNewProjectModeAction = useSetAtom(startNewProjectModeAtom)
   // isNewlyCreatedRepositoryCheck removed - needs proper refactoring for string-based checking
-  
+
   // AI atoms
   const [isFastMode, setIsFastMode] = useAtom(isFastModeAtom)
 
@@ -98,14 +103,17 @@ export function useAtomManager() {
       console.log('Checking newly created repository:', repoName)
       return false
     },
-    
+
     // State setters
     setSelectedRepository: setSelectedRepositoryAtom,
     setNewlyCreatedRepository: setNewlyCreatedRepositoryAction,
     setIsCreatingNewProject: setIsCreatingNewProjectAction,
     clearAllRepositoryData: clearAllRepositoryDataAction,
     refreshRepositories: refreshRepositoriesAction,
-    
+
+    // Atomic actions (prevent race conditions)
+    startNewProjectMode: startNewProjectModeAction,
+
     // Callback management
     getOnRepositoryRefresh: () => onRepositoryRefresh,
     setOnRepositoryRefresh: setOnRepositoryRefresh

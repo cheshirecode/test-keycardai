@@ -25,7 +25,7 @@ import { ChatInterfaceProps } from '@/types'
 
 export function ChatInterface({ onToggleSidebar }: ChatInterfaceProps = {}) {
   const [input, setInput] = useState('')
-  
+
   // Use new decoupled hooks - NO MORE DIRECT ATOM ACCESS!
   const { isFastMode, setIsFastMode } = useAIManager()
   const repositoryManager = useRepositoryManager()
@@ -119,7 +119,7 @@ export function ChatInterface({ onToggleSidebar }: ChatInterfaceProps = {}) {
           <div className="flex-1 grid grid-cols-2 gap-0 min-h-0 h-full">
             {/* Chat Panel - Desktop */}
             <div className="flex flex-col bg-white border-r border-gray-200 min-h-0 overflow-hidden">
-              <div className="p-4 flex-1 overflow-y-auto min-h-0">
+            <div className="p-4 flex-1 overflow-y-auto min-h-0">
                 <ChatMessageList
                   messages={messages}
                   commits={commits}
@@ -131,9 +131,9 @@ export function ChatInterface({ onToggleSidebar }: ChatInterfaceProps = {}) {
                   handleQuickStart={handleQuickStart}
                   messagesEndRef={messagesEndRef}
                 />
-              </div>
+            </div>
 
-              {/* Input Form */}
+            {/* Input Form */}
               <ChatInputForm
                 input={input}
                 setInput={setInput}
@@ -143,7 +143,7 @@ export function ChatInterface({ onToggleSidebar }: ChatInterfaceProps = {}) {
                 isCreatingNewProject={isCreatingNewProject}
                 handleSubmit={handleSubmit}
               />
-            </div>
+          </div>
 
             {/* Project Preview Panel - Desktop */}
             <div className="bg-white flex flex-col min-h-0 h-full overflow-hidden">

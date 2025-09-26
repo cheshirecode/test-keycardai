@@ -1,9 +1,9 @@
 /**
  * Pure Repository State Hook
- * 
+ *
  * Provides read-only access to repository state without any side effects.
  * This hook has NO dependencies on navigation or other systems.
- * 
+ *
  * Benefits:
  * - Pure state access with no side effects
  * - No circular dependencies

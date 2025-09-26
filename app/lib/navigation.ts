@@ -4,10 +4,10 @@
  * @deprecated This file is maintained for backward compatibility during migration.
  * New code should use:
  * - useNavigation() from @/hooks/navigation/useNavigation
- * - usePathAnalyzer() from @/hooks/navigation/usePathAnalyzer  
+ * - usePathAnalyzer() from @/hooks/navigation/usePathAnalyzer
  * - useUrlSync() from @/hooks/navigation/useUrlSync
  * - useNewProjectWorkflow() from @/hooks/workflows/useNewProjectWorkflow
- * 
+ *
  * BREAKING CHANGE: Removed direct atom imports to eliminate circular dependencies.
  * Navigation now uses dependency injection pattern.
  */

@@ -1,9 +1,9 @@
 /**
  * Repository Workflow Hook
- * 
+ *
  * Composes core hooks to provide complete repository management workflow.
  * This replaces the old useRepositoryAtoms with proper separation of concerns.
- * 
+ *
  * Benefits:
  * - Composes focused hooks instead of managing everything directly
  * - No circular dependencies through dependency injection
@@ -28,7 +28,7 @@ export interface RepositoryWorkflow {
   isRepositoryMode: boolean
   currentRepositoryInfo: unknown
   onRepositoryRefresh: (() => void) | null
-  
+
   // Actions
   setSelectedRepository: (repository: Repository | null) => void
   setNewlyCreatedRepository: (repoName: string) => void
@@ -36,12 +36,12 @@ export interface RepositoryWorkflow {
   clearAllRepositoryData: (preserveCreatingFlag?: boolean) => void
   refreshRepositories: () => void
   setOnRepositoryRefresh: (callback: (() => void) | null) => void
-  
+
   // Navigation
   navigateToRepository: (repository: Repository) => void
   navigateToHome: () => void
   selectRepositoryWithNavigation: (repository: Repository | null) => void
-  
+
   // Data
   loadAllRepositories: () => Promise<Repository[]>
   loadRepositoryByPath: (owner: string, repo: string) => Promise<Repository | null>
@@ -55,13 +55,13 @@ export function useRepositoryWorkflow(): RepositoryWorkflow {
   // Core hooks
   const repositoryState = useRepositoryStore()
   const repositoryActions = useRepositoryActions()
-  
+
   // Data fetching
   const repositoryData = useRepositoryData()
-  
+
   // Navigation (with dependency injection)
   const navigation = useNavigation(repositoryActions)
-  
+
   // URL synchronization (with dependency injection)
   useUrlSync({
     repositoryState,
@@ -72,13 +72,13 @@ export function useRepositoryWorkflow(): RepositoryWorkflow {
   return {
     // State (from core)
     ...repositoryState,
-    
+
     // Actions (from core)
     ...repositoryActions,
-    
+
     // Navigation (composed)
     ...navigation,
-    
+
     // Data (composed)
     ...repositoryData
   }

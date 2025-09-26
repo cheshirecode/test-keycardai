@@ -1,9 +1,9 @@
 /**
  * AI Settings Manager Hook
- * 
+ *
  * High-level composed hook for AI-related settings and state.
  * Eliminates direct atom access from components.
- * 
+ *
  * Benefits:
  * - Single hook for all AI settings
  * - No direct atom access in components

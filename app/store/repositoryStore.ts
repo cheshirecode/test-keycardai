@@ -92,6 +92,24 @@ export const clearAllRepositoryDataAtom = atom(
 )
 
 /**
+ * Atomic action to start new project mode
+ * This is a single, atomic operation that prevents race conditions
+ */
+export const startNewProjectModeAtom = atom(
+  null,
+  (get, set) => {
+    console.log('🚀 startNewProjectMode - atomic action')
+    
+    // Single atomic operation - no race conditions possible
+    set(selectedRepositoryAtom, null)
+    set(newlyCreatedRepositoryAtom, null)
+    set(isCreatingNewProjectAtom, true)
+    
+    console.log('✅ New project mode activated atomically')
+  }
+)
+
+/**
  * Set selected repository with proper cleanup
  */
 export const setSelectedRepositoryAtom = atom(

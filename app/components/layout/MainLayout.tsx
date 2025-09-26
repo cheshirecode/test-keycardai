@@ -10,7 +10,7 @@ export function MainLayout({ children }: MainLayoutProps) {
   const repositoryManager = useRepositoryManager()
   const {
     selectedRepository,
-    setSelectedRepository,
+    selectRepositoryWithNavigation,
     newlyCreatedRepository,
     setOnRepositoryRefresh
   } = repositoryManager
@@ -45,7 +45,7 @@ export function MainLayout({ children }: MainLayoutProps) {
               <ProjectSidebar
                 selectedRepository={selectedRepository}
                 onRepositorySelect={(repo) => {
-                  setSelectedRepository(repo)
+                  selectRepositoryWithNavigation(repo)
                   setIsSidebarOpen(false) // Close sidebar after selection on mobile
                 }}
                 className="flex-shrink-0"
@@ -62,7 +62,7 @@ export function MainLayout({ children }: MainLayoutProps) {
       <div className="hidden lg:block">
         <ProjectSidebar
           selectedRepository={selectedRepository}
-          onRepositorySelect={setSelectedRepository}
+          onRepositorySelect={selectRepositoryWithNavigation}
           className="flex-shrink-0"
           newlyCreatedRepository={newlyCreatedRepository}
           onRefresh={handleSidebarRefresh}

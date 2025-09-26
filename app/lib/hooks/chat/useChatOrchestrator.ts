@@ -57,14 +57,14 @@ export function useChatOrchestrator(fastMode: boolean = false) {
           projectRepoName = urlMatch[1]
         }
       }
-      
+
       const selectedRepoName = selectedRepository.name
-      
+
       // Only clear if we're switching to a different repository
       if (projectRepoName !== selectedRepoName) {
-        console.log('🔄 Clearing currentProject because switching repositories:', { 
-          from: projectRepoName, 
-          to: selectedRepoName 
+        console.log('🔄 Clearing currentProject because switching repositories:', {
+          from: projectRepoName,
+          to: selectedRepoName
         })
         setCurrentProject(null)
       }

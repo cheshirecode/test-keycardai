@@ -1,8 +1,8 @@
 /**
  * URL Path Analyzer Hook
- * 
+ *
  * Pure utility hook for parsing URL paths without any state dependencies.
- * 
+ *
  * Benefits:
  * - No dependencies on atoms or state
  * - Pure utility functions
@@ -32,9 +32,9 @@ export function usePathAnalyzer(): PathInfo {
 
   if (projectMatch) {
     const [, owner, repo] = projectMatch
-    return { 
-      owner, 
-      repo, 
+    return {
+      owner,
+      repo,
       isProjectRoute: true,
       isHomeRoute: false
     }
@@ -42,9 +42,9 @@ export function usePathAnalyzer(): PathInfo {
 
   const isHomeRoute = pathname === '/'
 
-  return { 
-    owner: null, 
-    repo: null, 
+  return {
+    owner: null,
+    repo: null,
     isProjectRoute: false,
     isHomeRoute
   }

@@ -1,8 +1,8 @@
 /**
  * Repository Data Fetching Hook
- * 
+ *
  * Pure data fetching hook without any state management concerns.
- * 
+ *
  * Benefits:
  * - Single responsibility: data fetching only
  * - No state management coupling
@@ -26,11 +26,11 @@ export function useRepositoryData() {
       const mcpClient = new TypedMCPClient()
       const params: ListRepositoriesParams = {}
       const result = await mcpClient.call('list_repositories', params)
-      
+
       if (result.success && result.repositories) {
         return result.repositories
       }
-      
+
       return []
     } catch (error) {
       console.error('Failed to load repositories:', error)
@@ -41,13 +41,13 @@ export function useRepositoryData() {
   const loadRepositoryByPath = useCallback(async (owner: string, repo: string): Promise<Repository | null> => {
     try {
       const repositories = await loadAllRepositories()
-      
+
       const repository = repositories.find((repository: Repository) => {
         const [repoOwner] = repository.fullName.split('/')
         return repoOwner.toLowerCase() === owner.toLowerCase() &&
                repository.name.toLowerCase() === repo.toLowerCase()
       })
-      
+
       return repository || null
     } catch (error) {
       console.error('Failed to load repository by path:', error)

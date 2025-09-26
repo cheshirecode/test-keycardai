@@ -7,7 +7,7 @@
  * - useRepositoryStore() for read-only state access
  * - useRepositoryActions() for state mutations
  * - useRepositoryWorkflow() for composed workflows
- * 
+ *
  * BREAKING CHANGE: Removed circular dependencies with navigation hooks.
  * Navigation is now handled through dependency injection in workflows.
  */

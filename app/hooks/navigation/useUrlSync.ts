@@ -1,9 +1,9 @@
 /**
  * URL Synchronization Hook
- * 
+ *
  * Handles URL ↔ State synchronization without mixing data fetching concerns.
  * Uses dependency injection to avoid circular dependencies.
- * 
+ *
  * Benefits:
  * - Separated concerns: URL sync only, no data fetching
  * - No circular dependencies through dependency injection
@@ -48,7 +48,7 @@ export function useUrlSync(dependencies: UrlSyncDependencies) {
         // Need to load repository from external source
         try {
           const repository = await loadRepositoryByPath(pathInfo.owner, pathInfo.repo)
-          
+
           // Check if request was aborted
           if (controller.signal.aborted) {
             return
@@ -66,11 +66,13 @@ export function useUrlSync(dependencies: UrlSyncDependencies) {
             console.error('Failed to sync repository from URL:', error)
           }
         }
-      } 
+      }
       // Handle home route
       else if (pathInfo.isHomeRoute) {
-        // On home page, clear repository selection if one is currently selected
-        if (repositoryState.selectedRepository) {
+        // On home page, only clear repository selection if we have one AND we're NOT in creating mode
+        // This prevents interfering with the new project mode
+        if (repositoryState.selectedRepository && !repositoryState.isCreatingNewProject) {
+          console.log('🏠 URL sync: Clearing repository selection on home page (not in new project mode)')
           repositoryActions.setSelectedRepository(null)
         }
       }
@@ -82,5 +84,5 @@ export function useUrlSync(dependencies: UrlSyncDependencies) {
     return () => {
       controller.abort()
     }
-  }, [pathInfo, repositoryState.selectedRepository, repositoryActions, loadRepositoryByPath])
+  }, [pathInfo, repositoryState.selectedRepository, repositoryState.isCreatingNewProject, repositoryActions, loadRepositoryByPath])
 }

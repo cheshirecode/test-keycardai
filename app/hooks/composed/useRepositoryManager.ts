@@ -1,9 +1,9 @@
 /**
  * Repository Manager Hook
- * 
+ *
  * High-level composed hook for components that need repository management.
  * This replaces the old useRepositoryAtoms and provides a clean interface.
- * 
+ *
  * Benefits:
  * - Single hook for all repository needs
  * - No circular dependencies
@@ -28,7 +28,7 @@ export interface RepositoryManager {
   isRepositoryMode: boolean
   currentRepositoryInfo: unknown
   onRepositoryRefresh: (() => void) | null
-  
+
   // Repository Actions
   setSelectedRepository: (repository: Repository | null) => void
   setNewlyCreatedRepository: (repoName: string) => void
@@ -36,15 +36,15 @@ export interface RepositoryManager {
   clearAllRepositoryData: (preserveCreatingFlag?: boolean) => void
   refreshRepositories: () => void
   setOnRepositoryRefresh: (callback: (() => void) | null) => void
-  
+
   // Navigation Actions
   navigateToRepository: (repository: Repository) => void
   navigateToHome: () => void
   selectRepositoryWithNavigation: (repository: Repository | null) => void
-  
+
   // Workflow Actions
   startNewProject: () => void
-  
+
   // Data Loading
   loadAllRepositories: () => Promise<Repository[]>
   loadRepositoryByPath: (owner: string, repo: string) => Promise<Repository | null>
@@ -56,7 +56,7 @@ export interface RepositoryManager {
  */
 export function useRepositoryManager(): RepositoryManager {
   const repositoryWorkflow = useRepositoryWorkflow()
-  
+
   // Get core hooks for new project workflow
   const repositoryActions = useRepositoryActions()
   const navigation = useNavigation(repositoryActions)
@@ -82,7 +82,7 @@ export function useRepositoryState() {
 }
 
 /**
- * @deprecated Use useRepositoryManager() instead  
+ * @deprecated Use useRepositoryManager() instead
  * Maintained for backward compatibility during migration
  */
 export function useRepositoryCreation() {

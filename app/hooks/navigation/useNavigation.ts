@@ -1,9 +1,9 @@
 /**
  * Pure Navigation Hook
- * 
+ *
  * Provides navigation actions without any atom dependencies.
  * This hook accepts repository actions as parameters to avoid circular dependencies.
- * 
+ *
  * Benefits:
  * - No circular dependencies
  * - Dependency injection pattern
@@ -52,17 +52,10 @@ export function useNavigation(repositoryActions: RepositoryActions): NavigationA
       return
     }
 
-    // Check if we need to navigate
-    const [owner] = repository.fullName.split('/')
-    const expectedPath = `/project/${owner}/${repository.name}`
-
-    // Update state
+    // Always update state and navigate for repository selection
+    // This ensures consistent behavior regardless of current URL
     repositoryActions.setSelectedRepository(repository)
-
-    // Navigate only if needed
-    if (window.location.pathname !== expectedPath) {
-      navigateToRepository(repository)
-    }
+    navigateToRepository(repository)
   }
 
   return {

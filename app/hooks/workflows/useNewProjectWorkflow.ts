@@ -1,9 +1,9 @@
 /**
  * New Project Workflow Hook
- * 
+ *
  * Handles the complete new project creation workflow.
  * Uses dependency injection to avoid circular dependencies.
- * 
+ *
  * Benefits:
  * - Single responsibility: new project workflow
  * - No circular dependencies
@@ -32,15 +32,15 @@ export function useNewProjectWorkflow(dependencies: NewProjectWorkflowDependenci
   const { repositoryActions, navigation } = dependencies
 
   const startNewProject = () => {
-    console.log('🚀 Starting new project flow')
+    console.log('🚀 Starting new project flow - using atomic action')
 
-    // Clear all data but preserve the creating flag
-    repositoryActions.clearAllRepositoryData(true)
+    // Use atomic action to prevent race conditions
+    repositoryActions.startNewProjectMode()
 
     // Navigate to home
     navigation.navigateToHome()
 
-    console.log('✅ New project flow initialized')
+    console.log('✅ New project flow initialized atomically')
   }
 
   return { startNewProject }
