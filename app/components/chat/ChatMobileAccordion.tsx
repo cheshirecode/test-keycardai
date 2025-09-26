@@ -218,41 +218,19 @@ export function ChatMobileAccordion({
                               </details>
                             </div>
                           )}
-
-                          {/* Commit message as assistant response */}
-                          <div className="bg-gray-100 p-4 rounded-lg">
-                            <div className="prose prose-sm max-w-none">
-                              <div className="flex items-start gap-3 mb-2">
-                                <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
-                                  <span className="text-white text-sm font-bold">
-                                    {isFirstCommit ? '🏗️' : '📝'}
-                                  </span>
-                                </div>
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <span className="font-medium text-gray-900">
-                                      {isFirstCommit ? 'Project Scaffolding' : 'Commit'}
-                                    </span>
-                                    <span className="text-xs text-gray-500">
-                                      {new Date(commit.timestamp).toLocaleString()}
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
-                              <div className="bg-white p-3 rounded border">
-                                <p className="text-sm text-gray-700 mb-2">
-                                  {isFirstCommit
-                                    ? `✅ Successfully created "${selectedRepository?.name}" project with initial structure and configuration.`
-                                    : `✅ ${commit.message || 'Project updated successfully.'}`
-                                  }
-                                </p>
-                              </div>
-                            </div>
-                          </div>
                         </div>
                       </div>
                     )
                   })}
+
+                  {/* Coming soon note for repositories with commits but no messages */}
+                  {messages.length === 0 && commits.length > 0 && (
+                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <p className="text-sm text-blue-800">
+                        📝 <strong>Chat log is coming, stay tuned!</strong> Below you can see the commit history formatted as conversation messages.
+                      </p>
+                    </div>
+                  )}
 
                   {/* Quick start options for repository mode when there are commits but no messages */}
                   {messages.length === 0 && commits.length > 0 && isRepositoryMode && selectedRepository && (
