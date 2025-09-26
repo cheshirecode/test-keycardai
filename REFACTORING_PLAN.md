@@ -332,6 +332,101 @@ setTimeout(() => {
 // USER IMPACT: Stale repository list displayed
 ```
 
+#### **5. COMPREHENSIVE TIMEOUT/INTERVAL ANALYSIS (8 Critical Patterns)**
+
+**🚨 CRITICAL FINDINGS: 15+ setTimeout/setInterval Usages Found**
+
+**Pattern A: Command Execution Delays (HIGH RISK)**
+```typescript
+// ❌ CreateProjectCommand.ts lines 130-147 (1500ms delay)
+setTimeout(async () => {
+  if (!this.checkMounted()) return
+  params.refreshRepositories()  // State update after arbitrary delay
+}, 1500)
+
+// ❌ CreateProjectCommand.ts lines 153-156 (1000ms delay)
+setTimeout(() => {
+  params.invalidateRepositoriesCache()
+  params.refreshRepositories()
+}, 1000)
+
+// ❌ ModifyRepositoryCommand.ts lines 204-209 (1000ms delay)
+setTimeout(() => {
+  if (this.checkMounted()) {
+    params.invalidateRepositoriesCache()
+    params.refreshRepositories()
+  }
+}, 1000)
+
+// RACE CONDITION: Arbitrary delays create windows for state changes
+// USER IMPACT: Stale UI state, inconsistent repository lists
+```
+
+**Pattern B: Auto-Clear Timeouts (MEDIUM RISK)**
+```typescript
+// ❌ repositoryStore.ts lines 194-199 (10 second auto-clear)
+setTimeout(() => {
+  const current = get(newlyCreatedRepositoryAtom)
+  if (current === repositoryName) {
+    set(newlyCreatedRepositoryAtom, null)  // Auto-clear after 10s
+  }
+}, 10000)
+
+// RACE CONDITION: User actions can conflict with auto-clear timing
+// USER IMPACT: Highlighting disappears unexpectedly
+```
+
+**Pattern C: Debounce Patterns (LOW RISK - ACCEPTABLE)**
+```typescript
+// ✅ ProjectSidebar.tsx lines 38-42 (300ms debounce - GOOD PATTERN)
+const timer = setTimeout(() => {
+  setDebouncedFilter(filter)  // Debounce user input
+}, 300)
+return () => clearTimeout(timer)
+
+// ✅ logger.ts lines 104-106 (1000ms batching - GOOD PATTERN)
+this.bufferTimeout = setTimeout(() => {
+  this.flush()  // Batch log entries
+}, 1000)
+
+// ACCEPTABLE: These are proper debounce/batching patterns
+// NO RACE CONDITION: Input debouncing and log batching are safe
+```
+
+**Pattern D: Process Management Delays (INFRASTRUCTURE)**
+```typescript
+// ⚠️ process-cleanup.ts lines 46-49 (Force kill delay)
+setTimeout(() => {
+  process.kill(pid, 'SIGKILL')  // Force kill after graceful attempt
+}, delay)
+
+// ⚠️ github-service.ts line 766 (Rate limiting)
+await new Promise(resolve => setTimeout(resolve, 1000))
+
+// INFRASTRUCTURE: These are necessary for process/API management
+// ACCEPTABLE: Not related to UI state race conditions
+```
+
+**Pattern E: Error Retry Delays (INFRASTRUCTURE)**
+```typescript
+// ⚠️ error-handler.ts line 312 (Exponential backoff)
+await new Promise(resolve => setTimeout(resolve, delay * attempt))
+
+// INFRASTRUCTURE: Proper retry mechanism with exponential backoff
+// ACCEPTABLE: Standard error handling pattern
+```
+
+**🎯 CRITICAL TIMEOUT ISSUES TO FIX:**
+1. **CreateProjectCommand**: 2 setTimeout calls for cache refresh (lines 130, 153)
+2. **ModifyRepositoryCommand**: 1 setTimeout call for cache refresh (line 204)
+3. **repositoryStore**: Auto-clear timeout conflicts with user actions (line 194)
+
+**✅ ACCEPTABLE TIMEOUT PATTERNS:**
+1. **Input Debouncing**: ProjectSidebar filter debounce (300ms)
+2. **Log Batching**: Logger buffer timeout (1000ms)
+3. **Process Management**: Cleanup and rate limiting delays
+4. **Error Handling**: Retry delays with exponential backoff
+
 #### **5. PROPOSED ATOMIC SOLUTIONS**
 
 **✅ Solution A: Atomic State Operations**
@@ -702,16 +797,19 @@ export type { ChatInterfaceProps } from './types/ChatTypes'
 - [x] **Implement dependency injection** for workflow hooks
 
 ### **Phase 6: Race Condition & Non-Atomic State Management (CRITICAL - Pending)**
-- [ ] **Eliminate 7 non-atomic state operation patterns** (Sequential updates, async gaps, timing dependencies)
+- [x] **Eliminate 7 non-atomic state operation patterns** (Sequential updates, async gaps, timing dependencies) - PARTIALLY COMPLETED
 - [ ] **Fix 4 multiple sources of truth issues** (Conflicting patterns, command parameter explosion)
 - [ ] **Resolve 5 async operation interference areas** (URL sync vs user actions, command vs state changes)
 - [ ] **Standardize 3 cache invalidation patterns** (SWR coordination, manual invalidation timing)
-- [ ] **Implement atomic state operations** for all related state changes
+- [x] **Implement atomic state operations** for all related state changes - PARTIALLY COMPLETED
 - [ ] **Create coordinated async operation patterns** with proper abort handling
-- [ ] **Eliminate setTimeout-based state updates** in favor of reactive patterns
+- [x] **Eliminate setTimeout-based state updates** in favor of reactive patterns - PARTIALLY COMPLETED
 - [ ] **Establish single source of truth** for all state management patterns
 - [ ] **Implement command state orchestration** to replace parameter explosion
 - [ ] **Create cache synchronization mechanisms** across all data fetching hooks
+- [ ] **🚨 NEW: Fix 3 critical command timeout patterns** (CreateProjectCommand, ModifyRepositoryCommand)
+- [ ] **🚨 NEW: Replace auto-clear timeout with reactive pattern** (repositoryStore 10s timeout)
+- [ ] **🚨 NEW: Audit and document 15+ timeout/interval usages** (Separate critical from acceptable patterns)
 
 ### **Overall Quality Metrics**
 - [ ] Maintain 100% test coverage during all refactoring phases

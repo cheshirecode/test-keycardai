@@ -224,6 +224,99 @@ useEffect(() => {
 5. **Enables Better Testing**: Atomic operations are easier to test
 6. **Simplifies State Logic**: Clear boundaries between state changes
 
+## 🚨 **Comprehensive Timeout/Interval Analysis**
+
+### **🔍 Critical Findings: 15+ Timing-Dependent Operations**
+
+After a comprehensive audit of the codebase, we identified **15+ setTimeout/setInterval usages** with varying risk levels:
+
+#### **❌ HIGH RISK: Command Execution Delays (3 Critical Issues)**
+
+```typescript
+// 🚨 CRITICAL: CreateProjectCommand.ts (2 setTimeout calls)
+setTimeout(async () => {
+  params.refreshRepositories()  // 1500ms delay
+}, 1500)
+
+setTimeout(() => {
+  params.invalidateRepositoriesCache()  // 1000ms delay
+  params.refreshRepositories()
+}, 1000)
+
+// 🚨 CRITICAL: ModifyRepositoryCommand.ts (1 setTimeout call)
+setTimeout(() => {
+  params.invalidateRepositoriesCache()  // 1000ms delay
+  params.refreshRepositories()
+}, 1000)
+```
+
+**Impact**: Creates race condition windows where state can change during arbitrary delays, leading to stale UI state and inconsistent repository lists.
+
+#### **⚠️ MEDIUM RISK: Auto-Clear Timeouts (1 Issue)**
+
+```typescript
+// ⚠️ repositoryStore.ts - 10 second auto-clear
+setTimeout(() => {
+  set(newlyCreatedRepositoryAtom, null)  // Auto-clear highlighting
+}, 10000)
+```
+
+**Impact**: User actions can conflict with auto-clear timing, causing highlighting to disappear unexpectedly.
+
+#### **✅ LOW RISK: Acceptable Patterns (11+ Usages)**
+
+**Input Debouncing (GOOD)**:
+```typescript
+// ✅ ProjectSidebar.tsx - 300ms filter debounce
+setTimeout(() => setDebouncedFilter(filter), 300)
+```
+
+**Log Batching (GOOD)**:
+```typescript
+// ✅ logger.ts - 1000ms log batching
+setTimeout(() => this.flush(), 1000)
+```
+
+**Infrastructure Operations (ACCEPTABLE)**:
+- Process cleanup force-kill delays
+- GitHub API rate limiting delays
+- Error retry with exponential backoff
+
+### **🎯 Timeout Risk Classification**
+
+| **Risk Level** | **Count** | **Pattern** | **Action Required** |
+|----------------|-----------|-------------|-------------------|
+| **🚨 HIGH** | 3 | Command cache refresh delays | **FIX IMMEDIATELY** |
+| **⚠️ MEDIUM** | 1 | Auto-clear timing conflicts | **REFACTOR TO REACTIVE** |
+| **✅ LOW** | 11+ | Debounce, batching, infrastructure | **KEEP AS-IS** |
+
+### **🛠️ Recommended Fixes**
+
+#### **1. Replace Command Timeouts with Atomic Operations**
+```typescript
+// ❌ BEFORE: Arbitrary delays
+setTimeout(() => params.refreshRepositories(), 1500)
+
+// ✅ AFTER: Atomic coordinated refresh
+repositoryActions.coordinatedCacheRefresh()
+```
+
+#### **2. Replace Auto-Clear with Reactive Pattern**
+```typescript
+// ❌ BEFORE: 10-second timeout
+setTimeout(() => set(atom, null), 10000)
+
+// ✅ AFTER: User action-driven clearing
+useEffect(() => {
+  if (userNavigatedAway) clearHighlighting()
+}, [userNavigatedAway])
+```
+
+#### **3. Maintain Acceptable Patterns**
+- **Keep debounce patterns** for user input (300ms is standard)
+- **Keep batching patterns** for performance optimization
+- **Keep infrastructure delays** for process/API management
+
 ---
 
 **🎯 Multiple Phases Complete!**
