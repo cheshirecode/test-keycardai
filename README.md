@@ -142,8 +142,8 @@ class InMemoryProjectBuilder {
     // Generate project files directly in memory
   }
   
-  async commitToGitHub(repoConfig: GitHubRepoConfig): Promise<void> {
-    // Stream files directly to GitHub API without local storage
+  async exportToProvider(provider: RepositoryProvider): Promise<Repository> {
+    // Vendor-agnostic output to any git provider
   }
 }
 ```
@@ -154,23 +154,48 @@ class InMemoryProjectBuilder {
 - **Faster execution**: Eliminates file I/O bottlenecks
 - **Automatic cleanup**: Memory freed when function completes
 
-**🏗️ Secondary Solution: Vercel Blob Integration**
-For complex operations requiring persistence:
+**🏗️ Secondary Solution: Repository Provider Pattern**
+Vendor-agnostic git operations supporting multiple platforms:
 ```typescript
-import { put, del } from '@vercel/blob'
+interface RepositoryProvider {
+  createRepository(config: RepoConfig): Promise<Repository>
+  commitFiles(repo: Repository, files: ProjectFile[]): Promise<CommitResult>
+}
 
-// Temporary storage with automatic cleanup
-const blob = await put(`projects/${projectId}`, projectData)
-// ... process project
-await del(blob.url) // Cleanup
+// Support for GitHub, GitLab, Bitbucket, self-hosted Git
+class GitHubProvider implements RepositoryProvider { }
+class GitLabProvider implements RepositoryProvider { }
+class LocalGitProvider implements RepositoryProvider { }
+```
+
+**🗄️ Tertiary Solution: Pluggable Storage Strategy**
+Flexible storage backends for different deployment environments:
+```typescript
+interface StorageBackend {
+  store(key: string, data: StorageData): Promise<StorageResult>
+  retrieve(key: string): Promise<StorageData>
+}
+
+// Environment-specific implementations
+class VercelBlobStorage implements StorageBackend { }
+class S3Storage implements StorageBackend { }
+class InMemoryStorage implements StorageBackend { }
 ```
 
 **Migration Strategy:**
-1. **Phase 1**: Implement in-memory builder for new projects
-2. **Phase 2**: Migrate existing templates to memory-based approach  
-3. **Phase 3**: Add Vercel Blob fallback for edge cases
+1. **Phase 1**: Implement in-memory builder with repository provider abstraction
+2. **Phase 2**: Add multiple git provider implementations (GitLab, Bitbucket)
+3. **Phase 3**: Integrate pluggable storage backends for large projects
+4. **Phase 4**: Support enterprise self-hosted git infrastructures
 
-This architecture shift will significantly improve scalability, reliability, and performance in serverless environments.
+**Vendor-Agnostic Benefits:**
+- **Multi-platform support**: Works with any git provider (GitHub, GitLab, Bitbucket, self-hosted)
+- **Deployment flexibility**: Runs on Vercel, AWS, Google Cloud, or local environments
+- **Future-proof architecture**: Easy to add new providers and storage backends
+- **Enterprise ready**: Supports corporate git infrastructures and compliance requirements
+- **Reduced vendor lock-in**: Avoid dependency on specific cloud providers or services
+
+This architecture shift eliminates vendor lock-in while improving scalability, reliability, and performance across any deployment environment.
 
 ---
 
