@@ -261,7 +261,12 @@ export class ProjectExecutionService {
             action: 'Create directory structure',
             tool: 'rule-based',
             success: true,
-            result: 'Directory structure created',
+            result: {
+              success: true,
+              data: 'Directory structure created',
+              executionTime: 100,
+              timestamp: new Date().toISOString()
+            },
             timestamp: new Date().toISOString()
           },
           {
@@ -269,7 +274,12 @@ export class ProjectExecutionService {
             action: 'Install basic dependencies',
             tool: 'rule-based',
             success: true,
-            result: 'Dependencies configured',
+            result: {
+              success: true,
+              data: 'Dependencies configured',
+              executionTime: 150,
+              timestamp: new Date().toISOString()
+            },
             timestamp: new Date().toISOString()
           },
           {
@@ -277,7 +287,12 @@ export class ProjectExecutionService {
             action: 'Setup configuration',
             tool: 'rule-based',
             success: true,
-            result: 'Configuration files created',
+            result: {
+              success: true,
+              data: 'Configuration files created',
+              executionTime: 80,
+              timestamp: new Date().toISOString()
+            },
             timestamp: new Date().toISOString()
           }
         ],
@@ -341,13 +356,18 @@ export class ProjectExecutionService {
 
         const tool = mcpTools[action.tool as keyof typeof mcpTools]
         if (tool) {
-          const result = await (tool as (...args: unknown[]) => Promise<unknown>)(action.params)
+          const toolResult = await (tool as (...args: unknown[]) => Promise<unknown>)(action.params)
           executionResults.push({
             step: currentStep,
             action: action.description,
             tool: action.tool,
             success: true,
-            result,
+            result: {
+              success: true,
+              data: toolResult,
+              executionTime: 0,
+              timestamp: new Date().toISOString()
+            },
             timestamp: new Date().toISOString()
           })
         } else {

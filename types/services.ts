@@ -3,17 +3,8 @@
  * Centralized type definitions for external services and APIs
  */
 
-// GitHub Service Types
-export interface GitHubRepoConfig {
-  owner: string
-  repo: string
-  branch?: string
-}
-
-export interface CommitFile {
-  path: string
-  content: string
-}
+// Re-export GitHub types from centralized location
+export type { GitHubRepoConfig, CommitFile } from './github'
 
 // Logger Types
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'critical'
@@ -44,16 +35,8 @@ export enum ErrorLevel {
   CRITICAL = 'critical'
 }
 
-export interface ErrorContext {
-  userId?: string
-  requestId?: string
-  sessionId?: string
-  userAgent?: string
-  path?: string
-  method?: string
-  timestamp?: string
-  additionalData?: Record<string, unknown>
-}
+// Re-export ErrorContext from GitHub types (more comprehensive)
+export type { ErrorContext } from './github'
 
 // Result Types
 export type Result<T, E = Error> = 

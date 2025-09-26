@@ -200,17 +200,30 @@ export const repositoryManagement = {
       }
 
       // Transform and filter for repositories that might be scaffolded projects
-      const scaffoldedProjects = result.repositories?.map(repo => ({
-        id: repo.full_name,
-        name: repo.name,
-        fullName: repo.full_name,
-        url: repo.url,
-        description: repo.description,
-        private: repo.private,
-        createdAt: repo.created_at,
-        updatedAt: repo.updated_at,
-        isScaffoldedProject: isScaffoldedProject(repo.name, repo.description)
-      })) || []
+      const scaffoldedProjects = result.repositories?.map(repo => {
+        // Type assertion for repository data
+        const repoData = repo as {
+          full_name: string
+          name: string
+          url: string
+          description: string | null
+          private: boolean
+          created_at: string
+          updated_at: string
+        }
+        
+        return {
+          id: repoData.full_name,
+          name: repoData.name,
+          fullName: repoData.full_name,
+          url: repoData.url,
+          description: repoData.description,
+          private: repoData.private,
+          createdAt: repoData.created_at,
+          updatedAt: repoData.updated_at,
+          isScaffoldedProject: isScaffoldedProject(repoData.name, repoData.description)
+        }
+      }) || []
 
       return {
         success: true,

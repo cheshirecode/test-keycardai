@@ -13,7 +13,8 @@ import type {
   ContextualProjectResult,
   AIAnalysisResult,
   AIProjectPlanResult,
-  AIProjectResult
+  AIProjectResult,
+  ProjectAnalysisData
 } from '@/types/mcp/ai-operations'
 
 /**
@@ -169,13 +170,24 @@ export const aiOperations = {
         return analysisResult
       }
 
-      analysisData = analysisResult.analysis as Record<string, unknown>
+      // Convert analysis result to ProjectAnalysisData format
+      analysisData = {
+        projectType: analysisResult.analysis?.projectType || 'unknown',
+        framework: analysisResult.analysis?.framework || 'unknown',
+        structure: analysisResult.analysis?.structure || [],
+        dependencies: analysisResult.analysis?.dependencies || {},
+        devDependencies: {},
+        scripts: {},
+        recommendations: analysisResult.analysis?.recommendations || [],
+        confidence: 0.8,
+        reasoning: 'Analysis from existing project'
+      }
     }
 
     // Generate step-by-step modification plan
     const modificationPlan = await ProjectPlanningService.generateModificationPlan(
       params.requestDescription,
-      analysisData as Record<string, unknown>,
+      analysisData as ProjectAnalysisData,
       params.projectPath,
       params.fastMode || false
     )

@@ -215,7 +215,7 @@ export const githubOperations = {
 
       console.log(`[GitHub Branch] Collecting files from: ${params.projectPath}`)
       // Collect all files from the project
-      const files = GitHubService.collectFilesFromDirectory(params.projectPath)
+      const files = GitHubService.collectFilesFromDirectory()
       console.log(`[GitHub Branch] Collected ${files.length} files`)
 
       if (files.length === 0) {

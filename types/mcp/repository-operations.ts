@@ -56,7 +56,7 @@ export interface GitHubUser {
 }
 
 // Repository Operation Results
-export interface RepositoryResult extends MCPBaseResult {
+export interface MCPRepositoryResult extends MCPBaseResult {
   repositories?: RepositoryData[]
   owner?: string
   total?: number
@@ -97,7 +97,7 @@ export interface GitHubCommitsResult extends MCPBaseResult {
 
 // Repository Operations Interface
 export interface RepositoryOperations {
-  list_repositories: (params: ListRepositoriesParams) => Promise<RepositoryResult>
+  list_repositories: (params: ListRepositoriesParams) => Promise<MCPRepositoryResult>
   delete_repository: (params: DeleteRepositoryParams) => Promise<DeleteRepositoryResult>
   get_repository: (params: GetRepositoryParams) => Promise<GetRepositoryResult>
   validate_repository_permissions: (params: { owner: string }) => Promise<{

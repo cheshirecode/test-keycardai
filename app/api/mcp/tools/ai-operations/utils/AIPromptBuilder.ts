@@ -3,7 +3,7 @@
  * Utilities for constructing AI prompts
  */
 
-import type { AIAnalysisData } from '@/types/mcp/ai-operations'
+import type { AIAnalysisData, ProjectAnalysisData } from '@/types/mcp/ai-operations'
 
 export class AIPromptBuilder {
   /**
@@ -50,7 +50,7 @@ Please analyze how to implement this request in the context of the existing proj
    */
   static buildModificationPlanPrompt(
     requestDescription: string,
-    analysisData: Record<string, unknown>,
+    analysisData: ProjectAnalysisData,
     projectPath: string
   ): string {
     return `You are an expert software architect and developer. Based on the following project analysis and user request, generate a detailed step-by-step modification plan.

@@ -6,7 +6,11 @@
 import { AIService } from '@/lib/ai-service'
 import { AIErrorHandler } from './AIErrorHandler'
 import { AIPromptBuilder, ResponseParser, ValidationUtils } from '../utils'
-import type { AIProjectPlanResult, WorkflowAction } from '@/types/mcp/ai-operations'
+import type { 
+  AIProjectPlanResult, 
+  WorkflowAction,
+  ProjectAnalysisData
+} from '@/types/mcp/ai-operations'
 
 export class ProjectPlanningService {
   /**
@@ -44,6 +48,15 @@ export class ProjectPlanningService {
         projectPath
       )
 
+      // Map AI service actions to WorkflowAction format
+      const workflowActions: WorkflowAction[] = actions.map((action, index) => ({
+        step: index + 1,
+        action: action.description,
+        tool: action.tool,
+        params: action.params,
+        description: action.description
+      }))
+
       return {
         success: true,
         message: 'Generated intelligent project plan using AI analysis',
@@ -54,9 +67,9 @@ export class ProjectPlanningService {
             reasoning: analysis.reasoning,
             features: analysis.features
           },
-          actions,
+          actions: workflowActions,
           expectedOutcome: response,
-          totalSteps: actions.length,
+          totalSteps: workflowActions.length,
           aiPowered: true
         }
       }
@@ -70,7 +83,7 @@ export class ProjectPlanningService {
    */
   static async generateModificationPlan(
     requestDescription: string,
-    analysisData: Record<string, unknown>,
+    analysisData: ProjectAnalysisData,
     projectPath: string,
     fastMode: boolean = false
   ): Promise<WorkflowAction[]> {
@@ -107,7 +120,7 @@ export class ProjectPlanningService {
    */
   private static async generateAIPoweredPlan(
     requestDescription: string,
-    analysisData: Record<string, unknown>,
+    analysisData: ProjectAnalysisData,
     projectPath: string
   ): Promise<WorkflowAction[]> {
     const prompt = AIPromptBuilder.buildModificationPlanPrompt(
@@ -139,7 +152,7 @@ export class ProjectPlanningService {
    */
   private static generateRuleBasedPlan(
     requestDescription: string,
-    analysisData: Record<string, unknown>,
+    analysisData: ProjectAnalysisData,
     projectPath: string
   ): WorkflowAction[] {
     const plan: WorkflowAction[] = []
@@ -156,7 +169,7 @@ export class ProjectPlanningService {
           projectPath,
           type: 'component',
           name: ResponseParser.extractComponentName(requestDescription),
-          framework: (analysisData as Record<string, unknown>)?.framework || 'react'
+          framework: analysisData.framework || 'react'
         },
         description: 'Create new React component based on request'
       })
@@ -207,7 +220,7 @@ export class ProjectPlanningService {
           projectPath,
           type: 'service',
           name: ResponseParser.extractServiceName(requestDescription),
-          framework: (analysisData as Record<string, unknown>)?.framework || 'javascript'
+          framework: analysisData.framework || 'javascript'
         },
         description: 'Create API service for data handling'
       })
@@ -255,7 +268,7 @@ export class ProjectPlanningService {
    */
   private static generateDocumentationContent(
     requestDescription: string,
-    analysisData: Record<string, unknown>
+    analysisData: ProjectAnalysisData
   ): string {
     return `# Modification Request
 
@@ -263,9 +276,9 @@ export class ProjectPlanningService {
 ${requestDescription}
 
 ## Project Analysis
-- Type: ${(analysisData as Record<string, unknown>)?.projectType || 'unknown'}
-- Framework: ${(analysisData as Record<string, unknown>)?.framework || 'unknown'}
-- Dependencies: ${Object.keys(((analysisData as Record<string, unknown>)?.dependencies as Record<string, string>) || {}).length} packages
+- Type: ${analysisData.projectType || 'unknown'}
+- Framework: ${analysisData.framework || 'unknown'}
+- Dependencies: ${Object.keys(analysisData.dependencies || {}).length} packages
 
 ## Timestamp
 ${new Date().toISOString()}

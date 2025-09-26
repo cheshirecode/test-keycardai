@@ -14,6 +14,9 @@ export * from './repository'
 // Component types
 export * from './components'
 
+// GitHub types
+export * from './github'
+
 // Hook types
 export * from './hooks'
 

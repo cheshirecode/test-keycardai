@@ -200,7 +200,7 @@ logs
         }
 
       // Collect all files from the project directory
-      const files = GitHubService.collectFilesFromDirectory(projectPath)
+      const files = GitHubService.collectFilesFromDirectory()
 
       if (files.length === 0) {
         return {
@@ -233,7 +233,7 @@ logs
         return 'Project directory does not exist'
       }
 
-      const files = GitHubService.collectFilesFromDirectory(projectPath)
+      const files = GitHubService.collectFilesFromDirectory()
       return `Project has ${files.length} files ready for GitHub operations`
     } catch {
       return 'Unable to determine project status'
@@ -335,7 +335,7 @@ logs
             const [owner, repo] = repository.name.split('/')
 
             // Collect all files from the project directory
-            const files = GitHubService.collectFilesFromDirectory(projectPath)
+            const files = GitHubService.collectFilesFromDirectory()
 
             if (files.length === 0) {
               return {

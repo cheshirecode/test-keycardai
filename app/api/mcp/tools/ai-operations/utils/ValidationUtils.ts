@@ -5,6 +5,7 @@
 
 import * as fs from 'fs'
 import * as path from 'path'
+import type { PackageJsonData } from '@/types/mcp/ai-operations'
 
 export class ValidationUtils {
   /**
@@ -53,7 +54,7 @@ export class ValidationUtils {
    */
   static validateAndReadPackageJson(projectPath: string): {
     valid: true
-    packageInfo: Record<string, unknown>
+    packageInfo: PackageJsonData
   } | {
     valid: false
     error: string
@@ -64,7 +65,11 @@ export class ValidationUtils {
       if (!fs.existsSync(packageJsonPath)) {
         return {
           valid: true,
-          packageInfo: { name: 'unknown', dependencies: {}, devDependencies: {} }
+          packageInfo: { 
+            name: 'unknown', 
+            dependencies: {}, 
+            devDependencies: {} 
+          } as PackageJsonData
         }
       }
 

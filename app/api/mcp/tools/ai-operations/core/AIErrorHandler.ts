@@ -3,11 +3,13 @@
  * Centralized error handling for AI operations
  */
 
+import type { AIErrorContext } from '@/types/mcp/ai-operations'
+
 export class AIError extends Error {
   constructor(
     message: string,
     public code: string,
-    public context?: Record<string, unknown>
+    public context?: AIErrorContext
   ) {
     super(message)
     this.name = 'AIError'
@@ -134,8 +136,8 @@ export class AIErrorHandler {
    */
   static createErrorResponse(
     message: string,
-    context?: Record<string, unknown>
-  ): { success: false; message: string; context?: Record<string, unknown> } {
+    context?: AIErrorContext
+  ): { success: false; message: string; context?: AIErrorContext } {
     return {
       success: false,
       message,
@@ -146,7 +148,7 @@ export class AIErrorHandler {
   /**
    * Log error with context
    */
-  static logError(error: unknown, context: string, additionalData?: Record<string, unknown>): void {
+  static logError(error: unknown, context: string, additionalData?: AIErrorContext): void {
     console.error(`[AI Operations Error] ${context}:`, {
       error: error instanceof Error ? error.message : error,
       stack: error instanceof Error ? error.stack : undefined,

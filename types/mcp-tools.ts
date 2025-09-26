@@ -148,7 +148,7 @@ export interface GetRepositoryParams {
   repo: string
 }
 
-export interface RepositoryResult {
+export interface LegacyRepositoryResult {
   success: boolean
   message: string
   repositories?: Array<{
@@ -334,7 +334,7 @@ export interface MCPTools {
   safe_cleanup: (params?: { projectPath?: string }) => Promise<ProcessCleanupResult>
 
   // Repository Management
-  list_repositories: (params: ListRepositoriesParams) => Promise<RepositoryResult>
+  list_repositories: (params: ListRepositoriesParams) => Promise<LegacyRepositoryResult>
   delete_repository: (params: DeleteRepositoryParams) => Promise<DeleteRepositoryResult>
   get_repository: (params: GetRepositoryParams) => Promise<GetRepositoryResult>
   validate_repository_permissions: (params: { owner: string }) => Promise<{

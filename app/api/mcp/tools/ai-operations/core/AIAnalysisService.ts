@@ -6,7 +6,12 @@
 import { AIService } from '@/lib/ai-service'
 import { AIErrorHandler } from './AIErrorHandler'
 import { AIPromptBuilder, ValidationUtils } from '../utils'
-import type { AIAnalysisData, AIAnalysisResult, AIOptimizationResult } from '@/types/mcp/ai-operations'
+import type { 
+  AIAnalysisData, 
+  AIAnalysisResult, 
+  AIOptimizationResult,
+  PackageJsonData
+} from '@/types/mcp/ai-operations'
 
 export class AIAnalysisService {
   /**
@@ -138,13 +143,13 @@ export class AIAnalysisService {
   /**
    * Parse project information from package.json
    */
-  private static parseProjectInfo(projectInfo: Record<string, unknown>): {
+  private static parseProjectInfo(projectInfo: PackageJsonData): {
     projectType: string
     framework: string
   } {
     const deps = {
-      ...(projectInfo.dependencies as Record<string, string> || {}),
-      ...(projectInfo.devDependencies as Record<string, string> || {})
+      ...(projectInfo.dependencies || {}),
+      ...(projectInfo.devDependencies || {})
     }
 
     if (deps.next) {
@@ -203,13 +208,13 @@ export class AIAnalysisService {
   private static async performContextualAnalysis(
     projectType: string,
     framework: string,
-    projectInfo: Record<string, unknown>,
+    projectInfo: PackageJsonData,
     structure: string[],
     requestDescription: string
   ): Promise<AIAnalysisData> {
     const deps = {
-      ...(projectInfo.dependencies as Record<string, string> || {}),
-      ...(projectInfo.devDependencies as Record<string, string> || {})
+      ...(projectInfo.dependencies || {}),
+      ...(projectInfo.devDependencies || {})
     }
 
     const prompt = AIPromptBuilder.buildContextualAnalysisPrompt(

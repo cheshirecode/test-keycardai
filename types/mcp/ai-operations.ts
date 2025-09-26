@@ -84,7 +84,7 @@ export interface AIExecutionStep {
   action: string
   tool: string
   success: boolean
-  result?: unknown
+  result?: ExecutionResult
   error?: string
   timestamp: string
 }
@@ -119,7 +119,7 @@ export interface WorkflowAction {
   step: number
   action: string
   tool: string
-  params: unknown
+  params: MCPToolParams | Record<string, unknown>
   description: string
 }
 
@@ -129,8 +129,213 @@ export interface WorkflowExecutionContext {
   onProgress?: (step: number, total: number, description: string) => void
 }
 
+// ============================================================================
+// MCP TOOL TYPES - Strongly typed tool definitions
+// ============================================================================
+
+/**
+ * Generic MCP tool function type with proper parameter and result typing
+ */
+export interface MCPToolFunction<TParams = unknown, TResult = unknown> {
+  (params: TParams): Promise<MCPToolResult<TResult>>
+}
+
+/**
+ * Standardized MCP tool result wrapper
+ */
+export interface MCPToolResult<T = unknown> {
+  success: boolean
+  data?: T
+  error?: string
+  metadata?: {
+    executionTime?: number
+    toolVersion?: string
+  }
+}
+
+/**
+ * Generate code tool parameters (AI-specific)
+ */
+export interface AIGenerateCodeParams {
+  type: 'component' | 'service' | 'utility' | 'test'
+  name: string
+  framework: string
+  content?: string
+  path?: string
+  template?: string
+}
+
+/**
+ * Add packages tool parameters
+ */
+export interface AddPackagesParams {
+  packages: string[]
+  dev?: boolean
+  exact?: boolean
+  registry?: string
+}
+
+/**
+ * Write file tool parameters
+ */
+export interface WriteFileParams {
+  path: string
+  content: string
+  encoding?: string
+  createDirectories?: boolean
+}
+
+/**
+ * Create directory tool parameters
+ */
+export interface CreateDirectoryParams {
+  path: string
+  recursive?: boolean
+  mode?: number
+}
+
+/**
+ * Run script tool parameters (AI-specific)
+ */
+export interface AIRunScriptParams {
+  script: string
+  cwd?: string
+  env?: Record<string, string>
+  timeout?: number
+}
+
+/**
+ * Union type for all MCP tool parameters
+ */
+export type MCPToolParams = 
+  | AIGenerateCodeParams 
+  | AddPackagesParams 
+  | WriteFileParams 
+  | CreateDirectoryParams 
+  | AIRunScriptParams
+
+/**
+ * Strongly-typed MCP tool registry with specific tool signatures
+ */
+export interface TypedMCPToolRegistry {
+  generate_code: MCPToolFunction<AIGenerateCodeParams, { filePath: string; content: string }>
+  add_packages: MCPToolFunction<AddPackagesParams, { installed: string[]; failed: string[] }>
+  write_file: MCPToolFunction<WriteFileParams, { path: string; size: number }>
+  create_directory: MCPToolFunction<CreateDirectoryParams, { path: string; created: boolean }>
+  run_script: MCPToolFunction<AIRunScriptParams, { exitCode: number; output: string; error?: string }>
+}
+
+/**
+ * Legacy MCP tool registry for backward compatibility
+ * @deprecated Use TypedMCPToolRegistry for better type safety
+ */
 export interface MCPToolRegistry {
   [toolName: string]: (...args: unknown[]) => Promise<unknown>
+}
+
+// ============================================================================
+// ANALYSIS DATA TYPES - Replace Record<string, unknown>
+// ============================================================================
+
+/**
+ * Project analysis data structure - replaces Record<string, unknown>
+ */
+export interface ProjectAnalysisData {
+  projectType: string
+  framework: string
+  structure: string[]
+  dependencies: Record<string, string>
+  devDependencies: Record<string, string>
+  scripts: Record<string, string>
+  recommendations: string[]
+  confidence: number
+  reasoning: string
+}
+
+/**
+ * Package.json data structure - replaces unknown for package parsing
+ */
+export interface PackageJsonData {
+  name: string
+  version?: string
+  description?: string
+  main?: string
+  scripts?: Record<string, string>
+  dependencies?: Record<string, string>
+  devDependencies?: Record<string, string>
+  peerDependencies?: Record<string, string>
+  engines?: Record<string, string>
+  keywords?: string[]
+  author?: string | { name: string; email?: string }
+  license?: string
+}
+
+/**
+ * Project structure information
+ */
+export interface ProjectStructureInfo {
+  files: string[]
+  directories: string[]
+  configFiles: string[]
+  sourceFiles: string[]
+  testFiles: string[]
+  documentationFiles: string[]
+}
+
+// ============================================================================
+// EXECUTION AND ERROR TYPES - Replace unknown types
+// ============================================================================
+
+/**
+ * Generic execution result type - replaces unknown for results
+ */
+export interface ExecutionResult<T = unknown> {
+  success: boolean
+  data?: T
+  error?: string
+  executionTime: number
+  timestamp: string
+}
+
+/**
+ * AI service response wrapper - replaces unknown for AI responses
+ */
+export interface AIServiceResponse<T = unknown> {
+  success: boolean
+  data: T
+  model: string
+  usage?: {
+    promptTokens: number
+    completionTokens: number
+    totalTokens: number
+  }
+  processingTime: number
+}
+
+/**
+ * AI operations error context - replaces Record<string, unknown> for error handling
+ */
+export interface AIErrorContext {
+  operation: string
+  timestamp: string
+  parameters?: Record<string, string | number | boolean>
+  stackTrace?: string
+  environment?: {
+    nodeVersion: string
+    platform: string
+    memory: number
+  }
+}
+
+/**
+ * Tool execution error details
+ */
+export interface ToolExecutionError {
+  toolName: string
+  parameters: MCPToolParams
+  error: string
+  timestamp: string
+  retryCount?: number
 }
 
 // ============================================================================
@@ -193,7 +398,7 @@ export interface AIProjectPlanResult extends MCPBaseResult {
       reasoning: string
       features: string[]
     }
-    actions: unknown[]
+    actions: WorkflowAction[]
     expectedOutcome: string
     totalSteps: number
     aiPowered: boolean
@@ -211,7 +416,7 @@ export interface AIProjectResult extends MCPBaseResult {
     features: string[]
     repositoryUrl?: string | null
     totalSteps: number
-    executionSteps: unknown[]
+    executionSteps: AIExecutionStep[]
     createdAt: string
     aiPowered: boolean
     llmUsed: string
@@ -226,13 +431,7 @@ export interface ContextualProjectResult extends MCPBaseResult {
     structure: string[]
     dependencies: Record<string, string>
     recommendations: string[]
-    modificationPlan?: Array<{
-      step: number
-      action: string
-      tool: string
-      params: unknown
-      description: string
-    }>
+    modificationPlan?: WorkflowAction[]
   }
 }
 
@@ -245,20 +444,14 @@ export interface IntelligentProjectSetupResult extends MCPBaseResult {
     recommendedName: string
   }
   plannedActions?: string[]
-  executionResults?: Array<{
-    action: string
-    tool: string
-    success: boolean
-    result?: unknown
-    error?: string
-  }> | null
+  executionResults?: AIExecutionStep[] | null
   aiPowered: boolean
   llmUsed: string
 }
 
 export interface AnalyzeAndOptimizeResult extends MCPBaseResult {
   analysis?: {
-    projectAnalysis: unknown
+    projectAnalysis: ProjectAnalysisData
     optimization: {
       recommendations: string[]
       reasoning: string
