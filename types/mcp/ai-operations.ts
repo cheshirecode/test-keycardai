@@ -1,11 +1,17 @@
 /**
  * AI Operations Types
  * Type definitions for AI-powered project analysis and creation
+ * 
+ * CENTRALIZED TYPE DEFINITIONS - All AI operation types are defined here
+ * to avoid duplication and ensure consistency across the codebase.
  */
 
 import { MCPBaseResult } from './base-types'
 
-// AI Operation Parameters
+// ============================================================================
+// AI OPERATION PARAMETERS
+// ============================================================================
+
 export interface AnalyzeProjectParams {
   description: string
 }
@@ -53,6 +59,118 @@ export interface GenerateModificationPlanParams {
   requestDescription: string
   analysisData?: unknown
   fastMode?: boolean
+}
+
+// ============================================================================
+// AI ANALYSIS AND WORKFLOW DATA TYPES
+// ============================================================================
+
+export interface AIAnalysisData {
+  projectType: string
+  confidence: number
+  reasoning: string
+  features: string[]
+  projectName?: string
+}
+
+export interface AIOptimizationResult {
+  recommendations: string[]
+  reasoning: string
+  aiPowered?: boolean
+}
+
+export interface AIExecutionStep {
+  step: number
+  action: string
+  tool: string
+  success: boolean
+  result?: unknown
+  error?: string
+  timestamp: string
+}
+
+// ============================================================================
+// WORKFLOW TYPES
+// ============================================================================
+
+export interface WorkflowContext {
+  projectPath: string
+  description: string
+  fastMode?: boolean
+  autoExecute?: boolean
+  projectName?: string
+  existingRepository?: {
+    name: string
+    url: string
+    description?: string
+  }
+}
+
+export interface WorkflowResult<T = unknown> {
+  success: boolean
+  message: string
+  data?: T
+  executionSteps?: AIExecutionStep[]
+  aiPowered: boolean
+  llmUsed: string
+}
+
+export interface WorkflowAction {
+  step: number
+  action: string
+  tool: string
+  params: unknown
+  description: string
+}
+
+export interface WorkflowExecutionContext {
+  mcpTools: MCPToolRegistry
+  abortController?: AbortController
+  onProgress?: (step: number, total: number, description: string) => void
+}
+
+export interface MCPToolRegistry {
+  [toolName: string]: (...args: unknown[]) => Promise<unknown>
+}
+
+// ============================================================================
+// WORKFLOW RESULT TYPES
+// ============================================================================
+
+export interface ProjectCreationWorkflowResult extends WorkflowResult {
+  data?: {
+    name: string
+    path: string
+    type: string
+    description: string
+    confidence: number
+    reasoning: string
+    features: string[]
+    repositoryUrl?: string | null
+    totalSteps: number
+    createdAt: string
+  }
+  chainOfThought?: string
+}
+
+export interface ProjectModificationWorkflowResult extends WorkflowResult {
+  data?: {
+    projectType: string
+    framework: string
+    structure: string[]
+    dependencies: Record<string, string>
+    recommendations: string[]
+    modificationPlan?: WorkflowAction[]
+  }
+}
+
+export interface ProjectAnalysisWorkflowResult extends WorkflowResult {
+  data?: {
+    projectAnalysis: AIAnalysisData
+    optimization: AIOptimizationResult | null
+    processingTime: number
+    modelUsed: string
+  }
 }
 
 // AI Result Types

@@ -6,102 +6,16 @@ import { CONFIG } from '@/lib/config'
 import type {
   IntelligentProjectSetupParams,
   CreateProjectWithAIParams,
-  GenerateModificationPlanParams
-} from '@/types/mcp-tools'
-
-export interface AnalyzeProjectParams {
-  description: string
-}
-
-export interface GenerateProjectPlanParams {
-  description: string
-  projectPath: string
-  projectName?: string
-}
-
-
-export interface AnalyzeAndOptimizeParams {
-  description: string
-  projectType?: string
-  includeOptimization?: boolean
-}
-
-export interface AnalyzeExistingProjectParams {
-  projectPath: string
-  requestDescription: string
-  includeFileAnalysis?: boolean
-}
-
-
-export interface ContextualProjectResult {
-  success: boolean
-  message: string
-  analysis?: {
-    projectType: string
-    framework: string
-    structure: string[]
-    dependencies: Record<string, string>
-    recommendations: string[]
-    modificationPlan?: Array<{
-      step: number
-      action: string
-      tool: string
-      params: unknown
-      description: string
-    }>
-  }
-}
-
-export interface AIAnalysisResult {
-  success: boolean
-  message: string
-  analysis?: {
-    projectType: string
-    features: string[]
-    confidence: number
-    reasoning: string
-    recommendedName?: string
-    aiPowered: boolean
-  } | null
-}
-
-export interface AIProjectPlanResult {
-  success: boolean
-  message: string
-  plan?: {
-    analysis: {
-      projectType: string
-      confidence: number
-      reasoning: string
-      features: string[]
-    }
-    actions: unknown[]
-    expectedOutcome: string
-    totalSteps: number
-    aiPowered: boolean
-  } | null
-}
-
-export interface AIProjectResult {
-  success: boolean
-  message: string
-  project?: {
-    name: string
-    path: string
-    type: string
-    description: string
-    confidence: number
-    reasoning: string
-    features: string[]
-    repositoryUrl?: string | null
-    totalSteps: number
-    executionSteps: unknown[]
-    createdAt: string
-    aiPowered: boolean
-    llmUsed: string
-  } | null
-  chainOfThought?: string
-}
+  GenerateModificationPlanParams,
+  AnalyzeProjectParams,
+  GenerateProjectPlanParams,
+  AnalyzeAndOptimizeParams,
+  AnalyzeExistingProjectParams,
+  ContextualProjectResult,
+  AIAnalysisResult,
+  AIProjectPlanResult,
+  AIProjectResult
+} from '@/types/mcp/ai-operations'
 
 /**
  * AI Operations Module
