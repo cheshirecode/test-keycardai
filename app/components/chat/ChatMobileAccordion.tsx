@@ -147,6 +147,39 @@ export function ChatMobileAccordion({
                           {/* Commit details collapsible */}
                           {isFirstCommit && (
                             <div className="mb-3 space-y-2">
+                              {/* Chat Log Disclaimer - First */}
+                              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                <p className="text-sm text-blue-800">
+                                  📝 <strong>Chat log is coming, stay tuned!</strong> Below you can see the commit history formatted as conversation messages.
+                                </p>
+                              </div>
+
+                              {/* Quick Actions Section - Second */}
+                              {isRepositoryMode && selectedRepository && (
+                                <div className="p-4 bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg">
+                                  <div className="text-center space-y-3">
+                                    <h3 className="text-lg font-semibold text-gray-900">
+                                      🔧 Ready to modify &ldquo;{selectedRepository.name}&rdquo;?
+                                    </h3>
+                                    <p className="text-sm text-gray-600">
+                                      Tell me what changes you&apos;d like to make, or try one of these quick options:
+                                    </p>
+                                    <div className="grid grid-cols-1 gap-2 max-w-md mx-auto">
+                                      {quickStartOptions.map((option) => (
+                                        <button
+                                          key={option}
+                                          onClick={() => handleQuickStart(option)}
+                                          className="p-3 text-left bg-white hover:bg-blue-50 text-blue-800 rounded-lg transition-colors text-sm border border-blue-200 hover:border-blue-300"
+                                          disabled={isLoading}
+                                        >
+                                          {option}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+
                               <details className="bg-green-50 border border-green-200 rounded-lg p-3">
                                 <summary className="cursor-pointer text-green-800 font-medium text-sm">
                                   📁 View Project Structure
@@ -164,31 +197,7 @@ export function ChatMobileAccordion({
                                 </div>
                               </details>
 
-                              {/* MCP Logs Section */}
-                              <details className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                                <summary className="cursor-pointer text-blue-800 font-medium text-sm">
-                                  🔧 MCP Operation Logs
-                                </summary>
-                                <div className="mt-2 space-y-2">
-                                  <div className="bg-white p-2 rounded border text-blue-900 overflow-hidden">
-                                    <div className="text-xs space-y-1">
-                                      <div className="flex flex-col gap-1">
-                                        <span className="font-medium">📦 File Operations:</span>
-                                        <span className="text-blue-700 break-all">✓ Created project structure</span>
-                                        <span className="text-blue-700 break-all">✓ Generated configuration files</span>
-                                        <span className="text-blue-700 break-all">✓ Initialized git repository</span>
-                                      </div>
-                                      <div className="flex flex-col gap-1 mt-2">
-                                        <span className="font-medium">🌐 GitHub Operations:</span>
-                                        <span className="text-blue-700 break-all">✓ Repository created successfully</span>
-                                        <span className="text-blue-700 break-all">✓ Initial commit pushed</span>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              </details>
-
-                              {/* Agent Chain of Thought Section */}
+                              {/* Agent Chain of Thought Section - Third */}
                               <details className="bg-purple-50 border border-purple-200 rounded-lg p-3">
                                 <summary className="cursor-pointer text-purple-800 font-medium text-sm">
                                   🧠 Agent Chain of Thought
@@ -216,6 +225,30 @@ export function ChatMobileAccordion({
                                   </div>
                                 </div>
                               </details>
+                              
+                              {/* MCP Logs Section - Last */}
+                              <details className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                                <summary className="cursor-pointer text-blue-800 font-medium text-sm">
+                                  🔧 MCP Operation Logs
+                                </summary>
+                                <div className="mt-2 space-y-2">
+                                  <div className="bg-white p-2 rounded border text-blue-900 overflow-hidden">
+                                    <div className="text-xs space-y-1">
+                                      <div className="flex flex-col gap-1">
+                                        <span className="font-medium">📦 File Operations:</span>
+                                        <span className="text-blue-700 break-all">✓ Created project structure</span>
+                                        <span className="text-blue-700 break-all">✓ Generated configuration files</span>
+                                        <span className="text-blue-700 break-all">✓ Initialized git repository</span>
+                                      </div>
+                                      <div className="flex flex-col gap-1 mt-2">
+                                        <span className="font-medium">🌐 GitHub Operations:</span>
+                                        <span className="text-blue-700 break-all">✓ Repository created successfully</span>
+                                        <span className="text-blue-700 break-all">✓ Initial commit pushed</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </details>
                             </div>
                           )}
                         </div>
@@ -223,40 +256,6 @@ export function ChatMobileAccordion({
                     )
                   })}
 
-                  {/* Coming soon note for repositories with commits but no messages */}
-                  {messages.length === 0 && commits.length > 0 && (
-                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                      <p className="text-sm text-blue-800">
-                        📝 <strong>Chat log is coming, stay tuned!</strong> Below you can see the commit history formatted as conversation messages.
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Quick start options for repository mode when there are commits but no messages */}
-                  {messages.length === 0 && commits.length > 0 && isRepositoryMode && selectedRepository && (
-                    <div className="p-4 bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg">
-                      <div className="text-center space-y-3">
-                        <h3 className="text-lg font-semibold text-gray-900">
-                          🔧 Ready to modify &ldquo;{selectedRepository.name}&rdquo;?
-                        </h3>
-                        <p className="text-sm text-gray-600">
-                          Tell me what changes you&apos;d like to make, or try one of these quick options:
-                        </p>
-                        <div className="grid grid-cols-1 gap-2 max-w-md mx-auto">
-                          {quickStartOptions.map((option) => (
-                            <button
-                              key={option}
-                              onClick={() => handleQuickStart(option)}
-                              className="p-3 text-left bg-white hover:bg-blue-50 text-blue-800 rounded-lg transition-colors text-sm border border-blue-200 hover:border-blue-300"
-                              disabled={isLoading}
-                            >
-                              {option}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  )}
 
                   {/* Render chat messages */}
                   {messages.map((message, index) => (
