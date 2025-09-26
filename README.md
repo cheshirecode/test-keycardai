@@ -10,29 +10,6 @@
 
 Transform natural language descriptions into working projects with automated GitHub repositories, real-time modifications, and comprehensive testing. This project demonstrates a practical implementation of an MCP (Model Context Protocol) client with AI-powered decision making.
 
-## 📈 Recent Improvements
-
-The project has undergone significant architectural improvements to enhance maintainability and code quality:
-
-### ✅ **GitHub Service Refactoring** (December 2024)
-- **Decomposed god object**: Reduced main GitHub service from 777 lines to 248 lines (68% reduction)
-- **Service-oriented architecture**: Split into 7 focused services (API client, auth, repository, user, content, file, error handling)
-- **Type system centralization**: Moved all GitHub types to `types/github/` for better organization
-- **Zero technical debt**: Resolved all TypeScript errors and linting warnings
-
-### ✅ **AI Operations Refactoring** (December 2024)  
-- **Modular AI services**: Broke down 1,176-line AI operations into focused services
-- **Type safety improvements**: Eliminated `unknown` types with proper interfaces
-- **Service composition**: Clean separation between analysis, planning, execution, and error handling
-- **Maintained API compatibility**: All existing functionality preserved
-
-### 🚀 **Planned: Rate Limiting System**
-- **Dual implementation approach**: Simple in-memory solution for development, distributed Redis solution for production
-- **Per-PAT rate limiting**: 1 operation per second per GitHub Personal Access Token
-- **Transparent integration**: Decorator pattern for existing MCP tools
-
-These improvements demonstrate ongoing commitment to code quality, maintainability, and architectural best practices while preserving all existing functionality.
-
 ---
 
 ## 🏗️ Architecture Design & Data Flow
@@ -1036,6 +1013,73 @@ This project demonstrates modern full-stack development practices within a 3-hou
 5. **Testing Pipeline**: Playwright E2E + Vitest unit tests
 6. **Monitoring System**: Comprehensive logging and error tracking
 7. **Documentation**: Complete README with all considerations addressed
+
+---
+
+## 📝 Changelog
+
+All notable changes to this project are documented below, grouped by type of change.
+
+### [2024-12-26] - Major Architecture Refactoring
+
+#### 🏗️ **Architecture**
+- **BREAKING**: Decomposed GitHub service god object (777 lines → 248 lines, 68% reduction)
+- **NEW**: Service-oriented architecture with 7 focused GitHub services
+- **NEW**: Repository Provider Pattern for vendor-agnostic git operations
+- **NEW**: Pluggable Storage Strategy for flexible deployment environments
+- **NEW**: In-memory project builder architecture planned
+- **IMPROVED**: Type system centralization - moved all GitHub types to `types/github/`
+
+#### 🤖 **AI Operations**
+- **BREAKING**: Refactored 1,176-line AI operations monolith into focused services
+- **NEW**: `AIAnalysisService` for project requirement analysis
+- **NEW**: `ProjectPlanningService` for execution plan generation
+- **NEW**: `ProjectExecutionService` for workflow orchestration
+- **NEW**: `AIErrorHandler` for centralized error management
+- **IMPROVED**: Type safety - eliminated all `unknown` types with proper interfaces
+- **IMPROVED**: Service composition with clean separation of concerns
+
+#### 🔧 **Technical Improvements**
+- **FIXED**: All TypeScript errors and linting warnings resolved
+- **IMPROVED**: Error handling with comprehensive fallback strategies
+- **IMPROVED**: Performance monitoring with Vercel Speed Insights integration
+- **IMPROVED**: Testing coverage with multi-layered testing approach
+
+#### 📚 **Documentation**
+- **NEW**: Deployment compatibility matrix for 6 major serverless platforms
+- **NEW**: Comprehensive project considerations for enterprise adoption
+- **NEW**: Security analysis with attack surface documentation
+- **NEW**: Performance metrics and scalability strategy
+- **IMPROVED**: Vendor-agnostic architecture documentation
+- **IMPROVED**: Migration strategy from file system to in-memory approach
+
+#### 🚀 **Features**
+- **NEW**: Rate limiting system design (in planning)
+- **IMPROVED**: MCP tool organization and modularity
+- **IMPROVED**: GitHub API integration with retry logic and error handling
+
+### [2024-12-25] - Initial Release
+
+#### 🎉 **Core Features**
+- **NEW**: AI-powered project scaffolding with OpenAI GPT-3.5-turbo
+- **NEW**: MCP (Model Context Protocol) client implementation
+- **NEW**: Natural language project creation interface
+- **NEW**: GitHub repository automation with API integration
+- **NEW**: Real-time project modification capabilities
+- **NEW**: Chat-style user interface with progress tracking
+
+#### 🏗️ **Infrastructure**
+- **NEW**: Next.js 15 full-stack application
+- **NEW**: TypeScript with strict type checking
+- **NEW**: Tailwind CSS for responsive design
+- **NEW**: Jotai for state management
+- **NEW**: Vercel deployment with serverless functions
+
+#### 🧪 **Testing**
+- **NEW**: Playwright E2E testing suite
+- **NEW**: Vitest unit testing framework
+- **NEW**: React Testing Library for component testing
+- **NEW**: Coverage reporting and CI/CD integration
 
 ---
 
