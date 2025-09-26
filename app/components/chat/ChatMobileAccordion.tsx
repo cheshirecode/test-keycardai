@@ -225,7 +225,7 @@ export function ChatMobileAccordion({
                                   </div>
                                 </div>
                               </details>
-                              
+
                               {/* MCP Logs Section - Last */}
                               <details className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                                 <summary className="cursor-pointer text-blue-800 font-medium text-sm">
