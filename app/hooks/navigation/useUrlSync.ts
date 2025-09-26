@@ -75,6 +75,13 @@ export function useUrlSync(dependencies: UrlSyncDependencies) {
           console.log('🏠 URL sync: Clearing repository selection on home page (not in new project mode)')
           repositoryActions.setSelectedRepository(null)
         }
+        
+        // Clear newly created repository highlighting when navigating to home
+        // This provides a clean slate for the user
+        if (repositoryState.newlyCreatedRepository && !repositoryState.isCreatingNewProject) {
+          console.log('🏠 URL sync: Clearing newly created repository highlighting on home page')
+          repositoryActions.setNewlyCreatedRepository(null)
+        }
       }
     }
 
@@ -84,5 +91,5 @@ export function useUrlSync(dependencies: UrlSyncDependencies) {
     return () => {
       controller.abort()
     }
-  }, [pathInfo, repositoryState.selectedRepository, repositoryState.isCreatingNewProject, repositoryActions, loadRepositoryByPath])
+  }, [pathInfo, repositoryState.selectedRepository, repositoryState.newlyCreatedRepository, repositoryState.isCreatingNewProject, repositoryActions, loadRepositoryByPath])
 }

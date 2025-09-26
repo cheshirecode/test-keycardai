@@ -46,7 +46,7 @@ export interface RepositoryAtomManager {
 
   // State setters
   setSelectedRepository: (repository: Repository | null) => void
-  setNewlyCreatedRepository: (repoName: string) => void
+  setNewlyCreatedRepository: (repoName: string | null) => void
   setIsCreatingNewProject: (creating: boolean) => void
   clearAllRepositoryData: (preserveCreatingFlag?: boolean) => void
   refreshRepositories: () => void

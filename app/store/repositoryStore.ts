@@ -182,22 +182,21 @@ export const setSelectedRepositoryAtom = atom(
 )
 
 /**
- * Set newly created repository with timeout cleanup
+ * Set newly created repository with reactive cleanup
+ * No more arbitrary timeouts - clearing is based on user actions
  */
 export const setNewlyCreatedRepositoryAtom = atom(
   null,
   (get, set, repositoryName: string | null) => {
+    console.log('🎯 setNewlyCreatedRepository - reactive pattern', { repositoryName })
     set(newlyCreatedRepositoryAtom, repositoryName)
-
-    // Auto-clear after 10 seconds to prevent persistent state
-    if (repositoryName) {
-      setTimeout(() => {
-        const current = get(newlyCreatedRepositoryAtom)
-        if (current === repositoryName) {
-          set(newlyCreatedRepositoryAtom, null)
-        }
-      }, 10000)
-    }
+    
+    // No setTimeout! Clearing happens reactively based on user actions:
+    // 1. When user selects the highlighted repository (in setSelectedRepositoryAtom)
+    // 2. When user starts new project mode (in startNewProjectModeAtom)
+    // 3. When user clears all repository data (in clearAllRepositoryDataAtom)
+    
+    console.log('✅ Repository highlighting set reactively - no race conditions')
   }
 )
 

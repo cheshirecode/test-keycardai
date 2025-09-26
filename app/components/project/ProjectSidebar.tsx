@@ -6,7 +6,6 @@ import { ChevronDownIcon, ChevronRightIcon, TrashIcon, FunnelIcon, ArrowUpIcon, 
 import { FolderIcon, GlobeAltIcon, LockClosedIcon } from '@heroicons/react/24/solid'
 import { useRepositories } from '@/hooks/useRepositories'
 import { useRepositoryNavigation } from '@/lib/navigation'
-import { CONFIG } from '@/lib/config'
 import { TypedMCPClient } from '@/lib/typed-mcp-client'
 import type { DeleteRepositoryParams, ListRepositoriesParams } from '@/types/mcp-tools'
 // Note: generateProjectId import removed - project pending state handling needs refactoring
@@ -81,17 +80,12 @@ export function ProjectSidebar({ selectedRepository, onRepositorySelect, classNa
     if (newlyCreatedRepository && repositories.length > 0) {
       // Just highlight the new repository without auto-navigation
       // User can click to navigate manually
-      const newRepo = repositories.find(repo =>
-        repo.name === newlyCreatedRepository ||
-        repo.fullName.includes(newlyCreatedRepository)
-      )
-
-      // Clear the newly created flag after highlighting
-      if (newRepo) {
-        setTimeout(() => {
-          // Clear after showing highlighting for a bit
-        }, CONFIG.TIMEOUTS.UI_FEEDBACK)
-      }
+      
+      // Highlighting will be cleared reactively when user:
+      // 1. Selects this repository (setSelectedRepositoryAtom)
+      // 2. Navigates to home page (useUrlSync)
+      // 3. Starts new project mode (startNewProjectModeAtom)
+      // No more arbitrary timeouts!
     }
   }, [repositories, newlyCreatedRepository])
 
