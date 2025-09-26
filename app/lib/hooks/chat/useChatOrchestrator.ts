@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useRepositoryManager } from '@/hooks/composed/useRepositoryManager'
-import { invalidateRepositoriesCache } from '@/hooks/useRepositories'
+import { useRepositoryActions } from '@/hooks/core/useRepositoryActions'
 import type { ProjectInfo } from '@/types'
 
 import { useMessageManager } from './useMessageManager'
@@ -34,12 +34,12 @@ export function useChatOrchestrator(fastMode: boolean = false) {
   const repositoryManager = useRepositoryManager()
   const {
     selectedRepository,
-    refreshRepositories,
     isCreatingNewProject,
-    setIsCreatingNewProject,
-    setNewlyCreatedRepository,
     navigateToRepository
   } = repositoryManager
+
+  // Get atomic operations to eliminate race conditions
+  const { completeProjectCreation, coordinatedCacheRefresh } = useRepositoryActions()
 
   const { messages, addMessage, clearMessages } = useMessageManager()
   const { classifyRequest } = useRequestClassifier()
@@ -105,20 +105,16 @@ export function useChatOrchestrator(fastMode: boolean = false) {
             await modifyRepositoryCommand.execute({
               content,
               repository: selectedRepository,
-              refreshRepositories,
-              invalidateRepositoriesCache
+              coordinatedCacheRefresh
             })
           } else {
             // Fallback to new project creation
             await createProjectCommand.execute({
               content,
               setCurrentProject,
-              setNewlyCreatedRepository,
-              refreshRepositories,
               navigateToRepository,
-              invalidateRepositoriesCache,
               isCreatingNewProject,
-              setIsCreatingNewProject,
+              completeProjectCreation,
               ...(fastMode !== undefined && { fastMode })
             })
           }
@@ -135,12 +131,9 @@ export function useChatOrchestrator(fastMode: boolean = false) {
             await createProjectCommand.execute({
               content,
               setCurrentProject,
-              setNewlyCreatedRepository,
-              refreshRepositories,
               navigateToRepository,
-              invalidateRepositoriesCache,
               isCreatingNewProject,
-              setIsCreatingNewProject,
+              completeProjectCreation,
               ...(fastMode !== undefined && { fastMode })
             })
           }
@@ -151,12 +144,9 @@ export function useChatOrchestrator(fastMode: boolean = false) {
           await createProjectCommand.execute({
             content,
             setCurrentProject,
-            setNewlyCreatedRepository,
-            refreshRepositories,
             navigateToRepository,
-            invalidateRepositoriesCache,
             isCreatingNewProject,
-            setIsCreatingNewProject
+            completeProjectCreation
           })
           break
       }

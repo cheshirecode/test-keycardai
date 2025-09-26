@@ -104,13 +104,11 @@ export interface CommandContext {
 export interface CreateProjectParams {
   content: string
   setCurrentProject: (project: ProjectInfo | null) => void
-  setNewlyCreatedRepository: (repoName: string) => void
-  refreshRepositories: () => void
   navigateToRepository: (repo: Repository) => void
-  invalidateRepositoriesCache: () => void
   isCreatingNewProject: boolean
-  setIsCreatingNewProject: (creating: boolean) => void
   fastMode?: boolean
+  // Atomic operations - no more parameter explosion
+  completeProjectCreation: (projectData: { repositoryUrl: string; name: string; isNewProject: boolean }) => void
 }
 
 export interface ModifyProjectParams {
@@ -121,8 +119,8 @@ export interface ModifyProjectParams {
 export interface ModifyRepositoryParams {
   content: string
   repository: Repository
-  refreshRepositories: () => void
-  invalidateRepositoriesCache: () => void
+  // Atomic operations - no more parameter explosion
+  coordinatedCacheRefresh: () => void
 }
 
 // Request Classification Types

@@ -5,8 +5,8 @@ import type { MCPLogEntry, Repository } from '@/types'
 export interface ModifyRepositoryParams {
   content: string
   repository: Repository
-  refreshRepositories: () => void
-  invalidateRepositoriesCache: () => void
+  // Atomic operations - no more parameter explosion
+  coordinatedCacheRefresh: () => void
 }
 
 /**
@@ -200,13 +200,9 @@ export class ModifyRepositoryCommand extends BaseCommand {
 
       this.addMessage('assistant', successMessage, planMessage, mcpLogs)
 
-      // Refresh the repositories list after successful modification
-      setTimeout(() => {
-        if (this.checkMounted()) {
-          params.invalidateRepositoriesCache()
-          params.refreshRepositories()
-        }
-      }, 1000)
+      // Use atomic operation for coordinated cache refresh - no race conditions
+      params.coordinatedCacheRefresh()
+      console.log('✅ Repository modification cache refresh completed atomically')
 
       return {
         success: true,

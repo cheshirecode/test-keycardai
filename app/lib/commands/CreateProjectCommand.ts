@@ -5,13 +5,11 @@ import type { MCPLogEntry, ProjectInfo, Repository } from '@/types'
 export interface CreateProjectParams {
   content: string
   setCurrentProject: (project: ProjectInfo | null) => void
-  setNewlyCreatedRepository: (repoName: string) => void
-  refreshRepositories: () => void
   navigateToRepository: (repo: Repository) => void
-  invalidateRepositoriesCache: () => void
   isCreatingNewProject: boolean
-  setIsCreatingNewProject: (creating: boolean) => void
   fastMode?: boolean
+  // Atomic operations - no more parameter explosion
+  completeProjectCreation: (projectData: { repositoryUrl: string; name: string; isNewProject: boolean }) => void
 }
 
 /**
@@ -114,46 +112,16 @@ export class CreateProjectCommand extends BaseCommand {
         // Add single comprehensive message with debugging info
         this.addMessage('assistant', responseContent, chainOfThought, mcpLogs)
 
-        // Handle new project creation flow
-        if (project.repositoryUrl && params.isCreatingNewProject) {
-          // Clear the creating flag
-          params.setIsCreatingNewProject(false)
-
-          // Extract repository name from URL or use project name
-          const repoName = project.repositoryUrl.split('/').pop() || project.name
-          params.setNewlyCreatedRepository(repoName)
-
-          // Invalidate SWR cache and refresh sidebar only (no navigation yet)
-          params.invalidateRepositoriesCache()
+        // Handle project creation completion with atomic operation
+        if (project.repositoryUrl) {
+          // Use atomic operation to handle all project creation state updates
+          params.completeProjectCreation({
+            repositoryUrl: project.repositoryUrl,
+            name: project.name,
+            isNewProject: params.isCreatingNewProject
+          })
           
-          // Refresh repositories sidebar silently without navigation
-          setTimeout(async () => {
-            if (!this.checkMounted()) return
-
-            try {
-              // Just refresh the repositories list
-              params.refreshRepositories()
-              
-              // The sidebar will automatically highlight the new project
-              // via the newlyCreatedRepository state in ProjectSidebar
-              
-            } catch (error) {
-              console.error('Failed to refresh repositories:', error)
-              // Fallback refresh
-              if (this.checkMounted()) {
-                params.refreshRepositories()
-              }
-            }
-          }, 1500) // Shorter delay for better UX
-        } else if (project.repositoryUrl) {
-          // Fallback for non-new-project flows
-          const repoName = project.repositoryUrl.split('/').pop() || project.name
-          params.setNewlyCreatedRepository(repoName)
-
-          setTimeout(() => {
-            params.invalidateRepositoriesCache()
-            params.refreshRepositories()
-          }, 1000)
+          console.log('✅ Project creation completed atomically - no race conditions')
         }
 
         return {
