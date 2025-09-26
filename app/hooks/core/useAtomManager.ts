@@ -25,6 +25,8 @@ import {
   clearAllRepositoryDataAtom,
   refreshRepositoriesAtom,
   startNewProjectModeAtom,
+  completeProjectCreationAtom,
+  coordinatedCacheRefreshAtom,
   // isNewlyCreatedRepositoryAtom - removed due to type mismatch, needs refactoring
 } from '@/store/repositoryStore'
 import { isFastModeAtom } from '@/store/aiRequestStore'
@@ -41,17 +43,19 @@ export interface RepositoryAtomManager {
   getIsRepositoryMode: () => boolean
   getCurrentRepositoryInfo: () => unknown
   getIsNewlyCreatedRepository: (repoName: string) => boolean
-  
+
   // State setters
   setSelectedRepository: (repository: Repository | null) => void
   setNewlyCreatedRepository: (repoName: string) => void
   setIsCreatingNewProject: (creating: boolean) => void
   clearAllRepositoryData: (preserveCreatingFlag?: boolean) => void
   refreshRepositories: () => void
-  
+
   // Atomic actions (prevent race conditions)
   startNewProjectMode: () => void
-  
+  completeProjectCreation: (projectData: { repositoryUrl: string; name: string; isNewProject: boolean }) => void
+  coordinatedCacheRefresh: () => void
+
   // Callback management
   getOnRepositoryRefresh: () => (() => void) | null
   setOnRepositoryRefresh: (callback: (() => void) | null) => void
@@ -85,6 +89,8 @@ export function useAtomManager() {
   const clearAllRepositoryDataAction = useSetAtom(clearAllRepositoryDataAtom)
   const refreshRepositoriesAction = useSetAtom(refreshRepositoriesAtom)
   const startNewProjectModeAction = useSetAtom(startNewProjectModeAtom)
+  const completeProjectCreationAction = useSetAtom(completeProjectCreationAtom)
+  const coordinatedCacheRefreshAction = useSetAtom(coordinatedCacheRefreshAtom)
   // isNewlyCreatedRepositoryCheck removed - needs proper refactoring for string-based checking
 
   // AI atoms
@@ -113,6 +119,8 @@ export function useAtomManager() {
 
     // Atomic actions (prevent race conditions)
     startNewProjectMode: startNewProjectModeAction,
+    completeProjectCreation: completeProjectCreationAction,
+    coordinatedCacheRefresh: coordinatedCacheRefreshAction,
 
     // Callback management
     getOnRepositoryRefresh: () => onRepositoryRefresh,

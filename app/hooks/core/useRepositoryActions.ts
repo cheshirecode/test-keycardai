@@ -23,9 +23,11 @@ export interface RepositoryActions {
   clearAllRepositoryData: (preserveCreatingFlag?: boolean) => void
   refreshRepositories: () => void
   setOnRepositoryRefresh: (callback: (() => void) | null) => void
-  
+
   // Atomic actions (prevent race conditions)
   startNewProjectMode: () => void
+  completeProjectCreation: (projectData: { repositoryUrl: string; name: string; isNewProject: boolean }) => void
+  coordinatedCacheRefresh: () => void
 }
 
 /**
@@ -41,8 +43,10 @@ export function useRepositoryActions(): RepositoryActions {
     clearAllRepositoryData: repository.clearAllRepositoryData,
     refreshRepositories: repository.refreshRepositories,
     setOnRepositoryRefresh: repository.setOnRepositoryRefresh,
-    
+
     // Atomic actions (prevent race conditions)
-    startNewProjectMode: repository.startNewProjectMode
+    startNewProjectMode: repository.startNewProjectMode,
+    completeProjectCreation: repository.completeProjectCreation,
+    coordinatedCacheRefresh: repository.coordinatedCacheRefresh
   }
 }

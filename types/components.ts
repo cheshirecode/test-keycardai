@@ -62,6 +62,7 @@ export interface ChatInputFormProps {
   selectedRepository: Repository | null
   isCreatingNewProject: boolean
   handleSubmit: (e: React.FormEvent) => void
+  inputRef?: React.RefObject<HTMLInputElement>
 }
 
 export interface ChatQuickStartProps {
@@ -94,6 +95,7 @@ export interface ChatMobileAccordionProps {
   setInput: (value: string) => void
   handleSubmit: (e: React.FormEvent) => void
   messagesEndRef: React.RefObject<HTMLDivElement>
+  inputRef?: React.RefObject<HTMLInputElement>
 }
 
 export interface ChatLayoutState {

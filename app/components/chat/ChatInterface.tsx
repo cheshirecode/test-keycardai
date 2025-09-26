@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import { useChat } from '@/lib/hooks/useChat'
 import { ProjectPreview } from '@/components/project'
 import { RepositoryPreview } from '@/components/repository'
@@ -25,6 +25,7 @@ import { ChatInterfaceProps } from '@/types'
 
 export function ChatInterface({ onToggleSidebar }: ChatInterfaceProps = {}) {
   const [input, setInput] = useState('')
+  const inputRef = useRef<HTMLInputElement>(null)
 
   // Use new decoupled hooks - NO MORE DIRECT ATOM ACCESS!
   const { isFastMode, setIsFastMode } = useAIManager()
@@ -58,6 +59,14 @@ export function ChatInterface({ onToggleSidebar }: ChatInterfaceProps = {}) {
   // Use extracted scrolling hook
   const { messagesEndRef } = useChatScrolling(messages)
 
+  // Reactive input focus when entering new project mode
+  useEffect(() => {
+    if (isCreatingNewProject && inputRef.current) {
+      inputRef.current.focus()
+      console.log('🎯 Input focused reactively for new project mode')
+    }
+  }, [isCreatingNewProject])
+
   // Handle new project creation with simplified state management
   const handleNewProject = useCallback(() => {
     console.log('🚀 New Project clicked - starting clean project flow')
@@ -66,16 +75,8 @@ export function ChatInterface({ onToggleSidebar }: ChatInterfaceProps = {}) {
     clearChat()
 
     // Use the simplified new project flow from Jotai atoms
+    // This will trigger the reactive focus effect above
     startNewProject()
-
-    // Focus on input after a brief delay
-    setTimeout(() => {
-      const input = document.querySelector('input[type="text"]') as HTMLInputElement
-      if (input) {
-        input.focus()
-        console.log('🎯 Input focused successfully')
-      }
-    }, 100)
 
     console.log('✅ New Project flow completed')
   }, [clearChat, startNewProject])
@@ -142,6 +143,7 @@ export function ChatInterface({ onToggleSidebar }: ChatInterfaceProps = {}) {
                 selectedRepository={selectedRepository}
                 isCreatingNewProject={isCreatingNewProject}
                 handleSubmit={handleSubmit}
+                inputRef={inputRef}
               />
           </div>
 
@@ -197,6 +199,7 @@ export function ChatInterface({ onToggleSidebar }: ChatInterfaceProps = {}) {
           setInput={setInput}
           handleSubmit={handleSubmit}
           messagesEndRef={messagesEndRef}
+          inputRef={inputRef}
         />
       </div>
     </div>

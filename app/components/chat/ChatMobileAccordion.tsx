@@ -22,7 +22,8 @@ export function ChatMobileAccordion({
   input,
   setInput,
   handleSubmit,
-  messagesEndRef
+  messagesEndRef,
+  inputRef
 }: ChatMobileAccordionProps) {
   // Mobile accordion component for responsive layout
 
@@ -187,6 +188,7 @@ export function ChatMobileAccordion({
               <form onSubmit={handleSubmit} className="space-y-2">
                 <div className="flex space-x-2">
                   <input
+                    ref={inputRef}
                     type="text"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}

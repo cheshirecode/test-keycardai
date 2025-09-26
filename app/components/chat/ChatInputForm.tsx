@@ -13,12 +13,14 @@ export function ChatInputForm({
   isRepositoryMode,
   selectedRepository,
   isCreatingNewProject,
-  handleSubmit
+  handleSubmit,
+  inputRef
 }: ChatInputFormProps) {
   return (
     <div className="border-t p-4">
       <form onSubmit={handleSubmit} className="flex space-x-3">
         <input
+          ref={inputRef}
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}

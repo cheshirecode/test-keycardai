@@ -99,13 +99,55 @@ export const startNewProjectModeAtom = atom(
   null,
   (get, set) => {
     console.log('🚀 startNewProjectMode - atomic action')
-    
+
     // Single atomic operation - no race conditions possible
     set(selectedRepositoryAtom, null)
     set(newlyCreatedRepositoryAtom, null)
     set(isCreatingNewProjectAtom, true)
-    
+
     console.log('✅ New project mode activated atomically')
+  }
+)
+
+/**
+ * Atomic action for project creation completion
+ * Handles all state updates that happen when a project is successfully created
+ */
+export const completeProjectCreationAtom = atom(
+  null,
+  (get, set, projectData: { repositoryUrl: string; name: string; isNewProject: boolean }) => {
+    console.log('🎯 completeProjectCreation - atomic action', projectData)
+
+    // Extract repository name from URL or use project name
+    const repoName = projectData.repositoryUrl.split('/').pop() || projectData.name
+
+    // Atomic project creation completion
+    if (projectData.isNewProject) {
+      set(isCreatingNewProjectAtom, false)
+    }
+    set(newlyCreatedRepositoryAtom, repoName)
+
+    // Trigger refresh without setTimeout - use reactive pattern
+    set(refreshRepositoriesAtom)
+
+    console.log('✅ Project creation completed atomically', { repoName })
+  }
+)
+
+/**
+ * Atomic action for cache refresh coordination
+ * Ensures cache invalidation and refresh happen together
+ */
+export const coordinatedCacheRefreshAtom = atom(
+  null,
+  (get, set) => {
+    console.log('🔄 coordinatedCacheRefresh - atomic action')
+
+    // Coordinate cache operations atomically
+    // This will be used by commands instead of separate invalidate + refresh calls
+    set(refreshRepositoriesAtom)
+
+    console.log('✅ Cache refresh coordinated atomically')
   }
 )
 
