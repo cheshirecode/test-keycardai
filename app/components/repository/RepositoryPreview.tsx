@@ -253,9 +253,9 @@ This project is licensed under the MIT License.
       {/* README Preview */}
       <div>
         <h4 className="font-medium text-gray-900 mb-2">README.md</h4>
-        <div className="bg-gray-50 rounded-lg p-4 text-sm">
+        <div className="bg-gray-50 rounded-lg p-3 sm:p-4 text-xs sm:text-sm overflow-hidden">
           {details?.readme ? (
-            <pre className="whitespace-pre-wrap font-mono text-gray-700 leading-relaxed">
+            <pre className="whitespace-pre-wrap font-mono text-gray-700 leading-relaxed break-words overflow-hidden max-w-full">
               {details.readme}
             </pre>
           ) : hasGitHubData && !isLoading ? (
@@ -265,13 +265,13 @@ This project is licensed under the MIT License.
                 <summary className="cursor-pointer text-blue-600 hover:text-blue-800 text-sm">
                   Show fallback README
                 </summary>
-                <pre className="mt-2 whitespace-pre-wrap font-mono text-gray-600 leading-relaxed text-xs">
+                <pre className="mt-2 whitespace-pre-wrap font-mono text-gray-600 leading-relaxed text-xs break-words overflow-hidden max-w-full">
                   {generateFallbackReadme(repository)}
                 </pre>
               </details>
             </div>
           ) : (
-            <pre className="whitespace-pre-wrap font-mono text-gray-700 leading-relaxed">
+            <pre className="whitespace-pre-wrap font-mono text-gray-700 leading-relaxed break-words overflow-hidden max-w-full">
               {generateFallbackReadme(repository)}
             </pre>
           )}
@@ -296,14 +296,14 @@ This project is licensed under the MIT License.
               </div>
               <div className="flex-1 min-w-0 space-y-2">
                 {/* Commit Message */}
-                <p className="text-sm font-medium text-amber-900">
+                <p className="text-xs sm:text-sm font-medium text-amber-900 break-words overflow-hidden">
                   {latestCommit.subject}
                 </p>
 
                 {/* Commit SHA */}
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-medium text-amber-700">SHA:</span>
-                  <code className="bg-white px-2 py-1 rounded border text-amber-900 font-mono text-xs">
+                <div className="flex items-start gap-2">
+                  <span className="text-xs font-medium text-amber-700 flex-shrink-0 mt-1">SHA:</span>
+                  <code className="bg-white px-2 py-1 rounded border text-amber-900 font-mono text-xs break-all overflow-hidden min-w-0 flex-1">
                     {latestCommit.hash.substring(0, 12)}
                   </code>
                 </div>

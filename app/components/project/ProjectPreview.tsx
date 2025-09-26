@@ -200,7 +200,7 @@ export function ProjectPreview({ project }: ProjectPreviewProps) {
       {template && (
         <div>
           <h4 className="font-medium text-gray-900 mb-3">File Structure</h4>
-          <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-sm max-h-64 overflow-y-auto">
+          <div className="bg-gray-900 text-gray-100 p-3 sm:p-4 rounded-lg font-mono text-xs sm:text-sm max-h-64 overflow-y-auto overflow-x-hidden">
             <div className="space-y-1">
               {Object.keys(template.files).sort().map((filePath) => {
                 const isDirectory = filePath.endsWith('/')
@@ -208,9 +208,9 @@ export function ProjectPreview({ project }: ProjectPreviewProps) {
                 const displayPath = filePath.replace(/\/$/, '')
 
                 return (
-                  <div key={filePath} className="flex items-center space-x-2">
-                    <span className="text-blue-400">{icon}</span>
-                    <span className={isDirectory ? 'text-yellow-300' : 'text-gray-300'}>
+                  <div key={filePath} className="flex items-center space-x-2 min-w-0">
+                    <span className="text-blue-400 flex-shrink-0">{icon}</span>
+                    <span className={`${isDirectory ? 'text-yellow-300' : 'text-gray-300'} truncate break-all min-w-0`}>
                       {displayPath}
                     </span>
                   </div>
@@ -309,13 +309,13 @@ export function ProjectPreview({ project }: ProjectPreviewProps) {
                   )}
                   <div>
                     <p className="text-sm font-medium text-purple-800 mb-1">Repository URL:</p>
-                    <div className="flex items-center gap-2">
-                      <code className="flex-1 px-2 py-1 bg-white rounded text-sm text-purple-900 border">
+                    <div className="flex items-start gap-2">
+                      <code className="flex-1 px-2 py-1 bg-white rounded text-xs sm:text-sm text-purple-900 border break-all overflow-hidden">
                         {gitInfo.repositoryUrl}
                       </code>
                       <button
                         onClick={() => copyToClipboard(gitInfo.repositoryUrl)}
-                        className="px-2 py-1 bg-purple-500 text-white text-xs rounded hover:bg-purple-600 transition-colors"
+                        className="px-2 py-1 bg-purple-500 text-white text-xs rounded hover:bg-purple-600 transition-colors flex-shrink-0"
                         title="Copy to clipboard"
                       >
                         📋
@@ -324,13 +324,13 @@ export function ProjectPreview({ project }: ProjectPreviewProps) {
                   </div>
                   <div>
                     <p className="text-sm font-medium text-purple-800 mb-1">Clone Command:</p>
-                    <div className="flex items-center gap-2">
-                      <code className="flex-1 px-2 py-1 bg-white rounded text-sm text-purple-900 border">
+                    <div className="flex items-start gap-2">
+                      <code className="flex-1 px-2 py-1 bg-white rounded text-xs sm:text-sm text-purple-900 border break-all overflow-hidden">
                         {gitInfo.cloneCommand}
                       </code>
                       <button
                         onClick={() => copyToClipboard(gitInfo.cloneCommand)}
-                        className="px-2 py-1 bg-purple-500 text-white text-xs rounded hover:bg-purple-600 transition-colors"
+                        className="px-2 py-1 bg-purple-500 text-white text-xs rounded hover:bg-purple-600 transition-colors flex-shrink-0"
                         title="Copy to clipboard"
                       >
                         📋
@@ -364,9 +364,9 @@ export function ProjectPreview({ project }: ProjectPreviewProps) {
               ) : latestCommit ? (
                 <div className="space-y-3">
                   {/* Commit SHA - Prominent display */}
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-medium text-amber-700">SHA:</span>
-                    <code className="flex-1 bg-white px-3 py-1 rounded border text-amber-900 font-mono text-sm">
+                  <div className="flex items-start gap-2">
+                    <span className="text-xs font-medium text-amber-700 flex-shrink-0 mt-1">SHA:</span>
+                    <code className="flex-1 bg-white px-2 sm:px-3 py-1 rounded border text-amber-900 font-mono text-xs sm:text-sm break-all overflow-hidden">
                       {latestCommit.hash.substring(0, 12)}
                     </code>
                     <button
@@ -374,7 +374,7 @@ export function ProjectPreview({ project }: ProjectPreviewProps) {
                         navigator.clipboard.writeText(latestCommit.hash)
                         // You could add a toast notification here
                       }}
-                      className="px-2 py-1 bg-amber-500 text-white text-xs rounded hover:bg-amber-600 transition-colors"
+                      className="px-2 py-1 bg-amber-500 text-white text-xs rounded hover:bg-amber-600 transition-colors flex-shrink-0"
                       title="Copy full SHA"
                     >
                       📋
@@ -384,7 +384,7 @@ export function ProjectPreview({ project }: ProjectPreviewProps) {
                   {/* Commit Message - Prominent display */}
                   <div>
                     <span className="text-xs font-medium text-amber-700 block mb-1">Message:</span>
-                    <p className="bg-white px-3 py-2 rounded border text-amber-900 text-sm font-medium">
+                    <p className="bg-white px-2 sm:px-3 py-2 rounded border text-amber-900 text-xs sm:text-sm font-medium break-words overflow-hidden">
                       {latestCommit.subject}
                     </p>
                   </div>

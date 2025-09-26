@@ -111,19 +111,72 @@ export function ChatMobileAccordion({
 
                           {/* Commit details collapsible */}
                           {isFirstCommit && (
-                            <div className="mb-3">
+                            <div className="mb-3 space-y-2">
                               <details className="bg-green-50 border border-green-200 rounded-lg p-3">
                                 <summary className="cursor-pointer text-green-800 font-medium text-sm">
                                   📁 View Project Structure
                                 </summary>
                                 <div className="mt-2 space-y-2">
-                                  <div className="flex items-start gap-2">
-                                    <div className="text-green-700 text-xs font-medium bg-green-200 px-2 py-1 rounded">
+                                  <div className="flex flex-col gap-2">
+                                    <div className="text-green-700 text-xs font-medium bg-green-200 px-2 py-1 rounded break-words">
                                       <span className="font-medium">🏗️ Project Scaffolding</span>
-                                      <span className="text-xs opacity-75">{new Date(commit.timestamp).toLocaleString()}</span>
+                                      <span className="block text-xs opacity-75 mt-1">{new Date(commit.timestamp).toLocaleString()}</span>
                                     </div>
-                                    <div className="bg-white p-2 rounded border text-green-900">
-                                      <pre className="text-xs">Initial project structure created via scaffolding tools</pre>
+                                    <div className="bg-white p-2 rounded border text-green-900 overflow-hidden">
+                                      <pre className="text-xs whitespace-pre-wrap break-words max-w-full overflow-hidden">Initial project structure created via scaffolding tools</pre>
+                                    </div>
+                                  </div>
+                                </div>
+                              </details>
+                              
+                              {/* MCP Logs Section */}
+                              <details className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                                <summary className="cursor-pointer text-blue-800 font-medium text-sm">
+                                  🔧 MCP Operation Logs
+                                </summary>
+                                <div className="mt-2 space-y-2">
+                                  <div className="bg-white p-2 rounded border text-blue-900 overflow-hidden">
+                                    <div className="text-xs space-y-1">
+                                      <div className="flex flex-col gap-1">
+                                        <span className="font-medium">📦 File Operations:</span>
+                                        <span className="text-blue-700 break-all">✓ Created project structure</span>
+                                        <span className="text-blue-700 break-all">✓ Generated configuration files</span>
+                                        <span className="text-blue-700 break-all">✓ Initialized git repository</span>
+                                      </div>
+                                      <div className="flex flex-col gap-1 mt-2">
+                                        <span className="font-medium">🌐 GitHub Operations:</span>
+                                        <span className="text-blue-700 break-all">✓ Repository created successfully</span>
+                                        <span className="text-blue-700 break-all">✓ Initial commit pushed</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </details>
+
+                              {/* Agent Chain of Thought Section */}
+                              <details className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+                                <summary className="cursor-pointer text-purple-800 font-medium text-sm">
+                                  🧠 Agent Chain of Thought
+                                </summary>
+                                <div className="mt-2 space-y-2">
+                                  <div className="bg-white p-2 rounded border text-purple-900 overflow-hidden">
+                                    <div className="text-xs space-y-2">
+                                      <div className="break-words">
+                                        <span className="font-medium block">1. Project Analysis:</span>
+                                        <span className="text-purple-700">Analyzed user requirements and selected appropriate template</span>
+                                      </div>
+                                      <div className="break-words">
+                                        <span className="font-medium block">2. Structure Planning:</span>
+                                        <span className="text-purple-700">Designed file structure based on best practices</span>
+                                      </div>
+                                      <div className="break-words">
+                                        <span className="font-medium block">3. Implementation:</span>
+                                        <span className="text-purple-700">Generated files, configured dependencies, and initialized repository</span>
+                                      </div>
+                                      <div className="break-words">
+                                        <span className="font-medium block">4. Verification:</span>
+                                        <span className="text-purple-700">Validated project structure and repository creation</span>
+                                      </div>
                                     </div>
                                   </div>
                                 </div>
