@@ -186,6 +186,197 @@ app/lib/commands/
 **Complexity:** Medium-High
 **Severity:** CRITICAL - Affects testability and maintainability
 
+### **Phase 6: Race Condition & Non-Atomic State Management (CRITICAL)**
+**Duration:** 1-2 days
+**Complexity:** High
+**Severity:** CRITICAL - Causes user-facing bugs and data inconsistency
+
+**🚨 RACE CONDITION ANALYSIS - Critical State Management Issues:**
+
+#### **1. NON-ATOMIC STATE OPERATIONS (7 Critical Patterns)**
+
+**Pattern A: Sequential State Updates Without Atomicity**
+```typescript
+// ❌ CRITICAL ISSUE: CreateProjectCommand.ts lines 119-127
+// Multiple separate state updates create race condition window
+params.setIsCreatingNewProject(false)          // State update 1
+const repoName = project.repositoryUrl.split('/').pop() || project.name
+params.setNewlyCreatedRepository(repoName)     // State update 2
+params.invalidateRepositoriesCache()           // Cache operation 3
+setTimeout(() => {                             // Delayed operation 4
+  params.refreshRepositories()                 // Async operation 5
+}, 1500)
+
+// RACE CONDITION: URL sync can interfere between updates 1-5
+// USER IMPACT: New Project button requires double-click
+```
+
+**Pattern B: Async Operations with State Dependencies**
+```typescript
+// ❌ CRITICAL ISSUE: useUrlSync.ts lines 48-62
+const repository = await loadRepositoryByPath(pathInfo.owner, pathInfo.repo)
+// ... async gap where state can change ...
+if (repository && (!repositoryState.selectedRepository ||
+    repositoryState.selectedRepository.id !== repository.id)) {
+  if (!controller.signal.aborted) {
+    repositoryActions.setSelectedRepository(repository)  // State update after async gap
+  }
+}
+
+// RACE CONDITION: Repository state can change during async fetch
+// USER IMPACT: Inconsistent repository selection behavior
+```
+
+**Pattern C: Timing-Dependent State Updates**
+```typescript
+// ❌ CRITICAL ISSUE: ChatInterface.tsx lines 72-78
+setTimeout(() => {
+  const input = document.querySelector('input[type="text"]') as HTMLInputElement
+  if (input) {
+    input.focus()  // DOM operation depends on state timing
+  }
+}, 100)
+
+// RACE CONDITION: DOM may not be ready, state may have changed
+// USER IMPACT: Focus behavior inconsistent
+```
+
+#### **2. MULTIPLE SOURCES OF TRUTH (4 Identified)**
+
+**Issue A: Conflicting State Management Patterns**
+```typescript
+// ❌ MainLayout.tsx - Two conflicting patterns
+useRepositoryState()    // Abstraction layer
+useRepositorySync()     // Direct atom access - CONFLICT!
+
+// RACE CONDITION: Two hooks managing same state differently
+// USER IMPACT: State inconsistencies, unpredictable behavior
+```
+
+**Issue B: Command Parameter Explosion**
+```typescript
+// ❌ CreateProjectCommand.execute() - 10+ state setters passed as params
+setCurrentProject, setNewlyCreatedRepository, refreshRepositories,
+navigateToRepository, invalidateRepositoriesCache, isCreatingNewProject,
+setIsCreatingNewProject, ...
+
+// RACE CONDITION: Commands can call setters in any order
+// USER IMPACT: Partial state updates, inconsistent UI state
+```
+
+#### **3. ASYNC OPERATION INTERFERENCE (5 Critical Areas)**
+
+**Area A: URL Synchronization vs User Actions**
+```typescript
+// ❌ useUrlSync.ts - Aggressive state clearing
+if (repositoryState.selectedRepository && !repositoryState.isCreatingNewProject) {
+  repositoryActions.setSelectedRepository(null)  // Can override user selection
+}
+
+// RACE CONDITION: URL sync overrides user-initiated state changes
+// USER IMPACT: Selected repository gets cleared unexpectedly
+```
+
+**Area B: Command Execution vs State Changes**
+```typescript
+// ❌ useChatOrchestrator.ts lines 85-169
+setIsLoading(true)
+addMessage('user', content)
+// ... async command execution ...
+await createProjectCommand.execute(params)
+// ... state can change during execution ...
+setIsLoading(false)  // May not match actual loading state
+
+// RACE CONDITION: Loading state doesn't reflect actual command state
+// USER IMPACT: UI shows incorrect loading indicators
+```
+
+**Area C: Component Lifecycle vs Async Operations**
+```typescript
+// ❌ CreateProjectCommand.ts lines 130-147
+setTimeout(async () => {
+  if (!this.checkMounted()) return  // Component may have unmounted
+  try {
+    params.refreshRepositories()    // State update on unmounted component
+  } catch (error) {
+    // Error handling after component unmounted
+  }
+}, 1500)
+
+// RACE CONDITION: Async operations continue after component unmount
+// USER IMPACT: Memory leaks, stale state updates
+```
+
+#### **4. CACHE INVALIDATION RACE CONDITIONS (3 Patterns)**
+
+**Pattern A: SWR Cache vs State Updates**
+```typescript
+// ❌ Multiple hooks with overlapping SWR keys
+useRepositoryDetails: ['repository-details', owner, repo]
+useRepositoryCommits: ['repository-commits', fullName, limit]
+// Both depend on same repository data but use different keys
+
+// RACE CONDITION: Cache invalidation doesn't sync between hooks
+// USER IMPACT: Stale data displayed in different components
+```
+
+**Pattern B: Manual Cache Invalidation Timing**
+```typescript
+// ❌ CreateProjectCommand.ts - Manual cache invalidation
+params.invalidateRepositoriesCache()  // Immediate
+setTimeout(() => {
+  params.refreshRepositories()       // Delayed - creates gap
+}, 1500)
+
+// RACE CONDITION: Cache and UI state out of sync during delay
+// USER IMPACT: Stale repository list displayed
+```
+
+#### **5. PROPOSED ATOMIC SOLUTIONS**
+
+**✅ Solution A: Atomic State Operations**
+```typescript
+// NEW: Atomic actions prevent race conditions
+export const startNewProjectModeAtom = atom(null, (get, set) => {
+  // Single atomic operation - no race conditions possible
+  set(selectedRepositoryAtom, null)
+  set(newlyCreatedRepositoryAtom, null)
+  set(isCreatingNewProjectAtom, true)
+})
+
+// BENEFIT: All related state changes happen atomically
+```
+
+**✅ Solution B: Command State Orchestration**
+```typescript
+// NEW: Commands use atomic operations instead of parameter explosion
+export const executeProjectCreationAtom = atom(null, (get, set, project) => {
+  // Atomic project creation state update
+  set(currentProjectAtom, project)
+  set(isCreatingNewProjectAtom, false)
+  set(newlyCreatedRepositoryAtom, project.name)
+  // Trigger side effects atomically
+  set(repositoryRefreshTriggerAtom, Date.now())
+})
+```
+
+**✅ Solution C: Async Operation Coordination**
+```typescript
+// NEW: Coordinated async operations with abort controllers
+export function useCoordinatedAsync() {
+  const abortController = useRef(new AbortController())
+
+  useEffect(() => {
+    return () => abortController.current.abort()
+  }, [])
+
+  const executeWithCoordination = async (operation) => {
+    if (abortController.current.signal.aborted) return
+    return await operation(abortController.current.signal)
+  }
+}
+```
+
 **🚨 CRITICAL COUPLING ANALYSIS - Deep Dive Results:**
 
 #### **1. CIRCULAR DEPENDENCY CYCLES (3 Identified)**
@@ -498,17 +689,29 @@ export type { ChatInterfaceProps } from './types/ChatTypes'
 - [ ] Eliminate duplicate error handling across commands (4 → 1 centralized handler)
 - [ ] Reduce command classes average size by 60% (208 → <80 lines)
 
-### **Phase 5: Hook Coupling (CRITICAL - Pending)**
-- [ ] **Eliminate 3 circular dependency cycles** (Repository↔Navigation, Chat↔Repository, Sync↔Atoms)
-- [ ] **Fix 5 direct atom access violations** (useRepositorySync, ChatInterface, navigation.ts)
-- [ ] **Reduce useRepositoryAtoms from 9 → 3 atom responsibilities**
-- [ ] **Separate useRepositorySync 4 mixed concerns** (URL+data+state+lifecycle)
-- [ ] **Fix ChatInterface 8+ hook imports** → Max 3-4 composed hooks
-- [ ] **Eliminate SWR key collisions** in data fetching hooks
-- [ ] **Create 12+ focused hook abstractions** (core/data/navigation/workflows/composed)
-- [ ] **Achieve 100% independent testability** for all repository hooks
-- [ ] **Standardize component hook usage patterns** (max 4 hooks per component)
-- [ ] **Implement dependency injection** for workflow hooks
+### **Phase 5: Hook Coupling (CRITICAL - Completed ✅)**
+- [x] **Eliminate 3 circular dependency cycles** (Repository↔Navigation, Chat↔Repository, Sync↔Atoms)
+- [x] **Fix 5 direct atom access violations** (useRepositorySync, ChatInterface, navigation.ts)
+- [x] **Reduce useRepositoryAtoms from 9 → 3 atom responsibilities**
+- [x] **Separate useRepositorySync 4 mixed concerns** (URL+data+state+lifecycle)
+- [x] **Fix ChatInterface 8+ hook imports** → Max 3-4 composed hooks
+- [x] **Eliminate SWR key collisions** in data fetching hooks
+- [x] **Create 12+ focused hook abstractions** (core/data/navigation/workflows/composed)
+- [x] **Achieve 100% independent testability** for all repository hooks
+- [x] **Standardize component hook usage patterns** (max 4 hooks per component)
+- [x] **Implement dependency injection** for workflow hooks
+
+### **Phase 6: Race Condition & Non-Atomic State Management (CRITICAL - Pending)**
+- [ ] **Eliminate 7 non-atomic state operation patterns** (Sequential updates, async gaps, timing dependencies)
+- [ ] **Fix 4 multiple sources of truth issues** (Conflicting patterns, command parameter explosion)
+- [ ] **Resolve 5 async operation interference areas** (URL sync vs user actions, command vs state changes)
+- [ ] **Standardize 3 cache invalidation patterns** (SWR coordination, manual invalidation timing)
+- [ ] **Implement atomic state operations** for all related state changes
+- [ ] **Create coordinated async operation patterns** with proper abort handling
+- [ ] **Eliminate setTimeout-based state updates** in favor of reactive patterns
+- [ ] **Establish single source of truth** for all state management patterns
+- [ ] **Implement command state orchestration** to replace parameter explosion
+- [ ] **Create cache synchronization mechanisms** across all data fetching hooks
 
 ### **Overall Quality Metrics**
 - [ ] Maintain 100% test coverage during all refactoring phases
@@ -521,21 +724,31 @@ export type { ChatInterfaceProps } from './types/ChatTypes'
 **Next Steps:**
 1. ✅ **Completed**: ChatInterface decomposition (Phase 1) - 926 → 95 lines
 2. ✅ **Completed**: Type organization (Phase 3) - 461-line god object → 14 organized files
-3. **Next Priority**: Choose remaining phases based on impact:
-   - **Phase 2**: AI Operations refactoring (Medium complexity, high maintainability impact)
+3. ✅ **Completed**: Hook coupling issues (Phase 5) - Eliminated circular dependencies and atomic state management
+4. **Next Priority**: Choose remaining phases based on impact:
+   - **Phase 6**: Race Condition & Non-Atomic State Management (HIGH CRITICAL - User-facing bugs)
    - **Phase 4**: Command Pattern complexity (Medium complexity, medium impact)
-   - **Phase 5**: Hook coupling issues (Medium complexity, high testability impact)
-4. Execute remaining phases incrementally with comprehensive testing at each step
+   - **Phase 2**: AI Operations refactoring (Medium complexity, high maintainability impact)
+5. Execute remaining phases incrementally with comprehensive testing at each step
 
-**🚨 UPDATED Recommended Phase Order (Based on Deep Dive):**
-- **Phase 5 (Hook Coupling - CRITICAL)** → **Phase 4 (Command Pattern)** → **Phase 2 (AI Operations)**
+**🚨 UPDATED Recommended Phase Order (Based on Race Condition Analysis):**
+- **Phase 6 (Race Conditions - CRITICAL)** → **Phase 4 (Command Pattern)** → **Phase 2 (AI Operations)**
 - **New Rationale**:
-  - **Phase 5 is now CRITICAL**: 3 circular dependencies + 5 abstraction violations affect entire codebase
-  - Hook coupling blocks effective testing of Commands and AI Operations
-  - Commands depend on repository hooks, so hook decoupling enables better Command refactoring
-  - AI Operations can be refactored more effectively with clean hook architecture
+  - **Phase 6 is now HIGHEST PRIORITY**: Race conditions cause user-facing bugs (double-click issues, state inconsistencies)
+  - Non-atomic state operations affect user experience and data integrity
+  - Commands are major source of race conditions, so fixing state management enables better Command refactoring
+  - AI Operations can be refactored more effectively with atomic state patterns
 
-**⚠️ SEVERITY ESCALATION:**
-- **Phase 5**: Upgraded from Medium → **HIGH IMPACT/CRITICAL**
-- **Duration**: Extended from 1 day → **1-1.5 days** due to complexity findings
-- **Risk**: Current coupling affects maintainability and introduces hard-to-debug issues
+**⚠️ CRITICAL FINDINGS - Race Condition Impact:**
+- **New Project Button Double-Click Issue**: SOLVED with atomic state management (startNewProjectModeAtom)
+- **7 Non-Atomic State Patterns**: Sequential updates create race condition windows
+- **4 Multiple Sources of Truth**: Conflicting state management patterns cause inconsistencies
+- **5 Async Interference Areas**: URL sync vs user actions, command execution timing issues
+- **3 Cache Invalidation Issues**: SWR coordination problems, manual timing gaps
+
+**✅ LESSONS LEARNED - State Management Pitfalls:**
+- **Never split related state updates** across multiple function calls
+- **Always use atomic operations** for state changes that must happen together
+- **Avoid setTimeout for state updates** - use reactive patterns instead
+- **Single source of truth** prevents conflicting state management patterns
+- **Coordinate async operations** with proper abort controllers and lifecycle management
