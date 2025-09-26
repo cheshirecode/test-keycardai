@@ -23,7 +23,9 @@ export function ChatMobileAccordion({
   setInput,
   handleSubmit,
   messagesEndRef,
-  inputRef
+  inputRef,
+  quickStartOptions,
+  handleQuickStart
 }: ChatMobileAccordionProps) {
   // Mobile accordion component for responsive layout
 
@@ -86,6 +88,39 @@ export function ChatMobileAccordion({
                           : 'I can help you create new projects quickly. Just describe what you want to build!'
                       }
                     </p>
+
+                    {/* New Project Mode Indicator */}
+                    {isCreatingNewProject && !isRepositoryMode && (
+                      <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg max-w-md mx-auto">
+                        <p className="text-sm text-green-800 text-center">
+                          🎯 <strong>New Project Mode Active!</strong> Type your project description below to get started.
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Chat log coming soon note for repository mode */}
+                    {isRepositoryMode && (
+                      <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg max-w-md mx-auto">
+                        <p className="text-sm text-blue-800 text-center">
+                          📝 <strong>Chat log is coming, stay tuned!</strong> Soon you&apos;ll see the full conversation history integrated with git commits.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Quick Start Options */}
+                  <div className="space-y-3 w-full max-w-sm">
+                    <p className="text-sm font-medium text-gray-700">Quick Start:</p>
+                    {quickStartOptions.map((option) => (
+                      <button
+                        key={option}
+                        onClick={() => handleQuickStart(option)}
+                        className="w-full p-3 text-left bg-blue-50 hover:bg-blue-100 text-blue-800 rounded-lg transition-colors text-sm"
+                        disabled={isLoading}
+                      >
+                        {option}
+                      </button>
+                    ))}
                   </div>
                 </div>
               ) : (
@@ -218,6 +253,32 @@ export function ChatMobileAccordion({
                       </div>
                     )
                   })}
+
+                  {/* Quick start options for repository mode when there are commits but no messages */}
+                  {messages.length === 0 && commits.length > 0 && isRepositoryMode && selectedRepository && (
+                    <div className="p-4 bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg">
+                      <div className="text-center space-y-3">
+                        <h3 className="text-lg font-semibold text-gray-900">
+                          🔧 Ready to modify &ldquo;{selectedRepository.name}&rdquo;?
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                          Tell me what changes you&apos;d like to make, or try one of these quick options:
+                        </p>
+                        <div className="grid grid-cols-1 gap-2 max-w-md mx-auto">
+                          {quickStartOptions.map((option) => (
+                            <button
+                              key={option}
+                              onClick={() => handleQuickStart(option)}
+                              className="p-3 text-left bg-white hover:bg-blue-50 text-blue-800 rounded-lg transition-colors text-sm border border-blue-200 hover:border-blue-300"
+                              disabled={isLoading}
+                            >
+                              {option}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Render chat messages */}
                   {messages.map((message, index) => (

@@ -200,6 +200,8 @@ export function ChatInterface({ onToggleSidebar }: ChatInterfaceProps = {}) {
           handleSubmit={handleSubmit}
           messagesEndRef={messagesEndRef}
           inputRef={inputRef}
+          quickStartOptions={quickStartOptions}
+          handleQuickStart={handleQuickStart}
         />
       </div>
     </div>

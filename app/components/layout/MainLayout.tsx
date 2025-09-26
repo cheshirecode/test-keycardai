@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useCallback, useState } from 'react'
 import { ProjectSidebar } from '@/components/project'
+import { Footer } from './Footer'
 import { useRepositoryManager } from '@/hooks/composed/useRepositoryManager'
 import { MainLayoutProps } from '@/types'
 
@@ -71,9 +72,12 @@ export function MainLayout({ children }: MainLayoutProps) {
 
       {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0 min-h-0 overflow-hidden">
-        {React.cloneElement(children as React.ReactElement, {
-          onToggleSidebar: () => setIsSidebarOpen(true)
-        })}
+        <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+          {React.cloneElement(children as React.ReactElement, {
+            onToggleSidebar: () => setIsSidebarOpen(true)
+          })}
+        </div>
+        <Footer />
       </div>
     </div>
   )

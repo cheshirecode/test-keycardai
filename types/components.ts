@@ -96,6 +96,8 @@ export interface ChatMobileAccordionProps {
   handleSubmit: (e: React.FormEvent) => void
   messagesEndRef: React.RefObject<HTMLDivElement>
   inputRef?: React.RefObject<HTMLInputElement>
+  quickStartOptions: string[]
+  handleQuickStart: (option: string) => void
 }
 
 export interface ChatLayoutState {
