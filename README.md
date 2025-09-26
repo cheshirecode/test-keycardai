@@ -12,6 +12,29 @@ Transform natural language descriptions into working projects with automated Git
 
 ---
 
+## 🤝 Objectives
+
+This project demonstrates modern full-stack development practices within a 3-hour constraint:
+
+- **Clean Architecture**: Modular, testable, maintainable code
+- **Type Safety**: Full TypeScript implementation
+- **Testing Strategy**: E2E + Unit testing with good coverage
+- **Security Considerations**: API key management and input validation
+- **Performance Awareness**: Monitoring and optimization strategies
+- **Modern Stack**: Next.js 15, React 18, TypeScript, Tailwind
+
+### What Was Accomplished in 3 Hours
+
+1. **Full-Stack Architecture**: Complete MCP protocol implementation
+2. **AI Integration**: OpenAI GPT-3.5-turbo with context awareness
+3. **GitHub Integration**: Real repository operations with API
+4. **State Management**: Jotai for global state persistence
+5. **Testing Pipeline**: Playwright E2E + Vitest unit tests
+6. **Monitoring System**: Comprehensive logging and error tracking
+7. **Documentation**: Complete README with all considerations addressed
+
+---
+
 ## 🏗️ Architecture Design & Data Flow
 
 ### System Architecture
@@ -114,11 +137,11 @@ The project currently uses local file system operations (`/tmp/projects`) for pr
 ```typescript
 class InMemoryProjectBuilder {
   private files: Map<string, string> = new Map()
-  
+
   addFromTemplate(template: ProjectTemplate): void {
     // Generate project files directly in memory
   }
-  
+
   async exportToProvider(provider: RepositoryProvider): Promise<Repository> {
     // Vendor-agnostic output to any git provider
   }
@@ -295,7 +318,7 @@ All detailed documentation has been organized in the [`docs/`](./docs/) folder:
 ### Problem Statement
 - **API Key Rotation Complexity**: Implementing secure, production-ready API key rotation for OpenAI requires significant infrastructure overhead
 - **Demo Environment Limitations**: Live demonstrations may not have access to external AI services
-- **Time Constraints**: Comprehensive API key management was outside the scope of this take-home challenge
+- **Time Constraints**: Comprehensive API key management was outside the scope of this project
 
 ### Solution: Fast Mode Toggle
 The application includes a toggle that allows users to:
@@ -990,29 +1013,6 @@ if (duration > baseline * 1.5) {
   })
 }
 ```
-
----
-
-## 🤝 Take-Home Challenge Showcase
-
-This project demonstrates modern full-stack development practices within a 3-hour constraint:
-
-- **Clean Architecture**: Modular, testable, maintainable code
-- **Type Safety**: Full TypeScript implementation
-- **Testing Strategy**: E2E + Unit testing with good coverage
-- **Security Considerations**: API key management and input validation
-- **Performance Awareness**: Monitoring and optimization strategies
-- **Modern Stack**: Next.js 15, React 18, TypeScript, Tailwind
-
-### What Was Accomplished in 3 Hours
-
-1. **Full-Stack Architecture**: Complete MCP protocol implementation
-2. **AI Integration**: OpenAI GPT-3.5-turbo with context awareness
-3. **GitHub Integration**: Real repository operations with API
-4. **State Management**: Jotai for global state persistence
-5. **Testing Pipeline**: Playwright E2E + Vitest unit tests
-6. **Monitoring System**: Comprehensive logging and error tracking
-7. **Documentation**: Complete README with all considerations addressed
 
 ---
 
