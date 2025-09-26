@@ -10,6 +10,29 @@
 
 Transform natural language descriptions into working projects with automated GitHub repositories, real-time modifications, and comprehensive testing. Built as a take-home challenge demonstrating modern full-stack development practices.
 
+## 📈 Recent Improvements
+
+The project has undergone significant architectural improvements to enhance maintainability and code quality:
+
+### ✅ **GitHub Service Refactoring** (December 2024)
+- **Decomposed god object**: Reduced main GitHub service from 777 lines to 248 lines (68% reduction)
+- **Service-oriented architecture**: Split into 7 focused services (API client, auth, repository, user, content, file, error handling)
+- **Type system centralization**: Moved all GitHub types to `types/github/` for better organization
+- **Zero technical debt**: Resolved all TypeScript errors and linting warnings
+
+### ✅ **AI Operations Refactoring** (December 2024)  
+- **Modular AI services**: Broke down 1,176-line AI operations into focused services
+- **Type safety improvements**: Eliminated `unknown` types with proper interfaces
+- **Service composition**: Clean separation between analysis, planning, execution, and error handling
+- **Maintained API compatibility**: All existing functionality preserved
+
+### 🚀 **Planned: Rate Limiting System**
+- **Dual implementation approach**: Simple in-memory solution for development, distributed Redis solution for production
+- **Per-PAT rate limiting**: 1 operation per second per GitHub Personal Access Token
+- **Transparent integration**: Decorator pattern for existing MCP tools
+
+These improvements demonstrate ongoing commitment to code quality, maintainability, and architectural best practices while preserving all existing functionality.
+
 ---
 
 ## 🏗️ Architecture Design & Data Flow

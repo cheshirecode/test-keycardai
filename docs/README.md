@@ -1,46 +1,34 @@
-# 📚 Project Documentation
+# Project Documentation
 
-This folder contains all project documentation and analysis files.
+This folder contains technical documentation for the project's architecture and implementation decisions.
 
-## 📋 **Documentation Index**
+## 📋 Current Documentation
 
-### **🔧 Refactoring & Architecture**
-- **[CRITICAL_ISSUES_ACTION_PLAN.md](./CRITICAL_ISSUES_ACTION_PLAN.md)** - **NEW** Comprehensive action plan for tackling critical god objects
-- **[REFACTORING_PLAN.md](./REFACTORING_PLAN.md)** - Comprehensive refactoring plan with phases and priorities
-- **[REFACTORING_SUMMARY.md](./REFACTORING_SUMMARY.md)** - Summary of completed refactoring work
-- **[CODE_SMELL_ANALYSIS.md](./CODE_SMELL_ANALYSIS.md)** - Detailed code smell analysis and complexity metrics
-- **[HOOK_COUPLING_ANALYSIS.md](./HOOK_COUPLING_ANALYSIS.md)** - Deep dive into hook coupling issues and solutions
+### **Architecture & Refactoring**
+- **[REFACTORING_PLAN.md](./REFACTORING_PLAN.md)** - Comprehensive refactoring strategy and progress tracking
+- **[GITHUB_SERVICE_REFACTORING_PLAN.md](./GITHUB_SERVICE_REFACTORING_PLAN.md)** - GitHub service decomposition (completed)
 
-### **🏗️ Migration & Organization**
-- **[MIGRATION_PLAN.md](./MIGRATION_PLAN.md)** - Migration strategies and architectural decisions
-- **[TYPE_CENTRALIZATION_SUMMARY.md](./TYPE_CENTRALIZATION_SUMMARY.md)** - Type organization and centralization summary
+### **Rate Limiting**
+- **[MCP_RATE_LIMITING_IMPLEMENTATION_PLANS.md](./MCP_RATE_LIMITING_IMPLEMENTATION_PLANS.md)** - Dual approach for rate limiting MCP operations
 
-## 🎯 **Current Status**
+## 📊 Recent Achievements
 
-### **✅ Completed Phases**
-- **Phase 1**: ChatInterface decomposition (926 → 207 lines)
-- **Phase 3**: Type organization (461 lines → 14 files)
-- **Phase 5**: Hook coupling elimination
-- **Phase 6**: Race condition resolution
+### ✅ **Completed Refactoring**
+- **GitHub Service Decomposition**: Reduced from 777 lines to 248 lines (68% reduction)
+- **Type System Centralization**: Moved all GitHub types to `types/github/`
+- **AI Operations Refactoring**: Decomposed god object into focused services
+- **Zero Technical Debt**: All TypeScript errors resolved, zero linting warnings
 
-### **🚨 Current Priority**
-- **Phase 7**: AI Operations god object (1,176 lines) - **CRITICAL**
+### 🎯 **Current Focus**
+- Rate limiting implementation for MCP operations
+- Continued architecture improvements
+- Performance optimization
 
-## 📊 **Key Metrics**
+## 🔄 **Documentation Maintenance**
 
-- **Total god objects identified**: 7 (3 completed, 4 pending)
-- **Largest file**: `ai-operations.ts` (1,176 lines)
-- **Largest function**: `create_project_with_ai` (440+ lines)
-- **Progress**: 4/9 phases completed (44% done)
+This documentation is kept minimal and focused on:
+- **Active planning documents** for ongoing work
+- **Architecture decisions** that affect future development
+- **Implementation guides** for complex features
 
-## 🔍 **Quick Reference**
-
-- **🚨 Need immediate action plan?** → Check `CRITICAL_ISSUES_ACTION_PLAN.md`
-- **Need refactoring status?** → Check `REFACTORING_PLAN.md`
-- **Looking for complexity analysis?** → See `CODE_SMELL_ANALYSIS.md`
-- **Want to see progress?** → Review `REFACTORING_SUMMARY.md`
-- **Understanding architecture changes?** → Read `MIGRATION_PLAN.md`
-
----
-
-**📍 Note**: Main project README is in the root directory for GitHub visibility.
+Completed work documentation is archived or removed to keep the docs folder clean and relevant.
