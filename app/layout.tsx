@@ -4,6 +4,7 @@ import "./globals.css";
 import { SWRProvider, JotaiProvider } from "@/components/providers";
 import ErrorBoundary from "@/components/monitoring/ErrorBoundary";
 import { WebVitalsMonitor } from "@/components/monitoring/PerformanceMonitor";
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,6 +38,7 @@ export default function RootLayout({
               {children}
             </SWRProvider>
           </JotaiProvider>
+          <SpeedInsights />
         </ErrorBoundary>
       </body>
     </html>
