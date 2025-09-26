@@ -50,7 +50,17 @@ export class AIAnalysisService {
   static async analyzeExistingProject(
     projectPath: string,
     requestDescription: string
-  ): Promise<{ success: boolean; message: string; analysis?: Record<string, unknown> }> {
+  ): Promise<{
+    success: boolean
+    message: string
+    analysis?: {
+      projectType: string
+      framework: string
+      structure: string[]
+      dependencies: Record<string, string>
+      recommendations: string[]
+    }
+  }> {
     // Validate environment
     const envValidation = ValidationUtils.validateEnvironment({ openaiKey: true })
     if (!envValidation.valid) {
