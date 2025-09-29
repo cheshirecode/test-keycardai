@@ -13,8 +13,8 @@ const MODELS = {
     text: 'gpt-3.5-turbo'  // For generateText (simple text)
   },
   gemini: {
-    structured: 'gemini-1.5-flash', // Free tier model with structured output
-    text: 'gemini-1.5-flash'        // Free tier model for text generation
+    structured: 'gemini-2.0-flash', // Latest free tier model with structured output
+    text: 'gemini-2.0-flash'        // Latest free tier model for text generation
   }
 } as const
 
