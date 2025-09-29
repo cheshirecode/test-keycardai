@@ -206,6 +206,7 @@ export const repositoryManagement = {
           full_name: string
           name: string
           url: string
+          html_url: string
           description: string | null
           private: boolean
           created_at: string
@@ -216,7 +217,7 @@ export const repositoryManagement = {
           id: repoData.full_name,
           name: repoData.name,
           fullName: repoData.full_name,
-          url: repoData.url,
+          url: repoData.html_url,  // Use html_url for GitHub repository URL instead of API URL
           description: repoData.description,
           private: repoData.private,
           createdAt: repoData.created_at,
