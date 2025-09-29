@@ -5,10 +5,10 @@ import type { ProjectInfo } from '@/types'
 
 import { useMessageManager } from './useMessageManager'
 import { useRequestClassifier } from './useRequestClassifier'
-import { CreateProjectCommand } from '../../commands/CreateProjectCommand'
-import { ModifyRepositoryCommand } from '../../commands/ModifyRepositoryCommand'
-import { ModifyProjectCommand } from '../../commands/ModifyProjectCommand'
-import type { CommandContext } from '../../commands/BaseCommand'
+import { CreateProjectCommand } from '@/lib/commands/CreateProjectCommand'
+import { ModifyRepositoryCommand } from '@/lib/commands/ModifyRepositoryCommand'
+import { ModifyProjectCommand } from '@/lib/commands/ModifyProjectCommand'
+import type { CommandContext } from '@/lib/commands/BaseCommand'
 
 // Custom hook to track if component is mounted
 const useIsMounted = () => {

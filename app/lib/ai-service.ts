@@ -21,7 +21,7 @@ const MODELS = {
 // Helper functions
 function getAIProvider(): AIProvider {
   // Default to gemini for cost efficiency, fallback to openai
-  return process.env.GEMINI_API_KEY ? 'gemini' : 'openai'
+  return process.env.GOOGLE_GENERATIVE_AI_API_KEY ? 'gemini' : 'openai'
 }
 
 function getModel(provider: AIProvider, type: 'structured' | 'text') {
@@ -40,7 +40,7 @@ function hasProviderAPIKey(provider: AIProvider): boolean {
     case 'openai':
       return !!process.env.OPENAI_API_KEY
     case 'gemini':
-      return !!process.env.GEMINI_API_KEY
+      return !!process.env.GOOGLE_GENERATIVE_AI_API_KEY
     default:
       return false
   }

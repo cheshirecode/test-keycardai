@@ -1,4 +1,4 @@
-import { useChatOrchestrator } from './chat/useChatOrchestrator'
+import { useChatOrchestrator } from './useChatOrchestrator'
 
 /**
  * Main useChat hook - now simplified to use the orchestrator

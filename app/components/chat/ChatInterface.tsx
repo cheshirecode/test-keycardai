@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback, useRef, useEffect } from 'react'
-import { useChat } from '@/lib/hooks/useChat'
+import { useChat } from '@/hooks/chat/useChat'
 import { ProjectPreview } from '@/components/project'
 import { RepositoryPreview } from '@/components/repository'
 import { useRepositoryManager } from '@/hooks/composed/useRepositoryManager'
@@ -16,9 +16,9 @@ import { ChatInputForm } from './ChatInputForm'
 import { ChatMobileAccordion } from './ChatMobileAccordion'
 
 // Import hooks
-import { useChatLayout } from './hooks/useChatLayout'
-import { useChatScrolling } from './hooks/useChatScrolling'
-import { useChatMessages } from './hooks/useChatMessages'
+import { useChatLayout } from '@/hooks/chat/useChatLayout'
+import { useChatScrolling } from '@/hooks/chat/useChatScrolling'
+import { useChatMessages } from '@/hooks/chat/useChatMessages'
 
 // Import types
 import { ChatInterfaceProps } from '@/types'

@@ -54,7 +54,10 @@ export const isFastModeAtom = atom<boolean>(false)
  * AI Provider atom - tracks which AI provider to use (OpenAI or Gemini)
  * Defaults to Gemini for cost efficiency, falls back to OpenAI if Gemini key unavailable
  */
-export const aiProviderAtom = atom<AIProvider>('gemini')
+export const aiProviderAtom = atom<AIProvider>(
+  // Default to gemini if the Google API key is available, otherwise openai
+  typeof process !== 'undefined' && process.env?.GOOGLE_GENERATIVE_AI_API_KEY ? 'gemini' : 'openai'
+)
 
 /**
  * Action atoms for managing pending requests

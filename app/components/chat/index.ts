@@ -9,10 +9,10 @@ export { ChatInputForm } from './ChatInputForm'
 export { ChatQuickStart } from './ChatQuickStart'
 export { ChatMobileAccordion } from './ChatMobileAccordion'
 
-// Supporting hooks
-export { useChatLayout } from './hooks/useChatLayout'
-export { useChatScrolling } from './hooks/useChatScrolling'
-export { useChatMessages } from './hooks/useChatMessages'
+// Supporting hooks - now centralized in app/hooks/chat
+export { useChatLayout } from '@/hooks/chat/useChatLayout'
+export { useChatScrolling } from '@/hooks/chat/useChatScrolling'
+export { useChatMessages } from '@/hooks/chat/useChatMessages'
 
 // Types - now centralized in @/types
 export type {
