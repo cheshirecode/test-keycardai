@@ -34,10 +34,16 @@ AI-powered project scaffolding system using Google Gemini 2.0 Flash (default) or
 - Automatic project type detection
 
 **Backend Architecture**
-- MCP (Model Context Protocol) with 15+ specialized tools
-- Modular microservices design
-- Direct GitHub API integration
-- Server-side API key management
+- **MCP (Model Context Protocol)** server with 15+ specialized tools:
+  - **AI Operations**: Project analysis, modification planning, intelligent scaffolding
+  - **GitHub Integration**: Repository creation, file management, commit operations
+  - **File Operations**: Read, write, update, delete files and directories
+  - **Project Management**: Template selection, dependency management, structure analysis
+  - **Development Tools**: Code generation, package installation, script execution
+  - **Type-Safe API**: Strongly-typed request/response handling with validation
+- Modular microservices design with service-oriented architecture
+- Direct GitHub API integration (no local git dependencies)
+- Server-side API key management and environment validation
 
 **Production Features**
 - Playwright E2E + Vitest unit tests (>90% coverage)
