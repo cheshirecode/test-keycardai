@@ -25,7 +25,7 @@ const useIsMounted = () => {
  * Main orchestrator hook for chat functionality
  * Coordinates message management, request classification, and command execution
  */
-export function useChatOrchestrator(fastMode: boolean = false) {
+export function useChatOrchestrator(fastMode: boolean = false, aiProvider?: 'openai' | 'gemini') {
   const [isLoading, setIsLoading] = useState(false)
   const [currentProject, setCurrentProject] = useState<ProjectInfo | null>(null)
   const isMounted = useIsMounted()
@@ -115,7 +115,8 @@ export function useChatOrchestrator(fastMode: boolean = false) {
               navigateToRepository,
               isCreatingNewProject,
               completeProjectCreation,
-              ...(fastMode !== undefined && { fastMode })
+              ...(fastMode !== undefined && { fastMode }),
+              ...(aiProvider && { aiProvider })
             })
           }
           break
@@ -134,20 +135,23 @@ export function useChatOrchestrator(fastMode: boolean = false) {
               navigateToRepository,
               isCreatingNewProject,
               completeProjectCreation,
-              ...(fastMode !== undefined && { fastMode })
+              ...(fastMode !== undefined && { fastMode }),
+              ...(aiProvider && { aiProvider })
             })
           }
           break
 
         case 'new_project':
         default:
-          await createProjectCommand.execute({
-            content,
-            setCurrentProject,
-            navigateToRepository,
-            isCreatingNewProject,
-            completeProjectCreation
-          })
+            await createProjectCommand.execute({
+              content,
+              setCurrentProject,
+              navigateToRepository,
+              isCreatingNewProject,
+              completeProjectCreation,
+              ...(fastMode !== undefined && { fastMode }),
+              ...(aiProvider && { aiProvider })
+            })
           break
       }
 

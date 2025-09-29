@@ -14,12 +14,14 @@ import { MCPBaseResult } from './base-types'
 
 export interface AnalyzeProjectParams {
   description: string
+  aiProvider?: 'openai' | 'gemini'
 }
 
 export interface GenerateProjectPlanParams {
   description: string
   projectPath: string
   projectName?: string
+  aiProvider?: 'openai' | 'gemini'
 }
 
 export interface IntelligentProjectSetupParams {
@@ -27,6 +29,7 @@ export interface IntelligentProjectSetupParams {
   projectPath: string
   autoExecute?: boolean
   fastMode?: boolean
+  aiProvider?: 'openai' | 'gemini'
 }
 
 export interface CreateProjectWithAIParams {
@@ -34,6 +37,7 @@ export interface CreateProjectWithAIParams {
   projectPath?: string
   projectName?: string
   fastMode?: boolean
+  aiProvider?: 'openai' | 'gemini'
   existingRepository?: {
     name: string
     fullName: string
@@ -46,12 +50,14 @@ export interface AnalyzeAndOptimizeParams {
   description: string
   projectType?: string
   includeOptimization?: boolean
+  aiProvider?: 'openai' | 'gemini'
 }
 
 export interface AnalyzeExistingProjectParams {
   projectPath: string
   requestDescription: string
   includeFileAnalysis?: boolean
+  aiProvider?: 'openai' | 'gemini'
 }
 
 export interface GenerateModificationPlanParams {
@@ -59,6 +65,7 @@ export interface GenerateModificationPlanParams {
   requestDescription: string
   analysisData?: unknown
   fastMode?: boolean
+  aiProvider?: 'openai' | 'gemini'
 }
 
 // ============================================================================

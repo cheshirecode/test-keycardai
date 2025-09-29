@@ -18,12 +18,12 @@ export class AIError extends Error {
 
 export class AIErrorHandler {
   /**
-   * Handle OpenAI API key validation errors
+   * Handle AI API key validation errors
    */
   static handleMissingAPIKey(operation: string): { success: false; message: string } {
     return {
       success: false,
-      message: `OpenAI API key not configured. ${operation} requires OPENAI_API_KEY environment variable.`
+      message: `AI API key not configured. ${operation} requires OPENAI_API_KEY or GOOGLE_GENERATIVE_AI_API_KEY environment variable.`
     }
   }
 
@@ -118,10 +118,20 @@ export class AIErrorHandler {
    */
   static validateEnvironment(requirements: {
     openaiKey?: boolean
+    geminiKey?: boolean
+    aiKey?: boolean  // Either OpenAI or Gemini
     githubToken?: boolean
   }): { valid: true } | { valid: false; message: string } {
     if (requirements.openaiKey && !process.env.OPENAI_API_KEY) {
       return { valid: false, message: 'OpenAI API key not configured' }
+    }
+
+    if (requirements.geminiKey && !process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
+      return { valid: false, message: 'Gemini API key not configured' }
+    }
+    
+    if (requirements.aiKey && !process.env.OPENAI_API_KEY && !process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
+      return { valid: false, message: 'AI API key not configured (OpenAI or Gemini required)' }
     }
     
     if (requirements.githubToken && !process.env.GITHUB_TOKEN) {

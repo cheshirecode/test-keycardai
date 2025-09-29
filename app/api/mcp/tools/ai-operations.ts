@@ -26,7 +26,7 @@ export const aiOperations = {
    * Analyzes a project description using AI to determine project type and features
    */
   analyze_project_request: async (params: AnalyzeProjectParams): Promise<AIAnalysisResult> => {
-    return AIAnalysisService.analyzeProjectRequest(params.description)
+    return AIAnalysisService.analyzeProjectRequest(params.description, params.aiProvider)
   },
 
   /**
@@ -36,7 +36,8 @@ export const aiOperations = {
     return ProjectPlanningService.generateProjectPlan(
       params.description,
       params.projectPath,
-      params.projectName
+      params.projectName,
+      params.aiProvider
     )
   },
 

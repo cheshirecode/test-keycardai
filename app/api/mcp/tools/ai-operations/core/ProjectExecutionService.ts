@@ -177,7 +177,7 @@ export class ProjectExecutionService {
     try {
       // Step 1: AI Analysis with enhanced decision making
       const analysisPrompt = this.buildAnalysisPrompt(params)
-      const analysis = await AIService.analyzeProjectRequest(analysisPrompt)
+      const analysis = await AIService.analyzeProjectRequest(analysisPrompt, params.aiProvider)
 
       // Step 2: Generate project path if not provided
       const { projectName, projectPath } = this.prepareProjectPaths(params, analysis)
@@ -187,7 +187,8 @@ export class ProjectExecutionService {
         params.existingRepository ? analysisPrompt : params.description,
         analysis,
         projectPath,
-        params.existingRepository
+        params.existingRepository,
+        params.aiProvider
       )
 
       // Step 4: Execute all actions with detailed progress tracking

@@ -88,12 +88,22 @@ export class ValidationUtils {
    */
   static validateEnvironment(requirements: {
     openaiKey?: boolean
+    geminiKey?: boolean
+    aiKey?: boolean  // Either OpenAI or Gemini
     githubToken?: boolean
   }): { valid: true } | { valid: false; missing: string[] } {
     const missing: string[] = []
 
     if (requirements.openaiKey && !process.env.OPENAI_API_KEY) {
       missing.push('OPENAI_API_KEY')
+    }
+
+    if (requirements.geminiKey && !process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
+      missing.push('GOOGLE_GENERATIVE_AI_API_KEY')
+    }
+
+    if (requirements.aiKey && !process.env.OPENAI_API_KEY && !process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
+      missing.push('OPENAI_API_KEY or GOOGLE_GENERATIVE_AI_API_KEY')
     }
 
     if (requirements.githubToken && !process.env.GITHUB_TOKEN) {

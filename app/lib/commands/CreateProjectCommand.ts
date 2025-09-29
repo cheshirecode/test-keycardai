@@ -8,6 +8,7 @@ export interface CreateProjectParams {
   navigateToRepository: (repo: Repository) => void
   isCreatingNewProject: boolean
   fastMode?: boolean
+  aiProvider?: 'openai' | 'gemini'
   // Atomic operations - no more parameter explosion
   completeProjectCreation: (projectData: { repositoryUrl: string; name: string; isNewProject: boolean }) => void
 }
@@ -24,7 +25,8 @@ export class CreateProjectCommand extends BaseCommand {
       // Use the secure server-side AI-powered project creation
       const result = await this.mcpClient.call('create_project_with_ai', {
         description: params.content,
-        fastMode: params.fastMode
+        fastMode: params.fastMode,
+        aiProvider: params.aiProvider
       }) as {
         success: boolean
         message: string

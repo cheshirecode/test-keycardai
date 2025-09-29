@@ -34,7 +34,7 @@ export function ChatInterface({ onToggleSidebar }: ChatInterfaceProps = {}) {
   // Use extracted hooks
   const { mobileExpandedPanel, setMobileExpandedPanel } = useChatLayout()
 
-  const { messages, isLoading, currentProject, sendMessage, clearChat } = useChat(isFastMode)
+  const { messages, isLoading, currentProject, sendMessage, clearChat } = useChat(isFastMode, aiProvider)
   const { selectedRepository, isRepositoryMode, isCreatingNewProject, startNewProject } = repositoryManager
 
   // User profile integration with localStorage

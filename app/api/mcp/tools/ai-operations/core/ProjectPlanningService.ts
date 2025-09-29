@@ -5,9 +5,9 @@
 
 import { AIService } from '@/lib/ai-service'
 import { AIErrorHandler } from './AIErrorHandler'
-import { AIPromptBuilder, ResponseParser, ValidationUtils } from '../utils'
-import type { 
-  AIProjectPlanResult, 
+import { ResponseParser, ValidationUtils } from '../utils'
+import type {
+  AIProjectPlanResult,
   WorkflowAction,
   ProjectAnalysisData
 } from '@/types/mcp/ai-operations'
@@ -19,10 +19,11 @@ export class ProjectPlanningService {
   static async generateProjectPlan(
     description: string,
     projectPath: string,
-    projectName?: string
+    projectName?: string,
+    aiProvider?: 'openai' | 'gemini'
   ): Promise<AIProjectPlanResult> {
-    // Validate environment
-    const envValidation = ValidationUtils.validateEnvironment({ openaiKey: true })
+    // Validate environment - require any AI provider
+    const envValidation = ValidationUtils.validateEnvironment({ aiKey: true })
     if (!envValidation.valid) {
       return AIErrorHandler.handleMissingAPIKey('AI planning')
     }
@@ -39,13 +40,15 @@ export class ProjectPlanningService {
 
     try {
       // First analyze the project
-      const analysis = await AIService.analyzeProjectRequest(description)
+      const analysis = await AIService.analyzeProjectRequest(description, aiProvider)
 
       // Then generate action plan
       const { actions, response } = await AIService.generateMCPActions(
         description,
         analysis,
-        projectPath
+        projectPath,
+        undefined,
+        aiProvider
       )
 
       // Map AI service actions to WorkflowAction format
@@ -95,8 +98,8 @@ export class ProjectPlanningService {
       return this.generateRuleBasedPlan(requestDescription, analysisData, projectPath)
     }
 
-    // First try AI-powered planning if OpenAI API is available
-    if (process.env.OPENAI_API_KEY) {
+    // First try AI-powered planning if any AI API is available
+    if (process.env.OPENAI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
       try {
         const aiPlan = await this.generateAIPoweredPlan(requestDescription, analysisData, projectPath)
         if (aiPlan.length > 0) {
@@ -107,7 +110,7 @@ export class ProjectPlanningService {
         console.log(`[AI Planning] AI planning failed, falling back to rule-based: ${error}`)
       }
     } else {
-      console.log('[AI Planning] OpenAI API key not available, using rule-based planning')
+      console.log('[AI Planning] No AI API keys available, using rule-based planning')
     }
 
     // Fall back to rule-based planning
@@ -116,33 +119,31 @@ export class ProjectPlanningService {
   }
 
   /**
-   * Generate AI-powered modification plan using OpenAI
+   * Generate AI-powered modification plan using selected AI provider
    */
   private static async generateAIPoweredPlan(
     requestDescription: string,
     analysisData: ProjectAnalysisData,
     projectPath: string
   ): Promise<WorkflowAction[]> {
-    const prompt = AIPromptBuilder.buildModificationPlanPrompt(
-      requestDescription,
-      analysisData,
-      projectPath
-    )
-
     try {
-      // Use the ai library directly for this specific use case
-      const { generateText } = await import('ai')
-      const { openai } = await import('@ai-sdk/openai')
+      // Use AIService.generateResponse which handles provider selection automatically
+      const response = await AIService.generateResponse(
+        `Generate a detailed step-by-step plan for: ${requestDescription}
 
-      const result = await generateText({
-        model: openai('gpt-3.5-turbo'),
-        prompt
-      })
+Project Context:
+- Type: ${analysisData.projectType}
+- Framework: ${analysisData.framework}
+- Path: ${projectPath}
+
+Please provide a numbered list of specific actions to take.`,
+        `Project modification planning for ${analysisData.projectType} project`
+      )
 
       // Parse the AI response
-      return ResponseParser.parseModificationPlan(result.text)
+      return ResponseParser.parseModificationPlan(response)
     } catch (error) {
-      console.log(`[AI Planning] Failed to parse AI response: ${error}`)
+      console.log(`[AI Planning] Failed to generate AI plan: ${error}`)
       throw error
     }
   }

@@ -26,6 +26,7 @@ export interface CreateProjectWithAIParams {
   projectPath?: string
   projectName?: string
   fastMode?: boolean
+  aiProvider?: 'openai' | 'gemini'
   existingRepository?: {
     name: string
     fullName: string

@@ -17,9 +17,9 @@ export class AIAnalysisService {
   /**
    * Analyze project request using AI
    */
-  static async analyzeProjectRequest(description: string): Promise<AIAnalysisResult> {
-    // Validate environment
-    const envValidation = ValidationUtils.validateEnvironment({ openaiKey: true })
+  static async analyzeProjectRequest(description: string, aiProvider?: 'openai' | 'gemini'): Promise<AIAnalysisResult> {
+    // Validate environment - require any AI provider
+    const envValidation = ValidationUtils.validateEnvironment({ aiKey: true })
     if (!envValidation.valid) {
       return AIErrorHandler.handleMissingAPIKey('AI analysis')
     }
@@ -31,7 +31,7 @@ export class AIAnalysisService {
     }
 
     try {
-      const analysis = await AIService.analyzeProjectRequest(description)
+      const analysis = await AIService.analyzeProjectRequest(description, aiProvider)
       return {
         success: true,
         message: `Analyzed project requirements with ${(analysis.confidence * 100).toFixed(0)}% confidence`,
@@ -54,7 +54,8 @@ export class AIAnalysisService {
    */
   static async analyzeExistingProject(
     projectPath: string,
-    requestDescription: string
+    requestDescription: string,
+    aiProvider?: 'openai' | 'gemini'
   ): Promise<{
     success: boolean
     message: string
@@ -66,8 +67,8 @@ export class AIAnalysisService {
       recommendations: string[]
     }
   }> {
-    // Validate environment
-    const envValidation = ValidationUtils.validateEnvironment({ openaiKey: true })
+    // Validate environment - require any AI provider
+    const envValidation = ValidationUtils.validateEnvironment({ aiKey: true })
     if (!envValidation.valid) {
       return AIErrorHandler.handleMissingAPIKey('Project analysis')
     }
@@ -93,7 +94,8 @@ export class AIAnalysisService {
         framework,
         projectInfo,
         structure,
-        requestDescription
+        requestDescription,
+        aiProvider
       )
 
       return {
@@ -117,7 +119,8 @@ export class AIAnalysisService {
    */
   static async getOptimizationRecommendations(
     projectPath: string,
-    projectType: string
+    projectType: string,
+    aiProvider?: 'openai' | 'gemini'
   ): Promise<AIOptimizationResult> {
     const envValidation = ValidationUtils.validateEnvironment({ openaiKey: true })
     if (!envValidation.valid) {
@@ -129,7 +132,7 @@ export class AIAnalysisService {
     }
 
     try {
-      return await AIService.optimizeProjectStructure(projectPath, projectType)
+      return await AIService.optimizeProjectStructure(projectPath, projectType, aiProvider)
     } catch (error) {
       AIErrorHandler.logError(error, 'Optimization recommendations')
       return {
@@ -210,7 +213,8 @@ export class AIAnalysisService {
     framework: string,
     projectInfo: PackageJsonData,
     structure: string[],
-    requestDescription: string
+    requestDescription: string,
+    aiProvider?: 'openai' | 'gemini'
   ): Promise<AIAnalysisData> {
     const deps = {
       ...(projectInfo.dependencies || {}),
@@ -225,7 +229,7 @@ export class AIAnalysisService {
       structure
     )
 
-    return await AIService.analyzeProjectRequest(prompt)
+    return await AIService.analyzeProjectRequest(prompt, aiProvider)
   }
 
   /**
