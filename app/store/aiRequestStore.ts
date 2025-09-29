@@ -45,18 +45,35 @@ export const pendingRequestCountAtom = atom((get) => {
 })
 
 /**
- * Fast Mode atom - when enabled, skips AI processing and uses rule-based planning
- * Useful for demonstrations and when API keys are not available
+ * Planning Mode - unified control for AI provider or manual planning
+ * Options:
+ * - 'gemini': Use Google Gemini AI (free tier, default)
+ * - 'openai': Use OpenAI models
+ * - 'manual': Rule-based planning without AI (fast mode)
  */
-export const isFastModeAtom = atom<boolean>(false)
+export type PlanningMode = 'gemini' | 'openai' | 'manual'
 
 /**
- * AI Provider atom - tracks which AI provider to use (OpenAI or Gemini)
- * Defaults to Gemini for cost efficiency, falls back to OpenAI if Gemini key unavailable
+ * Planning Mode atom - combines AI provider selection and manual mode
+ * Defaults to Gemini for cost efficiency
  */
-export const aiProviderAtom = atom<AIProvider>(
-  // Default to gemini if the Google API key is available, otherwise openai
-  typeof process !== 'undefined' && process.env?.GOOGLE_GENERATIVE_AI_API_KEY ? 'gemini' : 'openai'
+export const planningModeAtom = atom<PlanningMode>('gemini')
+
+/**
+ * Derived atom: Is manual mode enabled (formerly Fast Mode)
+ */
+export const isManualModeAtom = atom(
+  (get) => get(planningModeAtom) === 'manual'
+)
+
+/**
+ * Derived atom: Get current AI provider (null if manual mode)
+ */
+export const currentAIProviderAtom = atom<AIProvider | null>(
+  (get) => {
+    const mode = get(planningModeAtom)
+    return mode === 'manual' ? null : mode
+  }
 )
 
 /**

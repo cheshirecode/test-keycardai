@@ -29,7 +29,7 @@ import {
   coordinatedCacheRefreshAtom,
   // isNewlyCreatedRepositoryAtom - removed due to type mismatch, needs refactoring
 } from '@/store/repositoryStore'
-import { isFastModeAtom, aiProviderAtom } from '@/store/aiRequestStore'
+import { planningModeAtom, isManualModeAtom, currentAIProviderAtom, type PlanningMode } from '@/store/aiRequestStore'
 import type { Repository } from '@/types'
 import type { AIProvider } from '@/lib/ai-service'
 
@@ -66,10 +66,10 @@ export interface RepositoryAtomManager {
  * AI settings atom access interface
  */
 export interface AIAtomManager {
-  getIsFastMode: () => boolean
-  setIsFastMode: (fastMode: boolean) => void
-  getAIProvider: () => AIProvider
-  setAIProvider: (provider: AIProvider) => void
+  getPlanningMode: () => PlanningMode
+  setPlanningMode: (mode: PlanningMode) => void
+  getIsManualMode: () => boolean
+  getCurrentAIProvider: () => AIProvider | null
   getIsProjectPending: (projectId: string) => boolean
 }
 
@@ -97,8 +97,9 @@ export function useAtomManager() {
   // isNewlyCreatedRepositoryCheck removed - needs proper refactoring for string-based checking
 
   // AI atoms
-  const [isFastMode, setIsFastMode] = useAtom(isFastModeAtom)
-  const [aiProvider, setAIProvider] = useAtom(aiProviderAtom)
+  const [planningMode, setPlanningMode] = useAtom(planningModeAtom)
+  const isManualMode = useAtomValue(isManualModeAtom)
+  const currentAIProvider = useAtomValue(currentAIProviderAtom)
 
   const repositoryManager: RepositoryAtomManager = {
     // State getters
@@ -132,10 +133,10 @@ export function useAtomManager() {
   }
 
   const aiManager: AIAtomManager = {
-    getIsFastMode: () => isFastMode,
-    setIsFastMode: setIsFastMode,
-    getAIProvider: () => aiProvider,
-    setAIProvider: setAIProvider,
+    getPlanningMode: () => planningMode,
+    setPlanningMode: setPlanningMode,
+    getIsManualMode: () => isManualMode,
+    getCurrentAIProvider: () => currentAIProvider,
     getIsProjectPending: (projectId: string) => {
       // TODO: Implement proper project pending state checking
       // This requires a different pattern since we can't use hooks in callbacks

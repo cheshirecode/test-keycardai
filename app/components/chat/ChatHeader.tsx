@@ -12,10 +12,8 @@ export function ChatHeader({
   isRepositoryMode,
   selectedRepository,
   currentProject,
-  isFastMode,
-  setIsFastMode,
-  aiProvider,
-  setAIProvider,
+  planningMode,
+  setPlanningMode,
   isProfileInitialized,
   userProfile,
   messages,
@@ -85,26 +83,18 @@ export function ChatHeader({
         {/* Mobile: Second row for AI settings and status */}
         <div className="flex items-center justify-between sm:hidden">
           <div className="flex items-center space-x-2">
-            {/* AI Provider Toggle - Mobile */}
+            {/* Planning Mode - Mobile */}
             <select
-              value={aiProvider}
-              onChange={(e) => setAIProvider(e.target.value as 'openai' | 'gemini')}
+              value={planningMode}
+              onChange={(e) => setPlanningMode(e.target.value as 'gemini' | 'openai' | 'manual')}
               className="text-xs px-2 py-1 bg-gray-100 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
-              title="Select AI Provider"
+              title="Select planning mode"
             >
-              <option value="gemini">Gemini</option>
-              <option value="openai">OpenAI</option>
+              <option value="gemini">🤖 Gemini AI</option>
+              <option value="openai">🤖 OpenAI</option>
+              <option value="manual">⚙️ Manual</option>
             </select>
-            
-            <label className="flex items-center space-x-1.5 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={isFastMode}
-                onChange={(e) => setIsFastMode(e.target.checked)}
-                className="w-3.5 h-3.5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-1"
-              />
-              <span className="text-xs text-gray-700 font-medium">Fast</span>
-            </label>
+
             <div className="relative group">
               <div className="w-3.5 h-3.5 text-gray-400 hover:text-gray-600 cursor-help">
                 <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
@@ -114,7 +104,11 @@ export function ChatHeader({
               <div className="absolute top-full right-0 mt-2 w-48 p-2 text-xs text-white bg-gray-900 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-[60] shadow-lg">
                 <div className="relative">
                   <div className="absolute -top-1 right-3 w-2 h-2 bg-gray-900 transform rotate-45"></div>
-                  <p className="relative">Fast Mode skips AI processing and uses rule-based planning.</p>
+                  <p className="relative">
+                    <strong>Gemini AI:</strong> Free Google AI<br/>
+                    <strong>OpenAI:</strong> Requires API key<br/>
+                    <strong>Manual:</strong> Rule-based (fast)
+                  </p>
                 </div>
               </div>
             </div>
@@ -157,32 +151,19 @@ export function ChatHeader({
               + New Project
             </button>
 
-            {/* AI Settings */}
-            <div className="flex items-center space-x-3">
-              {/* AI Provider Toggle - Desktop */}
-              <div className="flex items-center space-x-2">
-                <label className="text-sm text-gray-700 font-medium">AI:</label>
-                <select
-                  value={aiProvider}
-                  onChange={(e) => setAIProvider(e.target.value as 'openai' | 'gemini')}
-                  className="text-sm px-2 py-1 bg-gray-100 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
-                  title="Select AI Provider"
-                >
-                  <option value="gemini">Gemini (Free)</option>
-                  <option value="openai">OpenAI</option>
-                </select>
-              </div>
-              
-              {/* Fast Mode Toggle */}
-              <label className="flex items-center space-x-2 cursor-pointer" title="Fast Mode: Skip AI processing and use rule-based planning. Useful for demonstrations and when API keys are not available due to time constraints and complexity of implementing API key rotation.">
-                <input
-                  type="checkbox"
-                  checked={isFastMode}
-                  onChange={(e) => setIsFastMode(e.target.checked)}
-                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
-                />
-                <span className="text-sm text-gray-700 font-medium">Fast Mode</span>
-              </label>
+            {/* Planning Mode Selector - Desktop */}
+            <div className="flex items-center space-x-2">
+              <label className="text-sm text-gray-700 font-medium">Planning:</label>
+              <select
+                value={planningMode}
+                onChange={(e) => setPlanningMode(e.target.value as 'gemini' | 'openai' | 'manual')}
+                className="text-sm px-3 py-1 bg-gray-100 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
+                title="Select planning mode: AI (Gemini/OpenAI) or Manual (rule-based)"
+              >
+                <option value="gemini">🤖 Gemini AI (Free)</option>
+                <option value="openai">🤖 OpenAI GPT</option>
+                <option value="manual">⚙️ Manual (Rules)</option>
+              </select>
               <div className="relative group">
                 <div className="w-4 h-4 text-gray-400 hover:text-gray-600 cursor-help">
                   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -190,12 +171,14 @@ export function ChatHeader({
                   </svg>
                 </div>
                 {/* Tooltip positioned to avoid cutoff */}
-                <div className="absolute top-full right-0 mt-2 w-56 sm:w-64 p-3 text-xs text-white bg-gray-900 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-[60] shadow-lg">
+                <div className="absolute top-full right-0 mt-2 w-64 p-3 text-xs text-white bg-gray-900 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-[60] shadow-lg">
                   <div className="relative">
                     {/* Arrow pointing up */}
                     <div className="absolute -top-1 right-3 w-2 h-2 bg-gray-900 transform rotate-45"></div>
                     <p className="relative">
-                      Skips AI processing due to time constraints and complexity of implementing API key rotation. Uses rule-based planning instead.
+                      <strong>Gemini AI:</strong> Uses Google&apos;s free Gemini 2.0 Flash model<br/>
+                      <strong>OpenAI GPT:</strong> Uses OpenAI models (requires API key)<br/>
+                      <strong>Manual:</strong> Rule-based planning without AI (fast, no API key needed)
                     </p>
                   </div>
                 </div>

@@ -28,13 +28,13 @@ export function ChatInterface({ onToggleSidebar }: ChatInterfaceProps = {}) {
   const inputRef = useRef<HTMLInputElement>(null)
 
   // Use new decoupled hooks - NO MORE DIRECT ATOM ACCESS!
-  const { isFastMode, setIsFastMode, aiProvider, setAIProvider } = useAIManager()
+  const { planningMode, setPlanningMode, isFastMode, aiProvider } = useAIManager()
   const repositoryManager = useRepositoryManager()
 
   // Use extracted hooks
   const { mobileExpandedPanel, setMobileExpandedPanel } = useChatLayout()
 
-  const { messages, isLoading, currentProject, sendMessage, clearChat } = useChat(isFastMode, aiProvider)
+  const { messages, isLoading, currentProject, sendMessage, clearChat } = useChat(isFastMode, aiProvider ?? undefined)
   const { selectedRepository, isRepositoryMode, isCreatingNewProject, startNewProject } = repositoryManager
 
   // User profile integration with localStorage
@@ -103,10 +103,8 @@ export function ChatInterface({ onToggleSidebar }: ChatInterfaceProps = {}) {
         isRepositoryMode={isRepositoryMode}
         selectedRepository={selectedRepository}
         currentProject={currentProject}
-        isFastMode={isFastMode}
-        setIsFastMode={setIsFastMode}
-        aiProvider={aiProvider}
-        setAIProvider={setAIProvider}
+        planningMode={planningMode}
+        setPlanningMode={setPlanningMode}
         isProfileInitialized={isProfileInitialized}
         userProfile={userProfile}
         messages={messages}

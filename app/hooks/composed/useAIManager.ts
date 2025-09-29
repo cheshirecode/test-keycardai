@@ -15,11 +15,16 @@
 
 import { useAtomManager } from '../core/useAtomManager'
 import type { AIProvider } from '@/lib/ai-service'
+import type { PlanningMode } from '@/store/aiRequestStore'
 
 export interface AIManager {
+  planningMode: PlanningMode
+  setPlanningMode: (mode: PlanningMode) => void
+  isManualMode: boolean
+  aiProvider: AIProvider | null
+  // Legacy compatibility
   isFastMode: boolean
   setIsFastMode: (fastMode: boolean) => void
-  aiProvider: AIProvider
   setAIProvider: (provider: AIProvider) => void
 }
 
@@ -28,11 +33,22 @@ export interface AIManager {
  */
 export function useAIManager(): AIManager {
   const { ai } = useAtomManager()
+  const planningMode = ai.getPlanningMode()
+  const isManualMode = ai.getIsManualMode()
+  const aiProvider = ai.getCurrentAIProvider()
 
   return {
-    isFastMode: ai.getIsFastMode(),
-    setIsFastMode: ai.setIsFastMode,
-    aiProvider: ai.getAIProvider(),
-    setAIProvider: ai.setAIProvider
+    planningMode,
+    setPlanningMode: ai.setPlanningMode,
+    isManualMode,
+    aiProvider,
+    // Legacy compatibility methods
+    isFastMode: isManualMode,
+    setIsFastMode: (fastMode: boolean) => {
+      ai.setPlanningMode(fastMode ? 'manual' : 'gemini')
+    },
+    setAIProvider: (provider: AIProvider) => {
+      ai.setPlanningMode(provider)
+    }
   }
 }

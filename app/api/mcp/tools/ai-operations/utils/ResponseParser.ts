@@ -3,6 +3,7 @@
  * Utilities for parsing AI responses
  */
 
+import * as path from 'path'
 import type { WorkflowAction } from '@/types/mcp/ai-operations'
 
 export class ResponseParser {
@@ -11,8 +12,18 @@ export class ResponseParser {
    */
   static parseModificationPlan(aiResponse: string): WorkflowAction[] {
     try {
-      // Clean the response to extract JSON
-      const cleanedResponse = aiResponse.trim().replace(/^```(?:json)?\s*/, '').replace(/\s*```$/, '')
+      // Clean the response to extract JSON - handle various formats
+      let cleanedResponse = aiResponse.trim()
+
+      // Remove markdown code blocks
+      cleanedResponse = cleanedResponse.replace(/^```(?:json)?\s*/, '').replace(/\s*```$/, '')
+
+      // Try to extract JSON array if wrapped in text
+      const jsonMatch = cleanedResponse.match(/\[[\s\S]*\]/)
+      if (jsonMatch) {
+        cleanedResponse = jsonMatch[0]
+      }
+
       const aiPlan = JSON.parse(cleanedResponse)
 
       // Validate the plan structure
@@ -23,13 +34,54 @@ export class ResponseParser {
         typeof step.params === 'object' &&
         typeof step.description === 'string'
       )) {
-        return aiPlan
+        // Transform params to match actual MCP tool expectations
+        return aiPlan.map(step => ({
+          ...step,
+          params: this.transformParamsForTool(step.tool, step.params)
+        }))
       } else {
-        throw new Error('Invalid AI plan structure')
+        throw new Error('Invalid AI plan structure - missing required fields')
       }
     } catch (error) {
       console.log(`[Response Parser] Failed to parse AI response: ${error}`)
+      console.log(`[Response Parser] Raw response: ${aiResponse.substring(0, 200)}...`)
       throw error
+    }
+  }
+
+  /**
+   * Transform AI-generated params to match MCP tool expectations
+   */
+  private static transformParamsForTool(toolName: string, params: Record<string, unknown>): Record<string, unknown> {
+    switch (toolName) {
+      case 'write_file':
+      case 'create_file':
+        // Transform projectPath + fileName -> path
+        if (params.projectPath && params.fileName) {
+          return {
+            ...params,
+            path: path.join(params.projectPath as string, params.fileName as string)
+          }
+        }
+        return params
+
+      case 'create_directory':
+        // Transform projectPath + dirName -> path, or just ensure path exists
+        if (params.projectPath && params.dirName) {
+          return {
+            path: path.join(params.projectPath as string, params.dirName as string)
+          }
+        } else if (params.projectPath && !params.path) {
+          // If only projectPath is provided, use it as path
+          return {
+            path: params.projectPath as string
+          }
+        }
+        return params
+
+      default:
+        // For other tools, pass params as-is
+        return params
     }
   }
 

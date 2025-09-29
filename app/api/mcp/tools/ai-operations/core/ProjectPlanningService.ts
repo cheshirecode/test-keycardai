@@ -129,14 +129,42 @@ export class ProjectPlanningService {
     try {
       // Use AIService.generateResponse which handles provider selection automatically
       const response = await AIService.generateResponse(
-        `Generate a detailed step-by-step plan for: ${requestDescription}
+        `CRITICAL INSTRUCTIONS: You MUST respond with ONLY a valid JSON array. NO explanatory text before or after. NO markdown. NO comments.
 
-Project Context:
+PROJECT CONTEXT:
 - Type: ${analysisData.projectType}
 - Framework: ${analysisData.framework}
 - Path: ${projectPath}
+- Dependencies: ${Object.keys(analysisData.dependencies || {}).join(', ')}
 
-Please provide a numbered list of specific actions to take.`,
+USER REQUEST: ${requestDescription}
+
+OUTPUT FORMAT (START YOUR RESPONSE WITH "[" AND END WITH "]"):
+[
+  {
+    "step": 1,
+    "action": "brief action name",
+    "tool": "write_file",
+    "params": { "projectPath": "${projectPath}", "fileName": "path/to/file.ts", "content": "..." },
+    "description": "what this step does"
+  }
+]
+
+AVAILABLE TOOLS:
+- write_file: params must include projectPath, fileName, content
+- create_directory: params must include projectPath, dirName
+- add_packages: params must include projectPath, packages (array)
+- generate_code: params must include projectPath, type, name, framework
+
+CRITICAL RULES:
+1. Start response with "[" (opening bracket)
+2. End response with "]" (closing bracket)
+3. NO text before or after the JSON array
+4. Always include "projectPath": "${projectPath}" in EVERY params object
+5. For write_file, MUST include "fileName" (relative path like "src/components/Button.tsx")
+6. For create_directory, MUST include "dirName" (relative path like "src/components")
+
+BEGIN JSON ARRAY NOW (no other text):`,
         `Project modification planning for ${analysisData.projectType} project`
       )
 
@@ -196,19 +224,36 @@ Please provide a numbered list of specific actions to take.`,
       }
     }
 
-    // Style/CSS patterns
-    if (lowerRequest.includes('style') || lowerRequest.includes('css') || lowerRequest.includes('design')) {
+    // Style/CSS/UI/UX patterns
+    if (lowerRequest.includes('style') || lowerRequest.includes('css') || lowerRequest.includes('design') ||
+        lowerRequest.includes('ui') || lowerRequest.includes('ux') || lowerRequest.includes('interface')) {
       plan.push({
         step: plan.length + 1,
-        action: 'Update styles',
+        action: 'Update styles and UI',
         tool: 'write_file',
         params: {
           projectPath,
           fileName: 'src/styles/custom.css',
           content: `/* Custom styles for: ${requestDescription} */\n.custom-styles {\n  /* Add your styles here */\n}\n`
         },
-        description: 'Add custom styles based on request'
+        description: 'Add custom styles and UI improvements based on request'
       })
+
+      // Add UI component if specifically mentioned
+      if (lowerRequest.includes('ui') || lowerRequest.includes('component')) {
+        plan.push({
+          step: plan.length + 1,
+          action: 'Create UI component',
+          tool: 'generate_code',
+          params: {
+            projectPath,
+            type: 'component',
+            name: 'UIImprovement',
+            framework: analysisData.framework || 'react'
+          },
+          description: 'Create UI component for improvement'
+        })
+      }
     }
 
     // API/service patterns
