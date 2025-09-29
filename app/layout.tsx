@@ -30,6 +30,7 @@ export default function RootLayout({
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased h-full w-full m-0 p-0`}
+        suppressHydrationWarning={true}
       >
         <ErrorBoundary>
           <WebVitalsMonitor />

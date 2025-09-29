@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react'
 import type { Message, MCPLogEntry } from '@/types'
+import { generateStableId } from '@/lib/hydration-utils'
 
 /**
  * Hook for managing chat messages state
@@ -15,7 +16,7 @@ export function useMessageManager() {
     mcpLogs?: MCPLogEntry[]
   ) => {
     const message: Message = {
-      id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      id: generateStableId('msg'),
       role,
       content,
       timestamp: new Date(),

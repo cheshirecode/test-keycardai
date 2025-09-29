@@ -31,6 +31,10 @@ export class Logger {
   }
 
   private generateSessionId(): string {
+    // Use a more predictable session ID for SSR compatibility
+    if (typeof window === 'undefined') {
+      return 'session_ssr'
+    }
     return `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
   }
 

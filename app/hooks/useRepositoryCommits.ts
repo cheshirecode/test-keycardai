@@ -64,8 +64,8 @@ const fetchCommits = async (
             hash: 'github-empty-' + Date.now(),
             author: 'GitHub Repository',
             email: 'github@repository',
-            date: new Date().toISOString(),
-            timestamp: Date.now(),
+            date: new Date(0).toISOString(),
+            timestamp: 0,
             message: `GitHub Repository: ${repoFullName}
 
 This repository exists on GitHub but appears to be empty.
@@ -183,8 +183,8 @@ This is a valid GitHub repository with no commits yet.`,
       hash: 'github-empty-' + Date.now(),
       author: 'GitHub Repository',
       email: 'github@repository',
-      date: new Date().toISOString(),
-      timestamp: Date.now(),
+      date: new Date(0).toISOString(),
+      timestamp: 0,
       message: `GitHub Repository: ${repoFullName || repoName}
 
 This repository exists on GitHub but appears to be empty or you may not have access to view its commits.
@@ -206,15 +206,15 @@ Check GitHub token permissions or repository status.`
   } else if (isScaffoldedProject) {
     console.log(`ℹ️ [useRepositoryCommits] This appears to be a scaffolded project - showing scaffolding info`)
     syntheticCommit = {
-      hash: 'scaffold-' + Date.now(),
+      hash: 'scaffold-synthetic',
       author: 'Project Scaffolder',
       email: 'scaffolder@system',
-      date: new Date().toISOString(),
-      timestamp: Date.now(),
+      date: new Date(0).toISOString(),
+      timestamp: 0,
       message: `This project was created using the Project Scaffolder tool.
 
 Repository: ${repoName}
-Created: ${new Date().toLocaleString()}
+Created: Project Scaffolder
 Type: Scaffolded Project
 
 The actual git history will be available once the repository is cloned locally or after manual git operations.`,
@@ -226,11 +226,11 @@ Once you start modifying this project, real git commits will appear here.`
   } else {
     console.log(`ℹ️ [useRepositoryCommits] Creating generic synthetic commit for local project`)
     syntheticCommit = {
-      hash: 'local-' + Date.now(),
+      hash: 'local-synthetic',
       author: 'Local Project',
       email: 'local@project',
-      date: new Date().toISOString(),
-      timestamp: Date.now(),
+      date: new Date(0).toISOString(),
+      timestamp: 0,
       message: `Local project: ${repoName}
 
 This appears to be a local project without git history available through the current methods.
