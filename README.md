@@ -91,13 +91,20 @@ graph TB
         State[Jotai State Management]
     end
 
-    subgraph "API Layer"
+    subgraph "MCP Server - Central Orchestration Hub"
         MCP[MCP Protocol Server]
         Routes[Next.js API Routes]
-        Tools[Modular MCP Tools]
+        
+        subgraph "MCP Tools - 15+ Specialized Operations"
+            AITools[AI Operations Tool]
+            GitHubTools[GitHub Integration Tool]
+            FileTools[File Operations Tool]
+            ProjectTools[Project Management Tool]
+            DevTools[Development Tools]
+        end
     end
 
-    subgraph "AI Integration"
+    subgraph "AI Providers - Intelligent Planning"
         AIProvider[Gemini 2.0 Flash / OpenAI]
         Analysis[Project Analysis]
         Planning[Modification Planning]
@@ -118,15 +125,23 @@ graph TB
     UI --> MCP
     Chat --> State
     State --> Routes
-    Routes --> Tools
-    Tools --> AIProvider
-    Tools --> GitHub
+    Routes --> AITools
+    Routes --> GitHubTools
+    Routes --> FileTools
+    Routes --> ProjectTools
+    Routes --> DevTools
+    
+    AITools --> AIProvider
     AIProvider --> Analysis
     Analysis --> Planning
+    Planning --> AITools
+    
+    GitHubTools --> GitHub
     GitHub --> Repos
     Repos --> Commits
+    
     UI --> Playwright
-    Tools --> Vitest
+    DevTools --> Vitest
     Vitest --> Coverage
 ```
 
@@ -136,34 +151,115 @@ graph TB
 sequenceDiagram
     participant User
     participant Frontend
-    participant MCP
-    participant AI
-    participant GitHub
-    participant Tests
+    participant MCP as MCP Server<br/>(Central Orchestrator)
+    participant AITool as AI Operations Tool
+    participant AI as Gemini/OpenAI
+    participant GitHubTool as GitHub Integration Tool
+    participant GitHub as GitHub API
+    participant FileTool as File Operations Tool
 
     User->>Frontend: "Create React TypeScript app"
     Frontend->>MCP: JSON-RPC 2.0 Request
-    MCP->>AI: Analyze project requirements
-    AI->>MCP: Project plan & structure
-    MCP->>GitHub: Create repository
-    GitHub->>MCP: Repository URL
-    MCP->>MCP: Generate project files
-    MCP->>GitHub: Push initial commit
-    MCP->>Tests: Run test suite
-    Tests->>MCP: Test results
+    
+    Note over MCP: MCP Server routes to AI Operations Tool
+    MCP->>AITool: analyze_project_request
+    AITool->>AI: Analyze requirements with AI provider
+    AI->>AITool: Project plan & structure
+    AITool->>MCP: Analysis complete
+    
+    Note over MCP: MCP orchestrates GitHub operations
+    MCP->>GitHubTool: create_repository
+    GitHubTool->>GitHub: Create repo via API
+    GitHub->>GitHubTool: Repository URL
+    GitHubTool->>MCP: Repository created
+    
+    Note over MCP: MCP manages file operations
+    MCP->>FileTool: write_file (multiple files)
+    FileTool->>FileTool: Generate project structure
+    FileTool->>MCP: Files ready
+    
+    Note over MCP: MCP coordinates final commit
+    MCP->>GitHubTool: commit_and_push
+    GitHubTool->>GitHub: Push initial commit
+    GitHub->>GitHubTool: Commit successful
+    GitHubTool->>MCP: Project deployed
+    
     MCP->>Frontend: Complete project details
-    Frontend->>User: Live project with GitHub repo
+    Frontend->>User: ✅ Live project with GitHub repo
+```
+
+### MCP Server: Central Orchestration Hub
+
+The **MCP (Model Context Protocol) Server** is the backbone of the application, acting as the central orchestrator for all operations:
+
+#### 🎯 Core Responsibilities
+- **Request Routing**: Receives JSON-RPC 2.0 requests from frontend and routes to appropriate tools
+- **Tool Orchestration**: Coordinates execution across 15+ specialized MCP tools
+- **State Management**: Maintains operation context and execution state
+- **Error Handling**: Centralized error management with comprehensive fallback strategies
+- **Type Safety**: Strongly-typed API contracts with runtime validation
+
+#### 🔧 MCP Tools Breakdown
+1. **AI Operations Tool** (`ai-operations.ts`)
+   - Project requirement analysis using Gemini/OpenAI
+   - Intelligent modification planning with context awareness
+   - Template selection with confidence scoring
+   - Automated code generation strategies
+
+2. **GitHub Integration Tool** (`github-operations.ts`)
+   - Repository creation and configuration
+   - File management (create, update, delete)
+   - Commit and push operations
+   - Branch management and PR operations
+
+3. **File Operations Tool** (`file-operations.ts`)
+   - Read, write, update, delete file operations
+   - Directory creation and management
+   - File search and pattern matching
+   - Content validation and sanitization
+
+4. **Project Management Tool** (`project-management.ts`)
+   - Project structure analysis
+   - Dependency management (npm/yarn)
+   - Configuration file generation
+   - Project scaffolding and templating
+
+5. **Development Tools** (`development-tools.ts`)
+   - Code generation (components, services, utilities)
+   - Package installation and updates
+   - Script execution (build, test, lint)
+   - Development environment setup
+
+#### 🔄 Request/Response Flow
+```typescript
+// Frontend sends JSON-RPC 2.0 request
+POST /api/mcp
+{
+  "method": "create_project_with_ai",
+  "params": { "description": "React TypeScript app", "planningMode": "gemini" },
+  "id": 1
+}
+
+// MCP Server orchestrates tools and returns result
+{
+  "result": { 
+    "repositoryUrl": "https://github.com/user/repo",
+    "projectName": "react-app",
+    "success": true 
+  },
+  "id": 1
+}
 ```
 
 ### Technology Stack
 
 - **Frontend**: Next.js 15, React 18, TypeScript, Tailwind CSS
-- **Backend**: Next.js API Routes with MCP Protocol
+- **Backend**: Next.js API Routes with MCP Protocol Server
 - **AI**: Google Gemini 2.0 Flash (default) or OpenAI integration with UI toggle
 - **State**: Jotai for global state management
-- **GitHub**: API integration for repository operations
-- **Testing**: Playwright (E2E) + Vitest (Unit) with coverage
-- **Deployment**: Vercel serverless deployment
+- **GitHub**: Direct API integration for repository operations
+- **Testing**: Playwright (E2E) + Vitest (Unit) with coverage reporting
+- **Deployment**: Vercel serverless with edge function optimization
 
 ### 🔧 **Serverless Architecture Considerations**
 
