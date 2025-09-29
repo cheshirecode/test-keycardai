@@ -1,8 +1,8 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import type { Repository, RepositoryPreviewProps } from '@/types'
-import { GlobeAltIcon, LockClosedIcon, ClockIcon, UserIcon, CodeBracketIcon } from '@heroicons/react/24/outline'
+import { GlobeAltIcon, LockClosedIcon, ClockIcon, CodeBracketIcon } from '@heroicons/react/24/outline'
 import { CONFIG } from '@/lib/config'
 import { useLatestCommit } from '@/hooks/useRepositoryCommits'
 import { useRepositoryDetails } from '@/hooks/useRepositoryDetails'
@@ -12,6 +12,7 @@ export function RepositoryPreview({ repository }: RepositoryPreviewProps) {
   // Use shared hooks for real data instead of mock data
   const { latestCommit, isLoading: isLoadingCommit } = useLatestCommit(repository)
   const { details, isLoading: isLoadingDetails, error, isGitHubAvailable } = useRepositoryDetails(repository)
+  const [isDownloading, setIsDownloading] = useState(false)
 
   const isLoading = isLoadingDetails
   const hasGitHubData = isGitHubAvailable && repository.fullName && repository.fullName.includes('/')
@@ -66,6 +67,46 @@ This project is licensed under the MIT License.
       month: 'long',
       day: 'numeric'
     })
+  }
+
+  const handleDownload = async () => {
+    if (isDownloading || !repository.fullName) return
+
+    setIsDownloading(true)
+    try {
+      const [owner, repo] = repository.fullName.split('/')
+      const response = await fetch(`/api/repositories/${owner}/${repo}/download`)
+
+      if (!response.ok) {
+        throw new Error(`Download failed: ${response.statusText}`)
+      }
+
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `${repository.name}.zip`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+
+      // Could add a toast notification here
+    } catch (error) {
+      console.error('Download failed:', error)
+      alert(`Download failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    } finally {
+      setIsDownloading(false)
+    }
+  }
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text)
+      // Could add a toast notification here
+    } catch (err) {
+      console.error('Failed to copy to clipboard:', err)
+    }
   }
 
   if (isLoading) {
@@ -278,54 +319,125 @@ This project is licensed under the MIT License.
         </div>
       </div>
 
-      {/* Latest Commit - Using real data from shared hook */}
-      <div>
-        <h4 className="font-medium text-gray-900 mb-2">Latest Commit</h4>
+      {/* Latest Commit - Enhanced display similar to ProjectPreview */}
+      <div className="bg-amber-50 border border-amber-200 p-4 rounded-lg">
+        <h4 className="font-medium text-amber-900 mb-3">📝 Latest Commit</h4>
         {isLoadingCommit ? (
-          <div className="bg-gray-50 rounded-lg p-3">
-            <div className="flex items-center gap-2 text-gray-600">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-400"></div>
-              <span className="text-sm">Loading commit history...</span>
-            </div>
+          <div className="flex items-center gap-2 text-amber-700">
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-amber-500"></div>
+            <span className="text-sm">Loading commit history...</span>
           </div>
         ) : latestCommit ? (
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-            <div className="flex items-start space-x-3">
-              <div className="flex-shrink-0">
-                <UserIcon className="w-5 h-5 text-amber-600" />
-              </div>
-              <div className="flex-1 min-w-0 space-y-2">
-                {/* Commit Message */}
-                <p className="text-xs sm:text-sm font-medium text-amber-900 break-words overflow-hidden">
-                  {latestCommit.subject}
-                </p>
+          <div className="space-y-3">
+            {/* Commit SHA - Prominent display */}
+            <div className="flex items-start gap-2">
+              <span className="text-xs font-medium text-amber-700 flex-shrink-0 mt-1">SHA:</span>
+              <code className="flex-1 bg-white px-2 sm:px-3 py-1 rounded border text-amber-900 font-mono text-xs sm:text-sm break-all overflow-hidden">
+                {latestCommit.hash.substring(0, 12)}
+              </code>
+              <button
+                onClick={() => copyToClipboard(latestCommit.hash)}
+                className="px-2 py-1 bg-amber-500 text-white text-xs rounded hover:bg-amber-600 transition-colors flex-shrink-0"
+                title="Copy full SHA"
+              >
+                📋
+              </button>
+            </div>
 
-                {/* Commit SHA */}
-                <div className="flex items-start gap-2">
-                  <span className="text-xs font-medium text-amber-700 flex-shrink-0 mt-1">SHA:</span>
-                  <code className="bg-white px-2 py-1 rounded border text-amber-900 font-mono text-xs break-all overflow-hidden min-w-0 flex-1">
-                    {latestCommit.hash.substring(0, 12)}
-                  </code>
-                </div>
+            {/* Commit Message - Prominent display */}
+            <div>
+              <span className="text-xs font-medium text-amber-700 block mb-1">Message:</span>
+              <p className="bg-white px-2 sm:px-3 py-2 rounded border text-amber-900 text-xs sm:text-sm font-medium break-words overflow-hidden">
+                {latestCommit.subject}
+              </p>
+            </div>
 
-                {/* Author and Date */}
-                <p className="text-xs text-amber-600">
-                  by {latestCommit.author} on {new Date(latestCommit.timestamp).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })}
-                </p>
+            {/* Additional commit info */}
+            <div className="text-xs text-amber-600 space-y-1 border-t border-amber-200 pt-2">
+              <div className="flex items-center justify-between">
+                <span>👤 <span className="font-medium">{latestCommit.author}</span></span>
+                <span>🕒 {new Date(latestCommit.timestamp).toLocaleString()}</span>
               </div>
             </div>
           </div>
         ) : (
-          <div className="bg-gray-50 rounded-lg p-3">
-            <p className="text-sm text-gray-600">No commit history available</p>
-          </div>
+          <p className="text-sm text-amber-700">No git commits found in this repository.</p>
         )}
+      </div>
+
+      {/* Repository Access Options - New section similar to ProjectPreview */}
+      <div>
+        <h4 className="font-medium text-gray-900 mb-3">Repository Access Options</h4>
+        <div className="space-y-3">
+          {/* Download ZIP */}
+          <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+            <div className="flex items-center justify-between mb-2">
+              <h5 className="font-medium text-blue-900">📦 Download as ZIP</h5>
+              <button
+                onClick={handleDownload}
+                disabled={isDownloading || !repository.fullName}
+                className="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {isDownloading ? 'Downloading...' : 'Download ZIP'}
+              </button>
+            </div>
+            <p className="text-sm text-blue-700">
+              Download the repository as a compressed ZIP file with all source code.
+            </p>
+          </div>
+
+          {/* GitHub Repository Info */}
+          <div className="bg-purple-50 border border-purple-200 p-4 rounded-lg">
+            <h5 className="font-medium text-purple-900 mb-3">🌿 GitHub Repository</h5>
+            <div className="space-y-3">
+              <div>
+                <p className="text-sm font-medium text-purple-800 mb-1">Repository URL:</p>
+                <div className="flex items-start gap-2">
+                  <code className="flex-1 px-2 py-1 bg-white rounded text-xs sm:text-sm text-purple-900 border break-all overflow-hidden">
+                    {repository.url}
+                  </code>
+                  <button
+                    onClick={() => copyToClipboard(repository.url)}
+                    className="px-2 py-1 bg-purple-500 text-white text-xs rounded hover:bg-purple-600 transition-colors flex-shrink-0"
+                    title="Copy to clipboard"
+                  >
+                    📋
+                  </button>
+                </div>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-purple-800 mb-1">Clone Command:</p>
+                <div className="flex items-start gap-2">
+                  <code className="flex-1 px-2 py-1 bg-white rounded text-xs sm:text-sm text-purple-900 border break-all overflow-hidden">
+                    git clone {repository.url}
+                  </code>
+                  <button
+                    onClick={() => copyToClipboard(`git clone ${repository.url}`)}
+                    className="px-2 py-1 bg-purple-500 text-white text-xs rounded hover:bg-purple-600 transition-colors flex-shrink-0"
+                    title="Copy to clipboard"
+                  >
+                    📋
+                  </button>
+                </div>
+              </div>
+              <p className="text-xs text-purple-600">
+                💡 Use the clone command to get the repository code locally
+              </p>
+            </div>
+          </div>
+
+          {/* Traditional Setup */}
+          <div className="bg-green-50 border border-green-200 p-4 rounded-lg">
+            <h5 className="font-medium text-green-900 mb-2">💻 Traditional Setup</h5>
+            <ol className="list-decimal list-inside space-y-1 text-sm text-green-800">
+              <li>git clone {repository.url}</li>
+              <li>cd {repository.name}</li>
+              <li>npm install</li>
+              <li>npm run dev</li>
+              <li>Start coding! 🚀</li>
+            </ol>
+          </div>
+        </div>
       </div>
     </div>
   )

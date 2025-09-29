@@ -211,7 +211,7 @@ export const repositoryManagement = {
           created_at: string
           updated_at: string
         }
-        
+
         return {
           id: repoData.full_name,
           name: repoData.name,
@@ -342,7 +342,7 @@ export const repositoryManagement = {
         id: result.repository.full_name as string,
         name: result.repository.name as string,
         fullName: result.repository.full_name as string,
-        url: result.repository.url as string,
+        url: result.repository.html_url as string,  // Use html_url for GitHub repository URL instead of API URL
         description: result.repository.description as string | null,
         private: result.repository.private as boolean,
         createdAt: result.repository.created_at as string,

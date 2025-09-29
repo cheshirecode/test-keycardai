@@ -294,7 +294,19 @@ export function ProjectPreview({ project }: ProjectPreviewProps) {
 
             {/* GitHub Repository Info */}
             <div className="bg-purple-50 border border-purple-200 p-4 rounded-lg">
-              <h5 className="font-medium text-purple-900 mb-3">🌿 GitHub Repository</h5>
+              <div className="flex items-center justify-between mb-3">
+                <h5 className="font-medium text-purple-900">🌿 GitHub Repository</h5>
+                {gitInfo && gitInfo.repositoryUrl && (
+                  <a
+                    href={gitInfo.repositoryUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3 py-1 bg-purple-500 text-white text-sm rounded hover:bg-purple-600 transition-colors"
+                  >
+                    View on GitHub
+                  </a>
+                )}
+              </div>
               {isLoadingGitInfo ? (
                 <div className="flex items-center gap-2 text-purple-700">
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-500"></div>
