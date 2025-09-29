@@ -34,7 +34,7 @@ export class AIService {
     }
     try {
       const result = await generateObject({
-        model: openai('gpt-3.5-turbo'),
+        model: openai('gpt-4o-mini'),
         schema: ProjectAnalysisSchema,
         prompt: `
 Analyze this project creation request and determine the best template:
@@ -73,7 +73,7 @@ Return the most appropriate template with confidence score and reasoning.
   static async generateMCPActions(userMessage: string, analysis: { projectType: string, projectName?: string, confidence: number }, projectPath: string, existingRepository?: { name: string, fullName: string, url: string, description?: string }) {
     try {
       const result = await generateObject({
-        model: openai('gpt-3.5-turbo'),
+        model: openai('gpt-4o-mini'),
         schema: MCPActionSchema,
         prompt: `
 Create MCP tool actions for this ${existingRepository ? 'REPOSITORY MODIFICATION' : 'PROJECT CREATION'} request:
