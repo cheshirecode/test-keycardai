@@ -1,4 +1,5 @@
 import { atom } from 'jotai'
+import type { AIProvider } from '@/lib/ai-service'
 
 /**
  * Atom to track projects with pending AI requests
@@ -48,6 +49,12 @@ export const pendingRequestCountAtom = atom((get) => {
  * Useful for demonstrations and when API keys are not available
  */
 export const isFastModeAtom = atom<boolean>(false)
+
+/**
+ * AI Provider atom - tracks which AI provider to use (OpenAI or Gemini)
+ * Defaults to Gemini for cost efficiency, falls back to OpenAI if Gemini key unavailable
+ */
+export const aiProviderAtom = atom<AIProvider>('gemini')
 
 /**
  * Action atoms for managing pending requests

@@ -1,6 +1,50 @@
 import { generateObject, generateText } from 'ai'
 import { openai } from '@ai-sdk/openai'
+import { google } from '@ai-sdk/google'
 import { z } from 'zod'
+
+// AI Provider types
+export type AIProvider = 'openai' | 'gemini'
+
+// Model configurations for each provider
+const MODELS = {
+  openai: {
+    structured: 'o3-mini', // For generateObject (structured output)
+    text: 'gpt-3.5-turbo'  // For generateText (simple text)
+  },
+  gemini: {
+    structured: 'gemini-1.5-flash', // Free tier model with structured output
+    text: 'gemini-1.5-flash'        // Free tier model for text generation
+  }
+} as const
+
+// Helper functions
+function getAIProvider(): AIProvider {
+  // Default to gemini for cost efficiency, fallback to openai
+  return process.env.GEMINI_API_KEY ? 'gemini' : 'openai'
+}
+
+function getModel(provider: AIProvider, type: 'structured' | 'text') {
+  switch (provider) {
+    case 'openai':
+      return openai(MODELS.openai[type])
+    case 'gemini':
+      return google(MODELS.gemini[type])
+    default:
+      return openai(MODELS.openai[type])
+  }
+}
+
+function hasProviderAPIKey(provider: AIProvider): boolean {
+  switch (provider) {
+    case 'openai':
+      return !!process.env.OPENAI_API_KEY
+    case 'gemini':
+      return !!process.env.GEMINI_API_KEY
+    default:
+      return false
+  }
+}
 
 const ProjectAnalysisSchema = z.object({
   projectType: z.enum(['react-ts', 'nextjs-fullstack', 'node-api', 'unknown']),
@@ -20,21 +64,28 @@ const MCPActionSchema = z.object({
 })
 
 export class AIService {
-  static async analyzeProjectRequest(userMessage: string) {
-    // Check if OpenAI API key is available
-    if (!process.env.OPENAI_API_KEY) {
-      console.warn('OpenAI API key not found, returning fallback analysis')
+  static async analyzeProjectRequest(userMessage: string, preferredProvider?: AIProvider) {
+    const provider = preferredProvider || getAIProvider()
+    
+    // Check if any AI provider is available
+    if (!hasProviderAPIKey(provider) && !hasProviderAPIKey('openai') && !hasProviderAPIKey('gemini')) {
+      console.warn('No AI API keys found, returning fallback analysis')
       return {
         projectType: 'react-ts' as const,
         features: ['basic-setup'],
         confidence: 0.3,
-        reasoning: 'Fallback analysis: OpenAI API key not configured. Using default React TypeScript template.',
+        reasoning: 'Fallback analysis: No AI API keys configured. Using default React TypeScript template.',
         projectName: 'my-project'
       }
     }
+
+    // Use fallback provider if preferred one isn't available
+    const activeProvider = hasProviderAPIKey(provider) ? provider : 
+                          (hasProviderAPIKey('gemini') ? 'gemini' : 'openai')
+
     try {
       const result = await generateObject({
-        model: openai('o3-mini'),
+        model: getModel(activeProvider, 'structured'),
         schema: ProjectAnalysisSchema,
         prompt: `
 Analyze this project creation request and determine the best template:
@@ -59,21 +110,25 @@ Return the most appropriate template with confidence score and reasoning.
 
       return result.object
     } catch (error) {
-      console.error('AI analysis failed:', error)
+      console.error(`AI analysis failed with ${activeProvider}:`, error)
       return {
         projectType: 'react-ts' as const,
         features: [],
         confidence: 0.5,
-        reasoning: 'Fallback to React TypeScript template due to analysis error',
+        reasoning: `Fallback to React TypeScript template due to ${activeProvider} analysis error`,
         projectName: 'my-project'
       }
     }
   }
 
-  static async generateMCPActions(userMessage: string, analysis: { projectType: string, projectName?: string, confidence: number }, projectPath: string, existingRepository?: { name: string, fullName: string, url: string, description?: string }) {
+  static async generateMCPActions(userMessage: string, analysis: { projectType: string, projectName?: string, confidence: number }, projectPath: string, existingRepository?: { name: string, fullName: string, url: string, description?: string }, preferredProvider?: AIProvider) {
+    const provider = preferredProvider || getAIProvider()
+    const activeProvider = hasProviderAPIKey(provider) ? provider : 
+                          (hasProviderAPIKey('gemini') ? 'gemini' : 'openai')
+
     try {
       const result = await generateObject({
-        model: openai('o3-mini'),
+        model: getModel(activeProvider, 'structured'),
         schema: MCPActionSchema,
         prompt: `
 Create MCP tool actions for this ${existingRepository ? 'REPOSITORY MODIFICATION' : 'PROJECT CREATION'} request:
@@ -127,7 +182,7 @@ Keep the response message minimal and action-focused.
 
       return result.object
     } catch (error) {
-      console.error('MCP action generation failed:', error)
+      console.error(`MCP action generation failed with ${activeProvider}:`, error)
       return {
         actions: [
           {
@@ -163,10 +218,14 @@ Keep the response message minimal and action-focused.
     }
   }
 
-  static async generateResponse(userMessage: string, context?: string) {
+  static async generateResponse(userMessage: string, context?: string, preferredProvider?: AIProvider) {
+    const provider = preferredProvider || getAIProvider()
+    const activeProvider = hasProviderAPIKey(provider) ? provider : 
+                          (hasProviderAPIKey('gemini') ? 'gemini' : 'openai')
+
     try {
       const result = await generateText({
-        model: openai('gpt-3.5-turbo'),
+        model: getModel(activeProvider, 'text'),
         prompt: `
 You are a helpful project scaffolding assistant. Respond to the user's message briefly and professionally.
 
@@ -185,17 +244,21 @@ If something went wrong, be helpful but concise.
     }
   }
 
-  static async optimizeProjectStructure(projectPath: string, projectType: string) {
+  static async optimizeProjectStructure(projectPath: string, projectType: string, preferredProvider?: AIProvider) {
+    const provider = preferredProvider || getAIProvider()
+    const activeProvider = hasProviderAPIKey(provider) ? provider : 
+                          (hasProviderAPIKey('gemini') ? 'gemini' : 'openai')
+
     try {
-      if (!process.env.OPENAI_API_KEY) {
+      if (!hasProviderAPIKey(activeProvider)) {
         return {
           recommendations: [],
-          reasoning: 'OpenAI API key not configured'
+          reasoning: `${activeProvider} API key not configured`
         }
       }
 
       const result = await generateText({
-        model: openai('gpt-3.5-turbo'),
+        model: getModel(activeProvider, 'text'),
         prompt: `
 Analyze this ${projectType} project structure and provide optimization recommendations:
 
@@ -215,11 +278,11 @@ Provide 3-5 specific, actionable recommendations.
 
       return {
         recommendations: result.text.split('\n').filter(line => line.trim().length > 0),
-        reasoning: `AI analysis for ${projectType} project optimization`,
+        reasoning: `${activeProvider.toUpperCase()} analysis for ${projectType} project optimization`,
         aiPowered: true
       }
     } catch (error) {
-      console.error('Project optimization failed:', error)
+      console.error(`Project optimization failed with ${activeProvider}:`, error)
       return {
         recommendations: [`Consider using standard ${projectType} project structure`],
         reasoning: 'Fallback recommendations due to AI service error'
@@ -227,18 +290,22 @@ Provide 3-5 specific, actionable recommendations.
     }
   }
 
-  static async recommendGitWorkflow(projectType: string, features: string[]) {
+  static async recommendGitWorkflow(projectType: string, features: string[], preferredProvider?: AIProvider) {
+    const provider = preferredProvider || getAIProvider()
+    const activeProvider = hasProviderAPIKey(provider) ? provider : 
+                          (hasProviderAPIKey('gemini') ? 'gemini' : 'openai')
+
     try {
-      if (!process.env.OPENAI_API_KEY) {
+      if (!hasProviderAPIKey(activeProvider)) {
         return {
           workflow: 'standard',
           steps: ['init', 'add', 'commit'],
-          reasoning: 'OpenAI API key not configured - using standard workflow'
+          reasoning: `${activeProvider} API key not configured - using standard workflow`
         }
       }
 
       const result = await generateText({
-        model: openai('gpt-3.5-turbo'),
+        model: getModel(activeProvider, 'text'),
         prompt: `
 Recommend the optimal Git workflow for this project:
 
@@ -259,10 +326,10 @@ Recommend workflow type and key steps.
         workflow: 'ai-optimized',
         recommendations: result.text,
         aiPowered: true,
-        reasoning: `AI-recommended workflow for ${projectType} with features: ${features.join(', ')}`
+        reasoning: `${activeProvider.toUpperCase()}-recommended workflow for ${projectType} with features: ${features.join(', ')}`
       }
     } catch (error) {
-      console.error('Git workflow recommendation failed:', error)
+      console.error(`Git workflow recommendation failed with ${activeProvider}:`, error)
       return {
         workflow: 'standard',
         steps: ['init', 'add', 'commit'],

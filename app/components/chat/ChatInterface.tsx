@@ -28,7 +28,7 @@ export function ChatInterface({ onToggleSidebar }: ChatInterfaceProps = {}) {
   const inputRef = useRef<HTMLInputElement>(null)
 
   // Use new decoupled hooks - NO MORE DIRECT ATOM ACCESS!
-  const { isFastMode, setIsFastMode } = useAIManager()
+  const { isFastMode, setIsFastMode, aiProvider, setAIProvider } = useAIManager()
   const repositoryManager = useRepositoryManager()
 
   // Use extracted hooks
@@ -105,6 +105,8 @@ export function ChatInterface({ onToggleSidebar }: ChatInterfaceProps = {}) {
         currentProject={currentProject}
         isFastMode={isFastMode}
         setIsFastMode={setIsFastMode}
+        aiProvider={aiProvider}
+        setAIProvider={setAIProvider}
         isProfileInitialized={isProfileInitialized}
         userProfile={userProfile}
         messages={messages}

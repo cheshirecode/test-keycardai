@@ -5,6 +5,7 @@
 
 import { ReactNode } from 'react'
 import { Message, ProjectInfo, Repository } from './index'
+import type { AIProvider } from '@/lib/ai-service'
 
 // Layout Components
 export interface MainLayoutProps {
@@ -23,6 +24,8 @@ export interface ChatHeaderProps {
   currentProject: ProjectInfo | null
   isFastMode: boolean
   setIsFastMode: (value: boolean) => void
+  aiProvider: AIProvider
+  setAIProvider: (provider: AIProvider) => void
   isProfileInitialized: boolean
   userProfile: { name: string; email: string }
   messages: Message[]

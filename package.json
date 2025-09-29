@@ -26,7 +26,9 @@
     "deploy:preview": "npx vercel"
   },
   "dependencies": {
+    "@ai-sdk/google": "^2.0.17",
     "@ai-sdk/openai": "^2.0.32",
+    "@google/generative-ai": "^0.24.1",
     "@heroicons/react": "^2.2.0",
     "@octokit/rest": "^22.0.0",
     "@types/adm-zip": "^0.5.7",

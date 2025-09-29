@@ -29,8 +29,9 @@ import {
   coordinatedCacheRefreshAtom,
   // isNewlyCreatedRepositoryAtom - removed due to type mismatch, needs refactoring
 } from '@/store/repositoryStore'
-import { isFastModeAtom } from '@/store/aiRequestStore'
+import { isFastModeAtom, aiProviderAtom } from '@/store/aiRequestStore'
 import type { Repository } from '@/types'
+import type { AIProvider } from '@/lib/ai-service'
 
 /**
  * Repository atom access interface
@@ -67,6 +68,8 @@ export interface RepositoryAtomManager {
 export interface AIAtomManager {
   getIsFastMode: () => boolean
   setIsFastMode: (fastMode: boolean) => void
+  getAIProvider: () => AIProvider
+  setAIProvider: (provider: AIProvider) => void
   getIsProjectPending: (projectId: string) => boolean
 }
 
@@ -95,6 +98,7 @@ export function useAtomManager() {
 
   // AI atoms
   const [isFastMode, setIsFastMode] = useAtom(isFastModeAtom)
+  const [aiProvider, setAIProvider] = useAtom(aiProviderAtom)
 
   const repositoryManager: RepositoryAtomManager = {
     // State getters
@@ -130,6 +134,8 @@ export function useAtomManager() {
   const aiManager: AIAtomManager = {
     getIsFastMode: () => isFastMode,
     setIsFastMode: setIsFastMode,
+    getAIProvider: () => aiProvider,
+    setAIProvider: setAIProvider,
     getIsProjectPending: (projectId: string) => {
       // TODO: Implement proper project pending state checking
       // This requires a different pattern since we can't use hooks in callbacks

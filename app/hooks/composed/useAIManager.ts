@@ -14,10 +14,13 @@
 'use client'
 
 import { useAtomManager } from '../core/useAtomManager'
+import type { AIProvider } from '@/lib/ai-service'
 
 export interface AIManager {
   isFastMode: boolean
   setIsFastMode: (fastMode: boolean) => void
+  aiProvider: AIProvider
+  setAIProvider: (provider: AIProvider) => void
 }
 
 /**
@@ -28,6 +31,8 @@ export function useAIManager(): AIManager {
 
   return {
     isFastMode: ai.getIsFastMode(),
-    setIsFastMode: ai.setIsFastMode
+    setIsFastMode: ai.setIsFastMode,
+    aiProvider: ai.getAIProvider(),
+    setAIProvider: ai.setAIProvider
   }
 }

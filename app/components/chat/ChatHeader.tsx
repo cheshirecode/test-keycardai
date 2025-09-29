@@ -14,6 +14,8 @@ export function ChatHeader({
   currentProject,
   isFastMode,
   setIsFastMode,
+  aiProvider,
+  setAIProvider,
   isProfileInitialized,
   userProfile,
   messages,
@@ -80,9 +82,20 @@ export function ChatHeader({
           </div>
         </div>
 
-        {/* Mobile: Second row for Fast Mode and status */}
+        {/* Mobile: Second row for AI settings and status */}
         <div className="flex items-center justify-between sm:hidden">
           <div className="flex items-center space-x-2">
+            {/* AI Provider Toggle - Mobile */}
+            <select
+              value={aiProvider}
+              onChange={(e) => setAIProvider(e.target.value as 'openai' | 'gemini')}
+              className="text-xs px-2 py-1 bg-gray-100 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
+              title="Select AI Provider"
+            >
+              <option value="gemini">Gemini</option>
+              <option value="openai">OpenAI</option>
+            </select>
+            
             <label className="flex items-center space-x-1.5 cursor-pointer">
               <input
                 type="checkbox"
@@ -90,7 +103,7 @@ export function ChatHeader({
                 onChange={(e) => setIsFastMode(e.target.checked)}
                 className="w-3.5 h-3.5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-1"
               />
-              <span className="text-xs text-gray-700 font-medium">Fast Mode</span>
+              <span className="text-xs text-gray-700 font-medium">Fast</span>
             </label>
             <div className="relative group">
               <div className="w-3.5 h-3.5 text-gray-400 hover:text-gray-600 cursor-help">
@@ -144,8 +157,23 @@ export function ChatHeader({
               + New Project
             </button>
 
-            {/* Fast Mode Toggle */}
-            <div className="flex items-center space-x-2">
+            {/* AI Settings */}
+            <div className="flex items-center space-x-3">
+              {/* AI Provider Toggle - Desktop */}
+              <div className="flex items-center space-x-2">
+                <label className="text-sm text-gray-700 font-medium">AI:</label>
+                <select
+                  value={aiProvider}
+                  onChange={(e) => setAIProvider(e.target.value as 'openai' | 'gemini')}
+                  className="text-sm px-2 py-1 bg-gray-100 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500"
+                  title="Select AI Provider"
+                >
+                  <option value="gemini">Gemini (Free)</option>
+                  <option value="openai">OpenAI</option>
+                </select>
+              </div>
+              
+              {/* Fast Mode Toggle */}
               <label className="flex items-center space-x-2 cursor-pointer" title="Fast Mode: Skip AI processing and use rule-based planning. Useful for demonstrations and when API keys are not available due to time constraints and complexity of implementing API key rotation.">
                 <input
                   type="checkbox"
