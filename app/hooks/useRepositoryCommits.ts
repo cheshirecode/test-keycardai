@@ -34,7 +34,7 @@ const fetchCommits = async (
 ): Promise<CommitsResponse> => {
   const repoName = repository.name
   const repoFullName = 'fullName' in repository ? repository.fullName : undefined
-  const repoUrl = 'repositoryUrl' in repository ? repository.repositoryUrl : 
+  const repoUrl = 'repositoryUrl' in repository ? repository.repositoryUrl :
                   'url' in repository ? repository.url : undefined
   const repoDescription = 'description' in repository ? repository.description : undefined
 
@@ -119,7 +119,7 @@ This is a valid GitHub repository with no commits yet.`,
 
   // Fallback to local file system search
   const sanitizedName = repoName.replace(/[^a-zA-Z0-9_-]/g, '_')
-  const isGitHubRepoForPaths = (repoFullName && repoFullName.includes('/')) || 
+  const isGitHubRepoForPaths = (repoFullName && repoFullName.includes('/')) ||
                                (repoUrl && repoUrl.includes('github.com'))
 
   // For GitHub repos, only check common clone locations
@@ -171,7 +171,7 @@ This is a valid GitHub repository with no commits yet.`,
   console.log(`❌ [useRepositoryCommits] No git repository found for ${repoName} via GitHub API or local paths`)
 
   // Create a synthetic commit for display with context about the repository type
-  const isGitHubRepo = (repoFullName && repoFullName.includes('/')) || 
+  const isGitHubRepo = (repoFullName && repoFullName.includes('/')) ||
                        (repoUrl && repoUrl.includes('github.com'))
   const isScaffoldedProject = repoName.includes('-') && /\d{13}/.test(repoName) && !isGitHubRepo
 
@@ -265,7 +265,7 @@ export function useRepositoryCommits(
     'repository-commits',
     repository.name,
     'fullName' in repository ? repository.fullName : undefined,
-    'repositoryUrl' in repository ? repository.repositoryUrl : 
+    'repositoryUrl' in repository ? repository.repositoryUrl :
     'url' in repository ? repository.url : undefined,
     limit
   ] : null
@@ -300,7 +300,7 @@ export function useLatestCommit(
   enabled: boolean = true
 ) {
   const { commits, isLoading, error, refresh } = useRepositoryCommits(repository, 1, enabled)
-  
+
   return {
     latestCommit: commits.length > 0 ? commits[0] : null,
     isLoading,

@@ -84,7 +84,7 @@ export class Logger {
     const logMethod = level === 'error' || level === 'critical' ? 'error' :
                     level === 'warn' ? 'warn' :
                     level === 'debug' ? 'debug' : 'log'
-    
+
     console[logMethod](`[${level.toUpperCase()}] ${message}`, data)
   }
 
@@ -93,7 +93,7 @@ export class Logger {
    */
   private bufferLog(logData: LogData): void {
     this.buffer.push(logData)
-    
+
     // Send immediately for critical errors
     if (logData.level === 'critical' || logData.level === 'error') {
       this.flush()
@@ -168,7 +168,7 @@ export class Logger {
       },
       stackTrace: error instanceof Error ? error.stack : undefined
     }
-    
+
     this.bufferLog(logData)
   }
 
@@ -189,7 +189,7 @@ export class Logger {
       },
       stackTrace: error instanceof Error ? error.stack : undefined
     }
-    
+
     this.bufferLog(logData)
   }
 
@@ -238,7 +238,7 @@ export class Logger {
 export const logger = new Logger()
 
 // Component-specific loggers
-export const createComponentLogger = (component: string) => 
+export const createComponentLogger = (component: string) =>
   logger.child({ component })
 
 // Performance measurement utility
@@ -249,12 +249,12 @@ export const measurePerformance = async <T>(
 ): Promise<T> => {
   const startTime = performance.now()
   const log = componentLogger || logger
-  
+
   try {
     log.debug(`Starting operation: ${operation}`)
     const result = await fn()
     const duration = performance.now() - startTime
-    
+
     log.performance(operation, duration, { success: true })
     return result
   } catch (error) {
