@@ -1,92 +1,74 @@
-# 🚀 AI-Powered Project Scaffolder
+# AI-Powered Project Scaffolder
 
-**Enterprise-grade full-stack platform with intelligent project creation**
+Full-stack application that transforms natural language descriptions into working codebases with automated GitHub integration.
 
 [![Deploy with Vercel](https://vercel.com/button)](https://test-keycardai.vercel.app)
 
-**🎯 Live Demo:** [https://test-keycardai.vercel.app](https://test-keycardai.vercel.app) | **📂 Repository:** [GitHub](https://github.com/cheshirecode/test-keycardai)
+**Live Demo:** [https://test-keycardai.vercel.app](https://test-keycardai.vercel.app) | **Repository:** [GitHub](https://github.com/cheshirecode/test-keycardai)
+
+## Overview
+
+AI-powered project scaffolding system using OpenAI GPT-3.5-turbo and MCP (Model Context Protocol) for intelligent project creation and repository management through natural conversation.
+
+**Core Features:**
+- Natural language to working code repositories
+- Real-time GitHub integration without local git dependencies  
+- Intelligent template selection with confidence scoring
+- Production-ready architecture with comprehensive testing
 
 ---
 
-## 💡 **Project Overview**
+## Technical Stack
 
-A sophisticated **AI-powered project scaffolding system** that transforms natural language descriptions into production-ready codebases with automated GitHub integration. Built as a showcase of modern frontend engineering, AI integration, and scalable architecture design.
+**Frontend**
+- React 18 + Next.js 15 with TypeScript
+- Tailwind CSS for responsive design
+- Jotai for state management
+- Real-time chat interface with streaming responses
 
-**Key Innovation:** Seamless integration of OpenAI GPT-3.5-turbo with MCP (Model Context Protocol) for intelligent project creation and real-time repository modification through natural conversation.
+**AI Integration**
+- OpenAI GPT-3.5-turbo with structured prompting
+- Confidence scoring and fallback strategies
+- Multi-step reasoning with conversation history
+- Automatic project type detection
 
-### 🎯 **For Interview Panel**
+**Backend Architecture**
+- MCP (Model Context Protocol) with 15+ specialized tools
+- Modular microservices design
+- Direct GitHub API integration
+- Server-side API key management
 
-This project demonstrates:
-- **Frontend Excellence**: Modern React 18 + Next.js 15 + TypeScript architecture
-- **AI Engineering**: Sophisticated LLM integration with confidence scoring and fallback strategies  
-- **System Design**: Scalable MCP protocol implementation with 15+ specialized tools
-- **Production Ready**: Comprehensive testing, monitoring, and security considerations
-
----
-
-## ✨ **Technical Highlights**
-
-### 🎨 **Frontend Engineering Excellence**
-- **React 18 + Next.js 15**: Server-side rendering, edge functions, and optimal performance
-- **TypeScript**: 100% type-safe implementation with strict mode enabled
-- **Modern UI/UX**: Tailwind CSS 3 with responsive design and accessibility features
-- **State Management**: Jotai for atomic state management with optimistic updates
-- **Real-time Interface**: Chat-based workflow with streaming responses and progress tracking
-
-### 🧠 **AI Integration & Intelligence**
-- **OpenAI Integration**: GPT-3.5-turbo with structured prompting and response validation
-- **Confidence Scoring**: AI-powered decision making with fallback strategies
-- **Context Awareness**: Multi-step reasoning with conversation history
-- **Template Intelligence**: Automatic project type detection and optimization
-- **Error Recovery**: Graceful degradation when AI services are unavailable
-
-### 🏗️ **System Architecture & Scalability**
-- **MCP Protocol**: Custom Model Context Protocol implementation with 15+ specialized tools
-- **Microservices Design**: Modular tool architecture for easy extension
-- **GitHub API Integration**: Direct repository operations without local git dependencies  
-- **Performance Monitoring**: Vercel Speed Insights + custom web vitals logging
-- **Security First**: Server-side API keys, input validation, and comprehensive error handling
-
-### 🚀 **Production-Grade Features**
-- **Comprehensive Testing**: Playwright E2E + Vitest unit tests with >90% coverage
-- **Error Monitoring**: Structured logging with external service integration
-- **Performance Optimization**: Edge functions, caching, and bundle optimization
-- **Deployment Ready**: Vercel integration with environment management
+**Production Features**
+- Playwright E2E + Vitest unit tests (>90% coverage)
+- Vercel Speed Insights performance monitoring
+- Structured logging and error tracking
+- Multi-platform deployment support
 
 ---
 
-## 🚀 **Quick Start & Demo**
+## Quick Start
 
-### Try It Live (No Setup Required)
-1. **Visit:** [https://test-keycardai.vercel.app](https://test-keycardai.vercel.app)
-2. **Ask:** "Create a React TypeScript dashboard with authentication"
-3. **Watch:** AI analyzes, plans, and creates a complete project with GitHub repository
+**Try Live Demo**
+1. Visit [https://test-keycardai.vercel.app](https://test-keycardai.vercel.app)
+2. Enter: "Create a React TypeScript dashboard with authentication"
+3. Watch AI create a complete project with GitHub repository
 
-### Example Interactions
+**Example Usage**
 ```
-👤 User: "Build a Next.js blog with Tailwind CSS and MDX support"
+User: "Build a Next.js blog with Tailwind CSS and MDX support"
 
-🤖 AI: Analyzing your request...
-   ✅ Detected: Next.js blog template
-   ✅ Features: Tailwind CSS, MDX, responsive design
-   ✅ Confidence: 95%
-   
-   Creating project with:
-   - Next.js 15 with App Router
-   - Tailwind CSS configuration
-   - MDX integration for blog posts
-   - Responsive layout components
-   - GitHub repository setup
-
-✨ Result: Complete project created in ~15 seconds with live GitHub repo
+AI Response:
+- Detected: Next.js blog template (95% confidence)
+- Created: Complete project in ~15 seconds
+- Includes: Next.js 15, Tailwind CSS, MDX integration, responsive design
+- Result: Working GitHub repository with full codebase
 ```
 
-### Key User Experience Features
-- **Natural Language Processing**: Understands complex project requirements
-- **Real-time Feedback**: Live progress updates during creation
-- **Intelligent Suggestions**: AI recommends optimal configurations
-- **Instant Results**: Working GitHub repository with complete codebase
-- **Repository Management**: View, modify, and download existing projects
+**Features**
+- Natural language project creation
+- Real-time progress updates
+- GitHub repository automation
+- Project modification and download
 
 ---
 
@@ -283,69 +265,39 @@ This architecture shift eliminates vendor lock-in while improving scalability, r
 
 ---
 
-## 🛠️ **Local Development Setup**
+## Local Development
 
-### 📋 **Prerequisites & System Requirements**
-```json
-{
-  "node": ">=18.0.0",
-  "npm": ">=9.0.0",
-  "required_apis": ["OpenAI API", "GitHub API"],
-  "optional": ["Vercel CLI for deployment"]
-}
-```
+**Prerequisites**
+- Node.js 18+
+- npm 9+
+- OpenAI API key
+- GitHub Personal Access Token
 
-### ⚡ **Quick Setup (< 2 minutes)**
+**Setup**
 ```bash
-# 1. Clone and install
 git clone https://github.com/cheshirecode/test-keycardai.git
-cd test-keycardai && npm install
-
-# 2. Environment configuration
+cd test-keycardai
+npm install
 cp .env.example .env.local
 ```
 
-### 🔑 **Environment Variables**
+**Environment Variables**
 ```bash
-# Required for full functionality
-OPENAI_API_KEY=sk-proj-...                    # OpenAI API key
-GITHUB_TOKEN=ghp_...                          # GitHub Personal Access Token
-GITHUB_OWNER=your-username                    # GitHub username/org
-
-# Optional (with fallbacks)
-LOG_LEVEL=info                                # Logging level
-ENABLE_PERFORMANCE_MONITORING=true           # Performance tracking
+OPENAI_API_KEY=sk-proj-...        # Required
+GITHUB_TOKEN=ghp_...              # Required
+GITHUB_OWNER=your-username        # Required
+LOG_LEVEL=info                    # Optional
 ```
 
-### 🚀 **Development Commands**
+**Development Commands**
 ```bash
-# Development
-npm run dev                 # Start dev server (http://localhost:3000)
-npm run dev --turbopack    # Start with Turbopack (faster builds)
-
-# Testing Suite
-npm run test               # Unit tests (Vitest)
-npm run test:coverage     # Coverage reports (>90% target)
-npm run test:e2e          # E2E tests (Playwright)
-npm run test:e2e:ui       # E2E with UI mode
-
-# Code Quality
-npm run lint              # ESLint analysis
-npm run type-check        # TypeScript validation
-npm run lint:fix          # Auto-fix linting issues
-
-# Production
+npm run dev                 # Start development server
+npm run test               # Run unit tests
+npm run test:e2e          # Run E2E tests
+npm run test:coverage     # Generate coverage report
+npm run lint              # Run linting
 npm run build             # Production build
-npm run start            # Production server
-npm run deploy:vercel    # Deploy to Vercel
 ```
-
-### 🎯 **Development Features**
-- **Hot Reload**: Instant updates with Turbopack
-- **Type Safety**: Full TypeScript with strict mode
-- **Testing**: Comprehensive test suite with coverage reports
-- **Linting**: ESLint + Prettier with pre-commit hooks
-- **Performance**: Real-time monitoring with Speed Insights
 
 ---
 
